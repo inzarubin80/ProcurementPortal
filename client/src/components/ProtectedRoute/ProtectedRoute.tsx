@@ -12,7 +12,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, user } = useSelector((state: RootState) => state.user);
+  const { isAuthenticated, isLoading, userID } = useSelector((state: RootState) => state.user);
 
   // Диспатчим getUser только один раз при монтировании
   useEffect(() => {
@@ -44,7 +44,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   // Если пользователь авторизован, показываем защищенный контент
-  if (isAuthenticated && user) {
+  if (isAuthenticated && userID) {
     return <>{children}</>;
   }
 

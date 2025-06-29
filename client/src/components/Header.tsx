@@ -9,7 +9,7 @@ import { logoutUser } from '../store/slices/userSlice';
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.user);
+  const { userID, isAuthenticated } = useSelector((state: RootState) => state.user);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -57,11 +57,11 @@ const Header: React.FC = () => {
           </>
         )}
         <Box sx={{ flexGrow: 1 }} />
-        
-        {isAuthenticated && user ? (
+        {isAuthenticated && userID ? (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {/* TODO: Вывести имя пользователя, если оно есть в другом слайсе или из API */}
             <Typography variant="body2" sx={{ color: 'white', mr: 1 }}>
-              {user.name}
+              Пользователь #{userID}
             </Typography>
             <IconButton
               size="large"
@@ -71,11 +71,7 @@ const Header: React.FC = () => {
               onClick={handleMenu}
               sx={{ color: 'white' }}
             >
-              {user.avatar_url ? (
-                <Avatar src={user.avatar_url} sx={{ width: 32, height: 32 }} />
-              ) : (
-                <AccountCircleIcon />
-              )}
+              <AccountCircleIcon />
             </IconButton>
             <Menu
               id="menu-appbar"
