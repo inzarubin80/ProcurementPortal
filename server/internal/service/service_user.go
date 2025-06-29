@@ -20,14 +20,6 @@ func (s *PokerService) GetUser(ctx context.Context, userID model.UserID) (*model
 		return nil, err
 	}
 
-	if user.EvaluationStrategy == "" {
-		user.EvaluationStrategy = "average"
-	}
-
-	if user.MaximumScore == 0 {
-		user.MaximumScore = 55
-	}
-
 	return user, err
 
 }

@@ -39,6 +39,20 @@ type (
 		Authorization(context.Context, string) (*model.Claims, error)
 		RefreshToken(ctx context.Context, refreshToken string) (*model.AuthData, error)
 		SetUserName(ctx context.Context, userID model.UserID, name string) error
+
+		// Exercise methods
+		CreateExercise(ctx context.Context, userID model.UserID, exercise *model.Exercise) (*model.Exercise, error)
+		GetExercises(ctx context.Context, userID model.UserID, page, pageSize int) (*model.ExerciseListResponse, error)
+		GetExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.Exercise, error)
+		UpdateExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, exercise *model.Exercise) (*model.Exercise, error)
+		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) error
+
+		// Category methods
+		CreateCategory(ctx context.Context, userID model.UserID, category *model.Category) (*model.Category, error)
+		GetCategories(ctx context.Context, userID model.UserID, page, pageSize int) (*model.CategoryListResponse, error)
+		GetCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID) (*model.Category, error)
+		UpdateCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID, category *model.Category) (*model.Category, error)
+		DeleteCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID) error
 	}
 
 	TokenService interface {
@@ -62,6 +76,20 @@ func (a *App) ListenAndServe() error {
 		a.config.path.getUser:     appHttp.NewGetUserHandler(a.store, a.config.path.getUser, a.pokerService),
 		a.config.path.ping:        appHttp.NewPingHandlerHandler(a.config.path.ping),
 		a.config.path.setUserName: appHttp.NewSetUserNameHandler(a.pokerService, a.config.path.setUserName),
+
+		// Exercise handlers
+		a.config.path.getExercises:   appHttp.NewGetExercisesHandler(a.pokerService, "get_exercises"),
+		a.config.path.createExercise: appHttp.NewCreateExerciseHandler(a.pokerService, "create_exercise"),
+		a.config.path.getExercise:    appHttp.NewGetExerciseHandler(a.pokerService, "get_exercise"),
+		a.config.path.updateExercise: appHttp.NewUpdateExerciseHandler(a.pokerService, "update_exercise"),
+		a.config.path.deleteExercise: appHttp.NewDeleteExerciseHandler(a.pokerService, "delete_exercise"),
+
+		// Category handlers
+		a.config.path.getCategories:  appHttp.NewGetCategoriesHandler(a.pokerService, "get_categories"),
+		a.config.path.createCategory: appHttp.NewCreateCategoryHandler(a.pokerService, "create_category"),
+		a.config.path.getCategory:    appHttp.NewGetCategoryHandler(a.pokerService, "get_category"),
+		a.config.path.updateCategory: appHttp.NewUpdateCategoryHandler(a.pokerService, "update_category"),
+		a.config.path.deleteCategory: appHttp.NewDeleteCategoryHandler(a.pokerService, "delete_category"),
 	}
 
 	for path, handler := range handlers {
@@ -72,6 +100,9 @@ func (a *App) ListenAndServe() error {
 	a.mux.Handle(a.config.path.session, appHttp.NewGetSessionHandler(a.store, a.config.path.session))
 	a.mux.Handle(a.config.path.refreshToken, appHttp.NewRefreshTokenHandler(a.pokerService, a.config.path.refreshToken, a.store))
 	a.mux.Handle(a.config.path.getProviders, appHttp.NewProvadersHandler(a.providersOauthConfFrontend, a.config.path.refreshToken))
+
+	// Languages handler (без авторизации)
+	a.mux.Handle(a.config.path.getLanguages, appHttp.NewGetLanguagesHandler("get_languages"))
 
 	fmt.Println("start server")
 	return a.server.ListenAndServe()

@@ -1,9 +1,14 @@
 -- +goose Up
 -- +goose StatementBegin
-SELECT 'up SQL query';
+CREATE TABLE users (
+    user_id BIGSERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    evaluation_strategy TEXT,
+    maximum_score INT 
+);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-SELECT 'down SQL query';
+DROP TABLE IF EXISTS users;
 -- +goose StatementEnd

@@ -1,18 +1,47 @@
 package model
 
 import (
+	"time"
+
 	"github.com/golang-jwt/jwt"
-	
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const (
-	Access_Token_Type         = "access_token"
-	Refresh_Token_Type        = "refresh_Token"
-	)
+	Access_Token_Type  = "access_token"
+	Refresh_Token_Type = "refresh_Token"
+
+	// Константы для языков программирования
+	LanguagePython     = "python"
+	LanguageJavaScript = "javascript"
+	LanguageJava       = "java"
+	LanguageCpp        = "cpp"
+	LanguageCSharp     = "csharp"
+	LanguageGo         = "go"
+	LanguageRust       = "rust"
+	LanguageKotlin     = "kotlin"
+	LanguageSwift      = "swift"
+	LanguageTypeScript = "typescript"
+
+	// Константы для статуса упражнений
+	ExerciseStatusNotStarted = "not_started"
+	ExerciseStatusInProgress = "in_progress"
+	ExerciseStatusCompleted  = "completed"
+	ExerciseStatusSkipped    = "skipped"
+
+	// Константы для статуса категорий
+	CategoryStatusActive   = "active"
+	CategoryStatusInactive = "inactive"
+	CategoryStatusArchived = "archived"
+)
 
 type (
-	UserID int64
-
+	UserID                  int64
+	ExerciseID              pgtype.UUID
+	Difficulty              string
+	ProgrammingLanguage     string
+	ExerciseStatus          string
+	CategoryID              pgtype.UUID
 	UserProfileFromProvider struct {
 		ProviderID   string `json:"provider_id"`   // Идентификатор пользователя у провайдера
 		Email        string `json:"email"`         // Email пользователя
@@ -30,16 +59,12 @@ type (
 		MaximumScore       int
 	}
 
-
-
 	UserAuthProviders struct {
 		UserID      UserID
 		ProviderUid string
 		Provider    string
 		Name        string
 	}
-
-
 
 	AuthData struct {
 		UserID       UserID
@@ -53,5 +78,77 @@ type (
 		jwt.StandardClaims
 	}
 
+	Exercise struct {
+		ID                  ExerciseID          `json:"id"`
+		UserID              UserID              `json:"user_id"` // кто создал
+		Title               string              `json:"title"`
+		Description         string              `json:"description"`
+		CategoryID          CategoryID          `json:"category_id"`
+		Difficulty          Difficulty          `json:"difficulty"`
+		ProgrammingLanguage ProgrammingLanguage `json:"programming_language"`
+		CodeToRemember      string              `json:"code_to_remember"` // код для запоминания
+		CreatedAt           time.Time           `json:"created_at"`
+		UpdatedAt           time.Time           `json:"updated_at"`
+		IsActive            bool                `json:"is_active"`
+	}
+
+	Category struct {
+		ID                  CategoryID          `json:"id"`
+		UserID              UserID              `json:"user_id"` // кто создал
+		Name                string              `json:"name"`
+		Description         string              `json:"description"`
+		ProgrammingLanguage ProgrammingLanguage `json:"programming_language"` // язык программирования
+		Color               string              `json:"color"`                // цвет для UI
+		Icon                string              `json:"icon"`                 // иконка для UI
+		Status              string              `json:"status"`               // active, inactive, archived
+		CreatedAt           time.Time           `json:"created_at"`
+		UpdatedAt           time.Time           `json:"updated_at"`
+		IsActive            bool                `json:"is_active"`
+	}
+
+	// Модели для API ответов
+	ExerciseListResponse struct {
+		Exercises []*Exercise `json:"exercises"`
+		Total     int         `json:"total"`
+		Page      int         `json:"page"`
+		PageSize  int         `json:"page_size"`
+		HasNext   bool        `json:"has_next"`
+		HasPrev   bool        `json:"has_prev"`
+	}
+
+	CategoryListResponse struct {
+		Categories []*Category `json:"categories"`
+		Total      int         `json:"total"`
+		Page       int         `json:"page"`
+		PageSize   int         `json:"page_size"`
+		HasNext    bool        `json:"has_next"`
+		HasPrev    bool        `json:"has_prev"`
+	}
 )
 
+// GetSupportedLanguages возвращает список поддерживаемых языков программирования
+func GetSupportedLanguages() []ProgrammingLanguage {
+	return []ProgrammingLanguage{
+		LanguagePython,
+		LanguageJavaScript,
+		LanguageJava,
+		LanguageCpp,
+		LanguageCSharp,
+		LanguageGo,
+		LanguageRust,
+		LanguageKotlin,
+		LanguageSwift,
+		LanguageTypeScript,
+	}
+}
+
+// IsSupportedLanguage проверяет, поддерживается ли язык программирования
+func IsSupportedLanguage(language ProgrammingLanguage) bool {
+	supported := GetSupportedLanguages()
+	for _, supportedLang := range supported {
+		if supportedLang == language {
+			return true
+		}
+	}
+	return false
+}

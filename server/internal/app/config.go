@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/base64"
 	"fmt"
-	"inzarubin80/MemCode/internal/app/defenitions"
 	"os"
 
 	authinterface "inzarubin80/MemCode/internal/app/authinterface"
@@ -17,11 +16,17 @@ type (
 		Addr string
 	}
 	path struct {
-		index, getPoker, createPoker, createTask,
-		getTasks, getTask, updateTask, deleteTask,
-		getComents, addComent, setVotingTask,
-		getVotingControlState, ws, login, session, refreshToken, logOut, getProviders,
-		ping, vote, getUserEstimates, setVotingControlState, setUserName, getUser, setUserSettings, getLastSession, deletePoker string
+		index, login, session, refreshToken, logOut, getProviders,
+		ping, setUserName, getUser string
+
+		// Exercise routes
+		getExercises, createExercise, getExercise, updateExercise, deleteExercise string
+
+		// Category routes
+		getCategories, createCategory, getCategory, updateCategory, deleteCategory string
+
+		// Languages route
+		getLanguages string
 	}
 
 	sectrets struct {
@@ -65,20 +70,30 @@ func NewConfig(opts Options) config {
 		path: path{
 			index:        "",
 			ping:         "GET /api/ping",
-			createPoker:  "POST	/api/poker",
 			getProviders: "GET /api/providers",
-
-			login:           "POST	/api/user/login",
-			setUserName:     "POST	/api/user/name",
-			setUserSettings: "POST	/api/user/settings",
-
-			getUser: "GET	/api/user",
-
+			login:        "POST	/api/user/login",
+			setUserName:  "POST	/api/user/name",
+			getUser:      "GET	/api/user",
 			refreshToken: "POST	/api/user/refresh",
 			session:      "GET		/api/user/session",
 			logOut:       "GET		/api/user/logout",
 
-			getLastSession: fmt.Sprintf("GET	/api/sessions/{%s}/{%s}", defenitions.Page, defenitions.PageSize),
+			// Exercise routes
+			getExercises:   "GET    /api/exercises",
+			createExercise: "POST   /api/exercises/create",
+			getExercise:    "GET    /api/exercises/get",
+			updateExercise: "PUT    /api/exercises/update",
+			deleteExercise: "DELETE /api/exercises/delete",
+
+			// Category routes
+			getCategories:  "GET    /api/categories",
+			createCategory: "POST   /api/categories/create",
+			getCategory:    "GET    /api/categories/get",
+			updateCategory: "PUT    /api/categories/update",
+			deleteCategory: "DELETE /api/categories/delete",
+
+			// Languages route
+			getLanguages: "GET    /api/languages",
 		},
 
 		sectrets: sectrets{
