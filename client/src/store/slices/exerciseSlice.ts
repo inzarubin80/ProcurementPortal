@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Exercise, ExerciseListResponse } from '../../types/api';
-import { exerciseApi } from '../../services/api';
+import { authAxios } from '../../service/http-common';
 
 interface ExerciseState {
   exercises: Exercise[];
@@ -32,57 +32,85 @@ const initialState: ExerciseState = {
 
 export const fetchExercises = createAsyncThunk(
   'exercises/fetchExercises',
-  async ({ page = 1, pageSize = 10 }: { page?: number; pageSize?: number }) => {
-    const response = await exerciseApi.getExercises(page, pageSize);
-    return response;
+  async ({ page = 1, pageSize = 10 }: { page?: number; pageSize?: number }, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.get(`/exercises?page=${page}&page_size=${pageSize}`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercises');
+    }
   }
 );
 
 export const fetchExerciseById = createAsyncThunk(
   'exercises/fetchExerciseById',
-  async (id: string) => {
-    const response = await exerciseApi.getExercise(id);
-    return response;
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.get(`/exercises/get?id=${id}`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercise');
+    }
   }
 );
 
 export const createExercise = createAsyncThunk(
   'exercises/createExercise',
-  async (exercise: Omit<Exercise, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    const response = await exerciseApi.createExercise(exercise);
-    return response;
+  async (exercise: Omit<Exercise, 'id' | 'user_id' | 'created_at' | 'updated_at'>, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.post('/exercises/create', exercise);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to create exercise');
+    }
   }
 );
 
 export const updateExercise = createAsyncThunk(
   'exercises/updateExercise',
-  async ({ id, updates }: { id: string; updates: Partial<Exercise> }) => {
-    const response = await exerciseApi.updateExercise(id, updates);
-    return response;
+  async ({ id, updates }: { id: string; updates: Partial<Exercise> }, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.put(`/exercises/update?id=${id}`, updates);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to update exercise');
+    }
   }
 );
 
 export const deleteExercise = createAsyncThunk(
   'exercises/deleteExercise',
-  async (id: string) => {
-    await exerciseApi.deleteExercise(id);
-    return id;
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await authAxios.delete(`/exercises/delete?id=${id}`);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to delete exercise');
+    }
   }
 );
 
 export const fetchExercisesByLanguage = createAsyncThunk(
   'exercises/fetchExercisesByLanguage',
-  async ({ language, page = 1, pageSize = 10 }: { language: string; page?: number; pageSize?: number }) => {
-    const response = await exerciseApi.getExercisesByLanguage(language, page, pageSize);
-    return response;
+  async ({ language, page = 1, pageSize = 10 }: { language: string; page?: number; pageSize?: number }, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.get(`/exercises?programming_language=${language}&page=${page}&page_size=${pageSize}`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercises by language');
+    }
   }
 );
 
 export const fetchExercisesByCategory = createAsyncThunk(
   'exercises/fetchExercisesByCategory',
-  async ({ categoryId, page = 1, pageSize = 10 }: { categoryId: string; page?: number; pageSize?: number }) => {
-    const response = await exerciseApi.getExercisesByCategory(categoryId, page, pageSize);
-    return response;
+  async ({ categoryId, page = 1, pageSize = 10 }: { categoryId: string; page?: number; pageSize?: number }, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.get(`/exercises?category_id=${categoryId}&page=${page}&page_size=${pageSize}`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercises by category');
+    }
   }
 );
 

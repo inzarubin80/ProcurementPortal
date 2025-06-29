@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Category, CategoryListResponse } from '../../types/api';
-import { categoryApi } from '../../services/api';
+import { authAxios } from '../../service/http-common';
 
 // Состояние слайса
 interface CategoryState {
@@ -35,41 +35,61 @@ const initialState: CategoryState = {
 // Async thunks
 export const fetchCategories = createAsyncThunk(
   'categories/fetchCategories',
-  async ({ page = 1, pageSize = 10 }: { page?: number; pageSize?: number }) => {
-    const response = await categoryApi.getCategories(page, pageSize);
-    return response;
+  async ({ page = 1, pageSize = 10 }: { page?: number; pageSize?: number }, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.get(`/categories?page=${page}&page_size=${pageSize}`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch categories');
+    }
   }
 );
 
 export const fetchCategoryById = createAsyncThunk(
   'categories/fetchCategoryById',
-  async (id: string) => {
-    const response = await categoryApi.getCategory(id);
-    return response;
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.get(`/categories/get?id=${id}`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch category');
+    }
   }
 );
 
 export const createCategory = createAsyncThunk(
   'categories/createCategory',
-  async (category: Omit<Category, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    const response = await categoryApi.createCategory(category);
-    return response;
+  async (category: Omit<Category, 'id' | 'user_id' | 'created_at' | 'updated_at'>, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.post('/categories/create', category);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to create category');
+    }
   }
 );
 
 export const updateCategory = createAsyncThunk(
   'categories/updateCategory',
-  async ({ id, updates }: { id: string; updates: Partial<Category> }) => {
-    const response = await categoryApi.updateCategory(id, updates);
-    return response;
+  async ({ id, updates }: { id: string; updates: Partial<Category> }, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.put(`/categories/update?id=${id}`, updates);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to update category');
+    }
   }
 );
 
 export const deleteCategory = createAsyncThunk(
   'categories/deleteCategory',
-  async (id: string) => {
-    await categoryApi.deleteCategory(id);
-    return id;
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await authAxios.delete(`/categories/delete?id=${id}`);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to delete category');
+    }
   }
 );
 

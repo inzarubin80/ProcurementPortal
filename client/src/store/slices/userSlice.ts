@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { authAxios } from '../../service/http-common';
 
 // Типы для пользователя
 export interface User {
@@ -67,24 +68,15 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Async thunk для получения сессии
-export const getSession = createAsyncThunk(
-  'user/getSession',
+// Async thunk для получения пользователя (замена getSession)
+export const getUser = createAsyncThunk(
+  'user/getUser',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/user/session`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Session not found');
-      }
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Session check failed');
+      const response = await authAxios.get('/user');
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'User check failed');
     }
   }
 );
@@ -137,6 +129,28 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+// Async thunk для обновления access token
+export const refreshAccessToken = createAsyncThunk(
+  'user/refreshAccessToken',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/user/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Token refresh failed');
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Token refresh failed');
+    }
+  }
+);
+
 // Создание slice
 const userSlice = createSlice({
   name: 'user',
@@ -151,6 +165,12 @@ const userSlice = createSlice({
       state.refreshToken = action.payload.refresh_token;
       state.isAuthenticated = true;
       state.error = null;
+      if (action.payload.access_token) {
+        localStorage.setItem('accessToken', action.payload.access_token);
+      }
+      if (action.payload.refresh_token) {
+        localStorage.setItem('refreshToken', action.payload.refresh_token);
+      }
     },
   },
   extraReducers: (builder) => {
@@ -167,22 +187,28 @@ const userSlice = createSlice({
         state.refreshToken = action.payload.refresh_token;
         state.isAuthenticated = true;
         state.error = null;
+        if (action.payload.access_token) {
+          localStorage.setItem('accessToken', action.payload.access_token);
+        }
+        if (action.payload.refresh_token) {
+          localStorage.setItem('refreshToken', action.payload.refresh_token);
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      // Get session
-      .addCase(getSession.pending, (state) => {
+      // Get user
+      .addCase(getUser.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(getSession.fulfilled, (state, action) => {
+      .addCase(getUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.error = null;
       })
-      .addCase(getSession.rejected, (state) => {
+      .addCase(getUser.rejected, (state) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;

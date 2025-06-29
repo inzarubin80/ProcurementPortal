@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { ProgrammingLanguage } from '../../types/api';
-import { languageApi } from '../../services/api';
+import { publicAxios } from '../../service/http-common';
 
 interface LanguageState {
   languages: ProgrammingLanguage[];
@@ -16,9 +16,13 @@ const initialState: LanguageState = {
 
 export const fetchLanguages = createAsyncThunk(
   'languages/fetchLanguages',
-  async () => {
-    const response = await languageApi.getLanguages();
-    return response;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await publicAxios.get('/languages');
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch languages');
+    }
   }
 );
 

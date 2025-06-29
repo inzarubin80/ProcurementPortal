@@ -6,7 +6,6 @@ import (
 	"inzarubin80/MemCode/internal/app/defenitions"
 	"inzarubin80/MemCode/internal/model"
 	"net/http"
-	"net/url"
 
 	"github.com/gorilla/sessions"
 )
@@ -55,14 +54,7 @@ func (m *AuthMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (m *AuthMiddleware) extractTokenFromHeader(r *http.Request) (string, error) {
 
 	token := ""
-	u, err := url.Parse(r.RequestURI)
-	if err == nil {
-		queryParams := u.Query()
-		token = queryParams.Get("accessToken")
-		if token != "" {
-			return token, nil
-		}
-	}
+
 
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {

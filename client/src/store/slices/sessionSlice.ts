@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Session, UserStats } from '../../types/api';
-import { sessionApi, statsApi } from '../../services/api';
+import { authAxios, publicAxios } from '../../service/http-common';
 
 interface SessionState {
   sessions: Session[];
@@ -18,25 +18,37 @@ const initialState: SessionState = {
 
 export const createSession = createAsyncThunk(
   'session/createSession',
-  async (sessionData: Omit<Session, 'id' | 'created_at'>) => {
-    const response = await sessionApi.createSession(sessionData);
-    return response;
+  async (sessionData: Omit<Session, 'id' | 'created_at'>, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.post('/sessions/create', sessionData);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to create session');
+    }
   }
 );
 
 export const fetchUserStats = createAsyncThunk(
   'session/fetchUserStats',
-  async () => {
-    const response = await statsApi.getUserStats();
-    return response;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await publicAxios.get('/user/stats');
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch user stats');
+    }
   }
 );
 
 export const fetchExerciseStats = createAsyncThunk(
   'session/fetchExerciseStats',
-  async (exerciseId: string) => {
-    const response = await statsApi.getExerciseStats(exerciseId);
-    return response;
+  async (exerciseId: string, { rejectWithValue }) => {
+    try {
+      const response = await publicAxios.get(`/exercises/${exerciseId}/stats`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercise stats');
+    }
   }
 );
 

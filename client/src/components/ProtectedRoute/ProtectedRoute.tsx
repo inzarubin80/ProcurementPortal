@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Box, CircularProgress, Container } from '@mui/material';
 import { RootState, AppDispatch } from '../../store';
-import { getSession } from '../../store/slices/userSlice';
+import { getUser } from '../../store/slices/userSlice';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,15 +14,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, user } = useSelector((state: RootState) => state.user);
 
+  // Диспатчим getUser только один раз при монтировании
   useEffect(() => {
-    // Если пользователь не авторизован, проверяем сессию
-    if (!isAuthenticated && !isLoading) {
-      dispatch(getSession());
-    }
-  }, [dispatch, isAuthenticated, isLoading]);
+    dispatch(getUser());
+  }, [dispatch]);
 
+  // Если после проверки пользователь не авторизован, редиректим на логин
   useEffect(() => {
-    // Если после проверки сессии пользователь все еще не авторизован, перенаправляем на логин
     if (!isLoading && !isAuthenticated) {
       navigate('/login');
     }

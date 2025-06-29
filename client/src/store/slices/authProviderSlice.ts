@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthProvider } from '../../types/api';
-import { authProviderApi } from '../../services/api';
+import { publicAxios } from '../../service/http-common';
 
 // Состояние слайса
 interface AuthProviderState {
@@ -19,9 +19,13 @@ const initialState: AuthProviderState = {
 // Async thunks
 export const fetchProviders = createAsyncThunk(
   'authProviders/fetchProviders',
-  async () => {
-    const response = await authProviderApi.getProviders();
-    return response;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await publicAxios.get('/providers');
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch providers');
+    }
   }
 );
 
