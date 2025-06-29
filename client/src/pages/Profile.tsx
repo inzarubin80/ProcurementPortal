@@ -18,18 +18,18 @@ const Profile: React.FC = () => {
   });
 
   useEffect(() => {
-    // Загружаем упражнения для подсчета статистики
+    // Загружаем каты для подсчета статистики
     dispatch(fetchExercises({ page: 1, pageSize: 100 }));
   }, [dispatch]);
 
   useEffect(() => {
-    // Обновляем статистику когда упражнения загружены
+    // Обновляем статистику когда каты загружены
     if (exercises.length > 0) {
       setStats({
         totalExercises: exercises.length,
         completedExercises: Math.floor(exercises.length * 0.7), // Мок: 70% выполнено
         averageScore: 85, // Мок: средний балл
-        totalTime: exercises.length * 15, // Мок: 15 минут на упражнение
+        totalTime: exercises.length * 15, // Мок: 15 минут на кату
       });
     }
   }, [exercises]);
@@ -50,11 +50,11 @@ const Profile: React.FC = () => {
         <Stack spacing={2}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <TrendingUp color="primary" sx={{ mr: 1 }} />
-            <Typography>Всего упражнений: <b>{stats.totalExercises}</b></Typography>
+            <Typography>Всего кат: <b>{stats.totalExercises}</b></Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <ThumbUp color="success" sx={{ mr: 1 }} />
-            <Typography>Выполнено упражнений: <b>{stats.completedExercises}</b></Typography>
+            <Typography>Выполнено кат: <b>{stats.completedExercises}</b></Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <CheckCircle color="info" sx={{ mr: 1 }} />

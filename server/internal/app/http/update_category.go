@@ -58,7 +58,7 @@ func (h *UpdateCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 
 	// Устанавливаем ID из URL
-	category.ID = model.CategoryID(categoryID)
+	category.ID = categoryID.String()
 	category.UserID = userID
 
 	// Валидация поддерживаемого языка программирования

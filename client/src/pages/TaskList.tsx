@@ -80,7 +80,7 @@ const TaskList: React.FC = () => {
         await dispatch(fetchCategories({ page: 1, pageSize: 100 }));
       }
       
-      // Загружаем упражнения с фильтрами
+      // Загружаем каты с фильтрами
       if (selectedLanguage !== 'all' && selectedCategory !== 'all') {
         await dispatch(fetchExercisesByCategory({ categoryId: selectedCategory, page: currentPage, pageSize: 10 }));
       } else if (selectedLanguage !== 'all') {
@@ -165,7 +165,7 @@ const TaskList: React.FC = () => {
         {/* Filters */}
         <Box sx={{ mb: 4, bgcolor: 'white', borderRadius: 4, boxShadow: 2, p: 3 }}>
           <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3, color: 'primary.main' }}>
-            Выберите упражнение
+            Выберите кату
           </Typography>
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} md={4}>
@@ -222,7 +222,7 @@ const TaskList: React.FC = () => {
           </Grid>
           <Box sx={{ mt: 3 }}>
             <Button variant="outlined" startIcon={<TrendingUpIcon />} disabled>
-              Всего упражнений: {pagination.total}
+              Всего кат: {pagination.total}
             </Button>
           </Box>
         </Box>

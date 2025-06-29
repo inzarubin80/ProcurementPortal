@@ -5,6 +5,8 @@ import (
 	"errors"
 	authinterface "inzarubin80/MemCode/internal/app/authinterface"
 	"inzarubin80/MemCode/internal/model"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type (
@@ -99,7 +101,7 @@ func (s *PokerService) UpdateExercise(ctx context.Context, userID model.UserID, 
 	}
 
 	// Устанавливаем ID и UserID из существующего упражнения
-	exercise.ID = exerciseID
+	exercise.ID = pgtype.UUID(exerciseID).String()
 	exercise.UserID = userID
 
 	return s.repository.UpdateExercise(ctx, exercise)
@@ -157,7 +159,7 @@ func (s *PokerService) UpdateCategory(ctx context.Context, userID model.UserID, 
 	}
 
 	// Устанавливаем ID и UserID из существующей категории
-	category.ID = categoryID
+	category.ID = pgtype.UUID(categoryID).String()
 	category.UserID = userID
 
 	return s.repository.UpdateCategory(ctx, category)

@@ -92,6 +92,11 @@ func (r *CategoryRepository) GetCategory(ctx context.Context, userID model.UserI
 }
 
 func (r *CategoryRepository) UpdateCategory(ctx context.Context, category *model.Category) (*model.Category, error) {
+	var categoryUUID pgtype.UUID
+	if err := categoryUUID.Scan(category.ID); err != nil {
+		return nil, err
+	}
+
 	dbCategory, err := r.queries.UpdateCategory(ctx, &sqlc_repository.UpdateCategoryParams{
 		Name:                category.Name,
 		Description:         &category.Description,
@@ -99,7 +104,7 @@ func (r *CategoryRepository) UpdateCategory(ctx context.Context, category *model
 		Color:               &category.Color,
 		Icon:                &category.Icon,
 		Status:              &category.Status,
-		ID:                  pgtype.UUID(category.ID),
+		ID:                  categoryUUID,
 		UserID:              int64(category.UserID),
 	})
 	if err != nil {
@@ -124,7 +129,7 @@ func convertDBCategoryToModel(dbCategory *sqlc_repository.Category) *model.Categ
 		return nil
 	}
 	return &model.Category{
-		ID:                  model.CategoryID(dbCategory.ID),
+		ID:                  dbCategory.ID.String(),
 		UserID:              model.UserID(dbCategory.UserID),
 		Name:                dbCategory.Name,
 		Description:         derefString(dbCategory.Description),

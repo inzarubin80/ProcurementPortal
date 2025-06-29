@@ -19,11 +19,16 @@ func NewExerciseRepository(queries *sqlc_repository.Queries) *ExerciseRepository
 }
 
 func (r *ExerciseRepository) CreateExercise(ctx context.Context, exercise *model.Exercise) (*model.Exercise, error) {
+	var categoryUUID pgtype.UUID
+	if err := categoryUUID.Scan(exercise.CategoryID); err != nil {
+		return nil, err
+	}
+
 	params := &sqlc_repository.CreateExerciseParams{
 		UserID:              int64(exercise.UserID),
 		Title:               exercise.Title,
 		Description:         &exercise.Description,
-		CategoryID:          pgtype.UUID(exercise.CategoryID),
+		CategoryID:          categoryUUID,
 		Difficulty:          string(exercise.Difficulty),
 		ProgrammingLanguage: string(exercise.ProgrammingLanguage),
 		CodeToRemember:      exercise.CodeToRemember,
@@ -80,14 +85,24 @@ func (r *ExerciseRepository) GetExercise(ctx context.Context, userID model.UserI
 }
 
 func (r *ExerciseRepository) UpdateExercise(ctx context.Context, exercise *model.Exercise) (*model.Exercise, error) {
+	var categoryUUID pgtype.UUID
+	if err := categoryUUID.Scan(exercise.CategoryID); err != nil {
+		return nil, err
+	}
+
+	var exerciseUUID pgtype.UUID
+	if err := exerciseUUID.Scan(exercise.ID); err != nil {
+		return nil, err
+	}
+
 	params := &sqlc_repository.UpdateExerciseParams{
 		Title:               exercise.Title,
 		Description:         &exercise.Description,
-		CategoryID:          pgtype.UUID(exercise.CategoryID),
+		CategoryID:          categoryUUID,
 		Difficulty:          string(exercise.Difficulty),
 		ProgrammingLanguage: string(exercise.ProgrammingLanguage),
 		CodeToRemember:      exercise.CodeToRemember,
-		ID:                  pgtype.UUID(exercise.ID),
+		ID:                  exerciseUUID,
 		UserID:              int64(exercise.UserID),
 	}
 
@@ -126,11 +141,11 @@ func convertSQLCExerciseToModel(sqlcExercise *sqlc_repository.Exercise) *model.E
 	}
 
 	return &model.Exercise{
-		ID:                  model.ExerciseID(sqlcExercise.ID),
+		ID:                  sqlcExercise.ID.String(),
 		UserID:              model.UserID(sqlcExercise.UserID),
 		Title:               sqlcExercise.Title,
 		Description:         description,
-		CategoryID:          model.CategoryID(sqlcExercise.CategoryID),
+		CategoryID:          sqlcExercise.CategoryID.String(),
 		Difficulty:          model.Difficulty(sqlcExercise.Difficulty),
 		ProgrammingLanguage: model.ProgrammingLanguage(sqlcExercise.ProgrammingLanguage),
 		CodeToRemember:      sqlcExercise.CodeToRemember,

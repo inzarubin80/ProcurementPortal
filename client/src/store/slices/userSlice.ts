@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { authAxios } from '../../service/http-common';
+import { getStoredToken, getStoredUserID, clearStoredAuth, setStoredAuth, isTokenValid } from '../../utils/authUtils';
 
 // Типы для пользователя
 export interface User {
@@ -30,9 +31,9 @@ interface UserState {
 
 // Начальное состояние
 const initialState: UserState = {
-  userID: localStorage.getItem('userID') ? Number(localStorage.getItem('userID')) : null,
-  accessToken: localStorage.getItem('accessToken') || null,
-  isAuthenticated: false,
+  userID: getStoredUserID(),
+  accessToken: getStoredToken(),
+  isAuthenticated: isTokenValid(),
   isLoading: false,
   error: null,
 };
@@ -104,6 +105,28 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+// Async thunk для проверки токена при загрузке приложения
+export const checkAuthToken = createAsyncThunk(
+  'user/checkAuthToken',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = getStoredToken();
+      const userID = getStoredUserID();
+      
+      if (!token || !userID) {
+        throw new Error('No token found');
+      }
+
+      const response = await authAxios.get('/user');
+      return response.data;
+    } catch (error: any) {
+      // Если токен недействителен, очищаем localStorage
+      clearStoredAuth();
+      return rejectWithValue(error?.response?.data?.message || 'Token validation failed');
+    }
+  }
+);
+
 // Async thunk для обновления access token
 export const refreshAccessToken = createAsyncThunk(
   'user/refreshAccessToken',
@@ -139,12 +162,7 @@ const userSlice = createSlice({
       state.accessToken = action.payload.Token;
       state.isAuthenticated = true;
       state.error = null;
-      if (action.payload.Token) {
-        localStorage.setItem('accessToken', action.payload.Token);
-      }
-      if (action.payload.UserID) {
-        localStorage.setItem('userID', String(action.payload.UserID));
-      }
+      setStoredAuth(action.payload.Token, action.payload.UserID);
     },
   },
   extraReducers: (builder) => {
@@ -160,12 +178,7 @@ const userSlice = createSlice({
         state.accessToken = action.payload.Token;
         state.isAuthenticated = true;
         state.error = null;
-        if (action.payload.Token) {
-          localStorage.setItem('accessToken', action.payload.Token);
-        }
-        if (action.payload.UserID) {
-          localStorage.setItem('userID', String(action.payload.UserID));
-        }
+        setStoredAuth(action.payload.Token, action.payload.UserID);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -185,6 +198,7 @@ const userSlice = createSlice({
         state.isAuthenticated = false;
         state.userID = null;
         state.accessToken = null;
+        clearStoredAuth();
       })
       // Update name
       .addCase(updateUserName.fulfilled, (state, action) => {
@@ -196,6 +210,33 @@ const userSlice = createSlice({
         state.accessToken = null;
         state.isAuthenticated = false;
         state.error = null;
+        clearStoredAuth();
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        // Даже если logout на сервере не удался, очищаем локальное состояние
+        state.userID = null;
+        state.accessToken = null;
+        state.isAuthenticated = false;
+        state.error = null;
+        clearStoredAuth();
+      })
+      // Check auth token
+      .addCase(checkAuthToken.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(checkAuthToken.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(checkAuthToken.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.userID = null;
+        state.accessToken = null;
+        state.error = action.payload as string;
+        clearStoredAuth();
       });
   },
 });

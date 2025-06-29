@@ -39,9 +39,9 @@ const ManageContent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   
   // Redux state
-  const { exercises, loading: exercisesLoading } = useSelector((state: RootState) => state.exercises);
-  const { categories, loading: categoriesLoading } = useSelector((state: RootState) => state.categories);
-  const { languages, loading: languagesLoading } = useSelector((state: RootState) => state.languages);
+  const { exercises, loading: exercisesLoading, error: exercisesError } = useSelector((state: RootState) => state.exercises);
+  const { categories, loading: categoriesLoading, error: categoriesError } = useSelector((state: RootState) => state.categories);
+  const { languages, loading: languagesLoading, error: languagesError } = useSelector((state: RootState) => state.languages);
   
   // Local state
   const [tab, setTab] = useState(0);
@@ -74,6 +74,25 @@ const ManageContent: React.FC = () => {
     }
   };
 
+  // Обработка ошибок из Redux store
+  useEffect(() => {
+    if (exercisesError) {
+      setSnackbar({open: true, message: exercisesError, severity: 'error'});
+    }
+  }, [exercisesError]);
+
+  useEffect(() => {
+    if (categoriesError) {
+      setSnackbar({open: true, message: categoriesError, severity: 'error'});
+    }
+  }, [categoriesError]);
+
+  useEffect(() => {
+    if (languagesError) {
+      setSnackbar({open: true, message: languagesError, severity: 'error'});
+    }
+  }, [languagesError]);
+
   // --- Handlers ---
   const handleTabChange = (_: any, newValue: number) => setTab(newValue);
   const handleLanguageChange = (e: any) => setSelectedLanguage(e.target.value);
@@ -104,38 +123,49 @@ const ManageContent: React.FC = () => {
     try {
       if (entityType === 'exercise') {
         if (dialogType === 'add') {
-          await dispatch(createExercise(form));
-          setSnackbar({open: true, message: 'Упражнение добавлено', severity: 'success'});
+          await dispatch(createExercise(form)).unwrap();
+          setSnackbar({open: true, message: 'Ката создана', severity: 'success'});
         } else {
-          await dispatch(updateExercise({ id: form.id, updates: form }));
-          setSnackbar({open: true, message: 'Упражнение обновлено', severity: 'success'});
+          await dispatch(updateExercise({ id: editItem.id, updates: form })).unwrap();
+          setSnackbar({open: true, message: 'Ката обновлена', severity: 'success'});
         }
       } else {
         if (dialogType === 'add') {
-          await dispatch(createCategory(form));
-          setSnackbar({open: true, message: 'Категория добавлена', severity: 'success'});
+          await dispatch(createCategory(form)).unwrap();
+          setSnackbar({open: true, message: 'Ката создана', severity: 'success'});
         } else {
-          await dispatch(updateCategory({ id: form.id, updates: form }));
-          setSnackbar({open: true, message: 'Категория обновлена', severity: 'success'});
+          await dispatch(updateCategory({ id: editItem.id, updates: form })).unwrap();
+          setSnackbar({open: true, message: 'Ката обновлена', severity: 'success'});
         }
       }
       setOpenDialog(false);
-    } catch (error) {
-      setSnackbar({open: true, message: 'Ошибка при сохранении', severity: 'error'});
+    } catch (error: any) {
+      const errorMessage = error?.message || error?.toString() || 'Ошибка при сохранении';
+      setSnackbar({open: true, message: errorMessage, severity: 'error'});
     }
   };
   
   const handleDelete = async (type: 'exercise' | 'category', id: string) => {
     try {
       if (type === 'exercise') {
-        await dispatch(deleteExercise(id));
-        setSnackbar({open: true, message: 'Упражнение удалено', severity: 'success'});
+        await dispatch(deleteExercise(id)).unwrap();
+        setSnackbar({open: true, message: 'Ката удалена', severity: 'success'});
       } else {
-        await dispatch(deleteCategory(id));
-        setSnackbar({open: true, message: 'Категория удалена', severity: 'success'});
+        await dispatch(deleteCategory(id)).unwrap();
+        setSnackbar({open: true, message: 'Ката удалена', severity: 'success'});
       }
-    } catch (error) {
-      setSnackbar({open: true, message: 'Ошибка при удалении', severity: 'error'});
+    } catch (error: any) {
+      let errorMessage = error?.message || error?.toString() || 'Ошибка при удалении';
+      // Дружелюбные сообщения для удаления категории
+      if (type === 'category') {
+        if (errorMessage.includes('category contains exercises')) {
+          errorMessage = 'Нельзя удалить категорию, в которой есть каты';
+        }
+        if (errorMessage.includes('category not found')) {
+          errorMessage = 'Ката не найдена или не принадлежит вам';
+        }
+      }
+      setSnackbar({open: true, message: errorMessage, severity: 'error'});
     }
   };
 
@@ -156,8 +186,8 @@ const ManageContent: React.FC = () => {
       <Paper sx={{ p: 2, mb: 3, borderRadius: 3, boxShadow: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>Управление контентом</Typography>
         <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 2 }}>
-          <Tab label="Упражнения" />
-          <Tab label="Категории" />
+          <Tab label="Каты" />
+          <Tab label="Каты" />
         </Tabs>
         <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
           <FormControl sx={{ minWidth: 200 }}>
@@ -168,7 +198,7 @@ const ManageContent: React.FC = () => {
             </Select>
           </FormControl>
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => openAddDialog(tab === 0 ? 'exercise' : 'category')}>
-            Добавить {tab === 0 ? 'упражнение' : 'категорию'}
+            Добавить {tab === 0 ? 'кату' : 'категорию'}
           </Button>
         </Stack>
         {tab === 0 ? (
@@ -227,7 +257,7 @@ const ManageContent: React.FC = () => {
       </Paper>
       {/* Диалог добавления/редактирования */}
       <Dialog open={openDialog} onClose={closeDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{dialogType === 'add' ? 'Добавить' : 'Редактировать'} {entityType === 'exercise' ? 'упражнение' : 'категорию'}</DialogTitle>
+        <DialogTitle>{dialogType === 'add' ? 'Добавить' : 'Редактировать'} {entityType === 'exercise' ? 'кату' : 'категорию'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             {entityType === 'exercise' ? (
@@ -324,20 +354,6 @@ const ManageContent: React.FC = () => {
                     {languages.map(l => <MenuItem key={l.value} value={l.value}>{l.name}</MenuItem>)}
                   </Select>
                 </FormControl>
-                <TextField
-                  name="color"
-                  label="Цвет"
-                  value={form.color || ''}
-                  onChange={handleFormChange}
-                  fullWidth
-                />
-                <TextField
-                  name="icon"
-                  label="Иконка"
-                  value={form.icon || ''}
-                  onChange={handleFormChange}
-                  fullWidth
-                />
               </>
             )}
           </Stack>
@@ -352,7 +368,10 @@ const ManageContent: React.FC = () => {
         autoHideDuration={6000}
         onClose={() => setSnackbar({...snackbar, open: false})}
       >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar({...snackbar, open: false})}>
+        <Alert 
+          severity={snackbar.severity} 
+          onClose={() => setSnackbar({...snackbar, open: false})}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -22,6 +22,7 @@ const (
 	LanguageKotlin     = "kotlin"
 	LanguageSwift      = "swift"
 	LanguageTypeScript = "typescript"
+	Language1C         = "1c"
 
 	// Константы для статуса упражнений
 	ExerciseStatusNotStarted = "not_started"
@@ -79,11 +80,11 @@ type (
 	}
 
 	Exercise struct {
-		ID                  ExerciseID          `json:"id"`
+		ID                  string              `json:"id"`
 		UserID              UserID              `json:"user_id"` // кто создал
 		Title               string              `json:"title"`
 		Description         string              `json:"description"`
-		CategoryID          CategoryID          `json:"category_id"`
+		CategoryID          string              `json:"category_id"`
 		Difficulty          Difficulty          `json:"difficulty"`
 		ProgrammingLanguage ProgrammingLanguage `json:"programming_language"`
 		CodeToRemember      string              `json:"code_to_remember"` // код для запоминания
@@ -93,7 +94,7 @@ type (
 	}
 
 	Category struct {
-		ID                  CategoryID          `json:"id"`
+		ID                  string              `json:"id"`
 		UserID              UserID              `json:"user_id"` // кто создал
 		Name                string              `json:"name"`
 		Description         string              `json:"description"`
@@ -139,6 +140,7 @@ func GetSupportedLanguages() []ProgrammingLanguage {
 		LanguageKotlin,
 		LanguageSwift,
 		LanguageTypeScript,
+		Language1C,
 	}
 }
 

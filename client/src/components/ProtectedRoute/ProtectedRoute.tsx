@@ -3,7 +3,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Box, CircularProgress, Container } from '@mui/material';
 import { RootState, AppDispatch } from '../../store';
-import { getUser } from '../../store/slices/userSlice';
+import { checkAuthToken } from '../../store/slices/userSlice';
+import { isTokenValid } from '../../utils/authUtils';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,10 +15,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, userID } = useSelector((state: RootState) => state.user);
 
-  // Диспатчим getUser только один раз при монтировании
+  // Проверяем токен при монтировании компонента
   useEffect(() => {
-    dispatch(getUser());
-  }, [dispatch]);
+    if (isTokenValid()) {
+      // Если токен есть в localStorage, проверяем его валидность
+      dispatch(checkAuthToken());
+    } else {
+      // Если токена нет, сразу редиректим на логин
+      navigate('/login');
+    }
+  }, [dispatch, navigate]);
 
   // Если после проверки пользователь не авторизован, редиректим на логин
   useEffect(() => {

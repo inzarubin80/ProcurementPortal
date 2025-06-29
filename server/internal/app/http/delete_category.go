@@ -38,9 +38,9 @@ func (h *DeleteCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 
 	// Получаем ID категории из query параметра
-	categoryIDStr := r.URL.Query().Get("category_id")
+	categoryIDStr := r.URL.Query().Get("id")
 	if categoryIDStr == "" {
-		uhttp.SendErrorResponse(w, http.StatusBadRequest, "category_id is required")
+		uhttp.SendErrorResponse(w, http.StatusBadRequest, "id is required")
 		return
 	}
 

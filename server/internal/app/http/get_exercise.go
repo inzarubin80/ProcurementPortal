@@ -39,17 +39,17 @@ func (h *GetExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Получаем exercise_id из URL
-	exerciseIDStr := r.URL.Query().Get("exercise_id")
+	// Получаем id из URL
+	exerciseIDStr := r.URL.Query().Get("id")
 	if exerciseIDStr == "" {
-		uhttp.SendErrorResponse(w, http.StatusBadRequest, "exercise_id is required")
+		uhttp.SendErrorResponse(w, http.StatusBadRequest, "id is required")
 		return
 	}
 
 	// Парсим UUID
 	parsedUUID, err := uuid.Parse(exerciseIDStr)
 	if err != nil {
-		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid exercise_id")
+		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid id")
 		return
 	}
 
