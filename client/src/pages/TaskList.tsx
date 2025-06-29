@@ -39,40 +39,57 @@ import {
   AccountCircle as AccountCircleIcon,
 } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Language, Exercise, Category } from '../types/api';
-import { languageApi, exerciseApi, categoryApi } from '../services/api';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '../store';
+import { fetchExercises, fetchExercisesByLanguage, fetchExercisesByCategory } from '../store/slices/exerciseSlice';
+import { fetchLanguages } from '../store/slices/languageSlice';
+import { fetchCategories } from '../store/slices/categorySlice';
+import { ProgrammingLanguage, Exercise, Category } from '../types/api';
 
 const TaskList: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const [searchParams] = useSearchParams();
-  const [languages, setLanguages] = useState<Language[]>([]);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Redux state
+  const { exercises, loading: exercisesLoading, pagination } = useSelector((state: RootState) => state.exercises);
+  const { languages, loading: languagesLoading } = useSelector((state: RootState) => state.languages);
+  const { categories, loading: categoriesLoading } = useSelector((state: RootState) => state.categories);
+  
+  // Local state
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const loading = exercisesLoading || languagesLoading || categoriesLoading;
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [currentPage, selectedLanguage, selectedCategory]);
 
   const loadData = async () => {
     try {
-      const [languagesData, exercisesData, categoriesData] = await Promise.all([
-        languageApi.getLanguages(),
-        exerciseApi.getExercises(),
-        categoryApi.getCategories(),
-      ]);
-      setLanguages(languagesData);
-      setExercises(exercisesData);
-      setCategories(categoriesData);
+      // Загружаем языки и категории только один раз
+      if (languages.length === 0) {
+        await dispatch(fetchLanguages());
+      }
+      if (categories.length === 0) {
+        await dispatch(fetchCategories({ page: 1, pageSize: 100 }));
+      }
+      
+      // Загружаем упражнения с фильтрами
+      if (selectedLanguage !== 'all' && selectedCategory !== 'all') {
+        await dispatch(fetchExercisesByCategory({ categoryId: selectedCategory, page: currentPage, pageSize: 10 }));
+      } else if (selectedLanguage !== 'all') {
+        await dispatch(fetchExercisesByLanguage({ language: selectedLanguage, page: currentPage, pageSize: 10 }));
+      } else {
+        await dispatch(fetchExercises({ page: currentPage, pageSize: 10 }));
+      }
     } catch (error) {
       console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -84,7 +101,7 @@ const TaskList: React.FC = () => {
     navigate('/');
   };
 
-  const handleExerciseClick = (exerciseId: number) => {
+  const handleExerciseClick = (exerciseId: string) => {
     navigate(`/exercise/${exerciseId}`);
   };
 
@@ -121,10 +138,8 @@ const TaskList: React.FC = () => {
     const matchesSearch = exercise.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          exercise.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDifficulty = selectedDifficulty === 'all' || exercise.difficulty === selectedDifficulty;
-    const matchesLanguage = selectedLanguage === 'all' || exercise.language_id.toString() === selectedLanguage;
-    const matchesCategory = selectedCategory === 'all' || exercise.category_id.toString() === selectedCategory;
     
-    return matchesSearch && matchesDifficulty && matchesLanguage && matchesCategory;
+    return matchesSearch && matchesDifficulty;
   });
 
   if (loading) {
@@ -163,7 +178,7 @@ const TaskList: React.FC = () => {
                 >
                   <MenuItem value="all">Все языки</MenuItem>
                   {languages.map((language) => (
-                    <MenuItem key={language.id} value={language.id.toString()}>
+                    <MenuItem key={language.value} value={language.value}>
                       {language.name}
                     </MenuItem>
                   ))}
@@ -180,9 +195,9 @@ const TaskList: React.FC = () => {
                 >
                   <MenuItem value="all">Все категории</MenuItem>
                   {categories
-                    .filter(c => selectedLanguage === 'all' || c.language_id.toString() === selectedLanguage)
+                    .filter(c => selectedLanguage === 'all' || c.programming_language === selectedLanguage)
                     .map((category) => (
-                      <MenuItem key={category.id} value={category.id.toString()}>
+                      <MenuItem key={category.id} value={category.id}>
                         {category.name}
                       </MenuItem>
                     ))}
@@ -207,7 +222,7 @@ const TaskList: React.FC = () => {
           </Grid>
           <Box sx={{ mt: 3 }}>
             <Button variant="outlined" startIcon={<TrendingUpIcon />} disabled>
-              Всего упражнений: {filteredExercises.length}
+              Всего упражнений: {pagination.total}
             </Button>
           </Box>
         </Box>
@@ -228,10 +243,7 @@ const TaskList: React.FC = () => {
                     Сложность
                   </TableCell>
                   <TableCell sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[100] }}>
-                    Попытки
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[100] }}>
-                    Успешные
+                    Язык
                   </TableCell>
                   <TableCell sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[100] }}>
                     Действия
@@ -240,11 +252,7 @@ const TaskList: React.FC = () => {
               </TableHead>
               <TableBody>
                 {filteredExercises.map((exercise) => {
-                  const language = languages.find(l => l.id === exercise.language_id);
                   const category = categories.find(c => c.id === exercise.category_id);
-                  const attempts = exercise.attempts || 0;
-                  const successful = exercise.successful_attempts || 0;
-                  const percent = attempts > 0 ? Math.round((successful / attempts) * 100) : 0;
                   return (
                     <TableRow
                       key={exercise.id}
@@ -254,7 +262,7 @@ const TaskList: React.FC = () => {
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Typography variant="h5" sx={{ mr: 1 }}>
-                            {language ? getLanguageIcon(language.name) : '💻'}
+                            {getLanguageIcon(exercise.programming_language)}
                           </Typography>
                           <Box>
                             <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
@@ -279,10 +287,9 @@ const TaskList: React.FC = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2">{attempts}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">{successful} ({percent}%)</Typography>
+                        <Typography variant="body2">
+                          {exercise.programming_language}
+                        </Typography>
                       </TableCell>
                       <TableCell>
                         <Button

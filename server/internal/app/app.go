@@ -131,7 +131,7 @@ func NewApp(ctx context.Context, config config, dbConn *pgxpool.Pool) (*App, err
 				ClientId:    value.Oauth2Config.ClientID,
 				RedirectUri: value.Oauth2Config.RedirectURL,
 				AuthURL:     value.Oauth2Config.Endpoint.AuthURL,
-				ImageBase64: value.ImageBase64,
+				IconSVG:     value.IconSVG,
 			},
 		)
 	}

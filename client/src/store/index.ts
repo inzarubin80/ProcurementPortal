@@ -1,13 +1,19 @@
 import { configureStore } from '@reduxjs/toolkit';
-import languageReducer from './slices/languageSlice';
 import exerciseReducer from './slices/exerciseSlice';
+import languageReducer from './slices/languageSlice';
+import categoryReducer from './slices/categorySlice';
+import userReducer from './slices/userSlice';
 import sessionReducer from './slices/sessionSlice';
+import authProviderReducer from './slices/authProviderSlice';
 
 export const store = configureStore({
   reducer: {
-    language: languageReducer,
-    exercise: exerciseReducer,
+    exercises: exerciseReducer,
+    languages: languageReducer,
+    categories: categoryReducer,
+    user: userReducer,
     session: sessionReducer,
+    authProviders: authProviderReducer,
   },
 });
 

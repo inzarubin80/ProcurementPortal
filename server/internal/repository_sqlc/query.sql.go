@@ -14,7 +14,7 @@ import (
 const addUserAuthProviders = `-- name: AddUserAuthProviders :one
 INSERT INTO user_auth_providers (user_id, provider_uid, provider, name)
 VALUES ($1, $2, $3, $4)
-returning user_id, provider_uid, provider, name, created_at, updated_at
+returning user_id, provider_uid, provider, name
 `
 
 type AddUserAuthProvidersParams struct {
@@ -37,8 +37,6 @@ func (q *Queries) AddUserAuthProviders(ctx context.Context, arg *AddUserAuthProv
 		&i.ProviderUid,
 		&i.Provider,
 		&i.Name,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 	)
 	return &i, err
 }
@@ -185,14 +183,14 @@ func (q *Queries) CreateExercise(ctx context.Context, arg *CreateExerciseParams)
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (name)
 VALUES ($1)
-returning id
+returning user_id
 `
 
 func (q *Queries) CreateUser(ctx context.Context, name string) (int64, error) {
 	row := q.db.QueryRow(ctx, createUser, name)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+	var user_id int64
+	err := row.Scan(&user_id)
+	return user_id, err
 }
 
 const deleteCategory = `-- name: DeleteCategory :exec
@@ -421,7 +419,7 @@ func (q *Queries) GetExercises(ctx context.Context, arg *GetExercisesParams) ([]
 }
 
 const getUserAuthProvidersByProviderUid = `-- name: GetUserAuthProvidersByProviderUid :one
-SELECT user_id, provider_uid, provider, name, created_at, updated_at FROM user_auth_providers
+SELECT user_id, provider_uid, provider, name FROM user_auth_providers
 WHERE provider_uid = $1 AND provider = $2
 `
 
@@ -438,32 +436,30 @@ func (q *Queries) GetUserAuthProvidersByProviderUid(ctx context.Context, arg *Ge
 		&i.ProviderUid,
 		&i.Provider,
 		&i.Name,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 	)
 	return &i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, name, created_at, updated_at FROM users
-WHERE id = $1
+SELECT user_id, name, evaluation_strategy, maximum_score FROM users
+WHERE user_id = $1
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, id int64) (*User, error) {
-	row := q.db.QueryRow(ctx, getUserByID, id)
+func (q *Queries) GetUserByID(ctx context.Context, userID int64) (*User, error) {
+	row := q.db.QueryRow(ctx, getUserByID, userID)
 	var i User
 	err := row.Scan(
-		&i.ID,
+		&i.UserID,
 		&i.Name,
-		&i.CreatedAt,
-		&i.UpdatedAt,
+		&i.EvaluationStrategy,
+		&i.MaximumScore,
 	)
 	return &i, err
 }
 
 const getUsersByIDs = `-- name: GetUsersByIDs :many
-SELECT id, name, created_at, updated_at FROM users
-WHERE id = ANY($1::bigint[])
+SELECT user_id, name, evaluation_strategy, maximum_score FROM users
+WHERE user_id = ANY($1::bigint[])
 `
 
 func (q *Queries) GetUsersByIDs(ctx context.Context, dollar_1 []int64) ([]*User, error) {
@@ -476,10 +472,10 @@ func (q *Queries) GetUsersByIDs(ctx context.Context, dollar_1 []int64) ([]*User,
 	for rows.Next() {
 		var i User
 		if err := rows.Scan(
-			&i.ID,
+			&i.UserID,
 			&i.Name,
-			&i.CreatedAt,
-			&i.UpdatedAt,
+			&i.EvaluationStrategy,
+			&i.MaximumScore,
 		); err != nil {
 			return nil, err
 		}
@@ -598,53 +594,23 @@ func (q *Queries) UpdateExercise(ctx context.Context, arg *UpdateExerciseParams)
 const updateUserName = `-- name: UpdateUserName :one
 UPDATE users
 SET name = $1
-WHERE id = $2
-RETURNING id, name, created_at, updated_at
+WHERE user_id = $2
+RETURNING user_id, name, evaluation_strategy, maximum_score
 `
 
 type UpdateUserNameParams struct {
-	Name string
-	ID   int64
+	Name   string
+	UserID int64
 }
 
 func (q *Queries) UpdateUserName(ctx context.Context, arg *UpdateUserNameParams) (*User, error) {
-	row := q.db.QueryRow(ctx, updateUserName, arg.Name, arg.ID)
+	row := q.db.QueryRow(ctx, updateUserName, arg.Name, arg.UserID)
 	var i User
 	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return &i, err
-}
-
-const upsertUserSettings = `-- name: UpsertUserSettings :one
-INSERT INTO user_settings (user_id, evaluation_strategy, maximum_score)
-VALUES ($1, $2, $3)
-ON CONFLICT (user_id)
-DO UPDATE SET
-    user_id = EXCLUDED.user_id,
-    evaluation_strategy = EXCLUDED.evaluation_strategy,
-    maximum_score = EXCLUDED.maximum_score
-RETURNING user_id, evaluation_strategy, maximum_score, created_at, updated_at
-`
-
-type UpsertUserSettingsParams struct {
-	UserID             int64
-	EvaluationStrategy string
-	MaximumScore       int32
-}
-
-func (q *Queries) UpsertUserSettings(ctx context.Context, arg *UpsertUserSettingsParams) (*UserSetting, error) {
-	row := q.db.QueryRow(ctx, upsertUserSettings, arg.UserID, arg.EvaluationStrategy, arg.MaximumScore)
-	var i UserSetting
-	err := row.Scan(
 		&i.UserID,
+		&i.Name,
 		&i.EvaluationStrategy,
 		&i.MaximumScore,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 	)
 	return &i, err
 }

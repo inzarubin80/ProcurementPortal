@@ -8,50 +8,47 @@ export interface Language {
 }
 
 export interface Category {
-  id: number;
+  id: UUID;
   user_id: number;
-  language_id: number;
   name: string;
   description: string;
+  programming_language: string;
+  color: string;
+  icon: string;
+  status: string;
   created_at: string;
   updated_at: string;
+  is_active: boolean;
 }
 
 export interface Exercise {
-  id: number;
+  id: UUID;
   user_id: number;
-  language_id: number;
-  category_id: number;
   title: string;
   description: string;
-  code: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  attempts?: number;
-  successful_attempts?: number;
+  category_id: UUID;
+  difficulty: string;
+  programming_language: string;
+  code_to_remember: string;
   created_at: string;
   updated_at: string;
+  is_active: boolean;
 }
 
 export interface Session {
-  id: number;
+  id: UUID;
   user_id: number;
-  exercise_id: number;
-  user_code: string;
-  is_correct: boolean;
-  time_spent: number; // milliseconds
-  wpm: number; // words per minute
-  accuracy: number; // percentage
+  exercise_id: UUID;
+  score: number;
+  time_spent: number;
   created_at: string;
 }
 
 export interface UserStats {
-  total_sessions: number;
-  correct_sessions: number;
-  average_time: number;
-  average_wpm: number;
-  average_accuracy: number;
-  best_time: number;
-  best_wpm: number;
+  total_exercises: number;
+  completed_exercises: number;
+  average_score: number;
+  total_time: number;
 }
 
 export interface ApiResponse<T> {
@@ -67,4 +64,44 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export type UUID = string;
+
+export interface ExerciseListResponse {
+  exercises: Exercise[];
+  total: number;
+  page: number;
+  page_size: number;
+  has_next: boolean;
+  has_prev: boolean;
+}
+
+export interface CategoryListResponse {
+  categories: Category[];
+  total: number;
+  page: number;
+  page_size: number;
+  has_next: boolean;
+  has_prev: boolean;
+}
+
+export interface ProgrammingLanguage {
+  name: string;
+  value: string;
+}
+
+export interface User {
+  id: number;
+  name: string;
+  email?: string;
+  avatar_url?: string;
+}
+
+export interface AuthProvider {
+  Provider: string;
+  ClientId: string;
+  AuthURL: string;
+  RedirectUri: string;
+  IconSVG: string;
 } 

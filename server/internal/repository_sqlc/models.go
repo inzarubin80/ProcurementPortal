@@ -17,8 +17,8 @@ type Category struct {
 	Color               *string
 	Icon                *string
 	Status              *string
-	CreatedAt           pgtype.Timestamp
-	UpdatedAt           pgtype.Timestamp
+	CreatedAt           pgtype.Timestamptz
+	UpdatedAt           pgtype.Timestamptz
 	IsActive            *bool
 }
 
@@ -31,16 +31,16 @@ type Exercise struct {
 	Difficulty          string
 	ProgrammingLanguage string
 	CodeToRemember      string
-	CreatedAt           pgtype.Timestamp
-	UpdatedAt           pgtype.Timestamp
+	CreatedAt           pgtype.Timestamptz
+	UpdatedAt           pgtype.Timestamptz
 	IsActive            *bool
 }
 
 type User struct {
-	ID        int64
-	Name      string
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
+	UserID             int64
+	Name               string
+	EvaluationStrategy *string
+	MaximumScore       *int32
 }
 
 type UserAuthProvider struct {
@@ -48,14 +48,4 @@ type UserAuthProvider struct {
 	ProviderUid string
 	Provider    string
 	Name        *string
-	CreatedAt   pgtype.Timestamp
-	UpdatedAt   pgtype.Timestamp
-}
-
-type UserSetting struct {
-	UserID             int64
-	EvaluationStrategy string
-	MaximumScore       int32
-	CreatedAt          pgtype.Timestamp
-	UpdatedAt          pgtype.Timestamp
 }

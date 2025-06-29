@@ -22,7 +22,7 @@ type (
 	ProviderOauthConf struct {
 		Oauth2Config *oauth2.Config
 		UrlUserData  string
-		ImageBase64  string
+		IconSVG      string
 	}
 
 	MapProviderOauthConf map[string]*ProviderOauthConf
@@ -32,6 +32,6 @@ type (
 		ClientId    string
 		AuthURL     string
 		RedirectUri string
-		ImageBase64 string
+		IconSVG     string
 	}
 )

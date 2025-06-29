@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Language } from '../../types/api';
+import { ProgrammingLanguage } from '../../types/api';
 import { languageApi } from '../../services/api';
 
 interface LanguageState {
-  languages: Language[];
+  languages: ProgrammingLanguage[];
   loading: boolean;
   error: string | null;
 }
@@ -15,7 +15,7 @@ const initialState: LanguageState = {
 };
 
 export const fetchLanguages = createAsyncThunk(
-  'language/fetchLanguages',
+  'languages/fetchLanguages',
   async () => {
     const response = await languageApi.getLanguages();
     return response;
@@ -23,7 +23,7 @@ export const fetchLanguages = createAsyncThunk(
 );
 
 const languageSlice = createSlice({
-  name: 'language',
+  name: 'languages',
   initialState,
   reducers: {
     clearError: (state) => {
@@ -36,7 +36,7 @@ const languageSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchLanguages.fulfilled, (state, action: PayloadAction<Language[]>) => {
+      .addCase(fetchLanguages.fulfilled, (state, action: PayloadAction<ProgrammingLanguage[]>) => {
         state.loading = false;
         state.languages = action.payload;
       })

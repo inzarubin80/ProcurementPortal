@@ -12,15 +12,20 @@ import {
 import { PlayArrow as PlayIcon, Check as CheckIcon, Refresh as RefreshIcon, BarChart as BarChartIcon, ThumbUp as ThumbUpIcon, Visibility as VisibilityIcon, Edit as EditIcon, TrendingUp as TrendingUpIcon, CheckCircle as CheckCircleIcon, Speed as SpeedIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import MonacoEditor from '@monaco-editor/react';
-import { Exercise, Language } from '../types/api';
-import { exerciseApi, languageApi, sessionApi } from '../services/api';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '../store';
+import { fetchExerciseById } from '../store/slices/exerciseSlice';
+import { Exercise } from '../types/api';
 
 const ExerciseCard: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [exercise, setExercise] = useState<Exercise | null>(null);
-  const [language, setLanguage] = useState<Language | null>(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch<AppDispatch>();
+  
+  // Redux state
+  const { currentExercise: exercise, loading } = useSelector((state: RootState) => state.exercises);
+  
+  // Local state
   const [userCode, setUserCode] = useState('');
   const [isStarted, setIsStarted] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -29,26 +34,13 @@ const ExerciseCard: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      loadExercise();
+      dispatch(fetchExerciseById(id));
     }
-  }, [id]);
-
-  const loadExercise = async () => {
-    try {
-      const exerciseData = await exerciseApi.getExercise(id!);
-      setExercise(exerciseData);
-      const languageData = await languageApi.getLanguage(exerciseData.language_id.toString());
-      setLanguage(languageData);
-    } catch (error) {
-      console.error('Error loading exercise:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [id, dispatch]);
 
   const handleStart = () => {
     setIsStarted(true);
-    setUserCode(exercise?.code || '');
+    setUserCode(exercise?.code_to_remember || '');
     setIsCorrect(null);
     setResultMsg('');
   };
@@ -56,7 +48,7 @@ const ExerciseCard: React.FC = () => {
   const handleCheck = () => {
     if (!exercise) return;
     const normalizedUserCode = userCode.trim().replace(/\s+/g, ' ');
-    const normalizedExerciseCode = exercise.code.trim().replace(/\s+/g, ' ');
+    const normalizedExerciseCode = exercise.code_to_remember.trim().replace(/\s+/g, ' ');
     const correct = normalizedUserCode === normalizedExerciseCode;
     setIsCorrect(correct);
     setResultMsg(correct ? 'Поздравляем! Ваш код правильный!' : 'Код не совпадает, попробуйте ещё раз.');
@@ -70,9 +62,6 @@ const ExerciseCard: React.FC = () => {
   };
 
   const handleShowStats = () => setShowStats((prev) => !prev);
-
-  const attempts = exercise?.attempts || 0;
-  const successful = exercise?.successful_attempts || 0;
 
   if (loading || !exercise) {
     return (
@@ -93,7 +82,8 @@ const ExerciseCard: React.FC = () => {
       <Card sx={{ mb: 3, p: 2, borderRadius: 3, boxShadow: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <CheckCircleIcon color="success" sx={{ mr: 1 }} />
-          <Typography variant="body2">Успешных попыток: <b>{successful}</b> / {attempts}</Typography>
+          <Typography variant="body2">Язык: <b>{exercise.programming_language}</b></Typography>
+          <Typography variant="body2">Сложность: <b>{exercise.difficulty}</b></Typography>
           <Button
             size="small"
             endIcon={<ExpandMoreIcon sx={{ transform: showStats ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />}
@@ -107,11 +97,11 @@ const ExerciseCard: React.FC = () => {
           <Box sx={{ display: 'flex', gap: 3, mb: 2, mt: -1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <CheckCircleIcon color="info" sx={{ mr: 1 }} />
-              <Typography variant="body2">Средняя точность: <b>{attempts ? (successful / attempts * 100).toFixed(2) : '0.00'}%</b></Typography>
+              <Typography variant="body2">Создано: <b>{new Date(exercise.created_at).toLocaleDateString()}</b></Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <SpeedIcon color="secondary" sx={{ mr: 1 }} />
-              <Typography variant="body2">Средняя скорость: <b>42 зн/мин</b></Typography>
+              <Typography variant="body2">Обновлено: <b>{new Date(exercise.updated_at).toLocaleDateString()}</b></Typography>
             </Box>
           </Box>
         )}
@@ -132,8 +122,8 @@ const ExerciseCard: React.FC = () => {
               >
                 <MonacoEditor
                   height="180px"
-                  defaultLanguage={language?.name.toLowerCase() || 'javascript'}
-                  value={exercise.code}
+                  defaultLanguage={exercise.programming_language.toLowerCase()}
+                  value={exercise.code_to_remember}
                   options={{ readOnly: true, fontSize: 16, minimap: { enabled: false }, scrollBeyondLastLine: false }}
                 />
               </Paper>
@@ -178,7 +168,7 @@ const ExerciseCard: React.FC = () => {
             <Paper variant="outlined" sx={{ mb: 2, borderRadius: 2, overflow: 'hidden' }}>
               <MonacoEditor
                 height="180px"
-                defaultLanguage={language?.name.toLowerCase() || 'javascript'}
+                defaultLanguage={exercise.programming_language.toLowerCase()}
                 value={userCode}
                 onChange={(v: string | undefined) => setUserCode(v || '')}
                 options={{ fontSize: 16, minimap: { enabled: false }, scrollBeyondLastLine: false, readOnly: false }}

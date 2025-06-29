@@ -29,8 +29,8 @@ func (r *Repository) SetUserName(ctx context.Context, userID model.UserID, name 
 
 	reposqlsc := sqlc_repository.New(r.conn)
 	arg := &sqlc_repository.UpdateUserNameParams{
-		Name: name,
-		ID:   int64(userID),
+		Name:   name,
+		UserID: int64(userID),
 	}
 	_, err := reposqlsc.UpdateUserName(ctx, arg)
 
@@ -51,7 +51,7 @@ func (r *Repository) GetUser(ctx context.Context, userID model.UserID) (*model.U
 	}
 
 	return &model.User{
-		ID:   model.UserID(user.ID),
+		ID:   model.UserID(user.UserID),
 		Name: user.Name,
 	}, nil
 
@@ -77,7 +77,7 @@ func (r *Repository) GetUsersByIDs(ctx context.Context, userIDs []model.UserID) 
 
 	for i, value := range users {
 		usersRes[i] = &model.User{
-			ID:   model.UserID(value.ID),
+			ID:   model.UserID(value.UserID),
 			Name: value.Name,
 		}
 	}

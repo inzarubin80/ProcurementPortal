@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Session, UserStats } from '../../types/api';
-import { sessionApi } from '../../services/api';
+import { sessionApi, statsApi } from '../../services/api';
 
 interface SessionState {
   sessions: Session[];
@@ -26,8 +26,16 @@ export const createSession = createAsyncThunk(
 
 export const fetchUserStats = createAsyncThunk(
   'session/fetchUserStats',
+  async () => {
+    const response = await statsApi.getUserStats();
+    return response;
+  }
+);
+
+export const fetchExerciseStats = createAsyncThunk(
+  'session/fetchExerciseStats',
   async (exerciseId: string) => {
-    const response = await sessionApi.getUserStats(exerciseId);
+    const response = await statsApi.getExerciseStats(exerciseId);
     return response;
   }
 );
@@ -68,6 +76,18 @@ const sessionSlice = createSlice({
       .addCase(fetchUserStats.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch user stats';
+      })
+      .addCase(fetchExerciseStats.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchExerciseStats.fulfilled, (state, action: PayloadAction<UserStats>) => {
+        state.loading = false;
+        state.userStats = action.payload;
+      })
+      .addCase(fetchExerciseStats.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch exercise stats';
       });
   },
 });

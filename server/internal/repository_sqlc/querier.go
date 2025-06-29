@@ -27,12 +27,11 @@ type Querier interface {
 	GetExercise(ctx context.Context, arg *GetExerciseParams) (*Exercise, error)
 	GetExercises(ctx context.Context, arg *GetExercisesParams) ([]*Exercise, error)
 	GetUserAuthProvidersByProviderUid(ctx context.Context, arg *GetUserAuthProvidersByProviderUidParams) (*UserAuthProvider, error)
-	GetUserByID(ctx context.Context, id int64) (*User, error)
+	GetUserByID(ctx context.Context, userID int64) (*User, error)
 	GetUsersByIDs(ctx context.Context, dollar_1 []int64) ([]*User, error)
 	UpdateCategory(ctx context.Context, arg *UpdateCategoryParams) (*Category, error)
 	UpdateExercise(ctx context.Context, arg *UpdateExerciseParams) (*Exercise, error)
 	UpdateUserName(ctx context.Context, arg *UpdateUserNameParams) (*User, error)
-	UpsertUserSettings(ctx context.Context, arg *UpsertUserSettingsParams) (*UserSetting, error)
 }
 
 var _ Querier = (*Queries)(nil)

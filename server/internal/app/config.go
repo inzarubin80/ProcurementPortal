@@ -1,11 +1,10 @@
 package app
 
 import (
-	"encoding/base64"
-	"fmt"
 	"os"
 
 	authinterface "inzarubin80/MemCode/internal/app/authinterface"
+	"inzarubin80/MemCode/internal/app/icons"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/yandex"
@@ -45,24 +44,49 @@ type (
 
 func NewConfig(opts Options) config {
 
-	imageDataYandexAuth, err := os.ReadFile("images/yandex-auth.png")
-	if err != nil {
-		fmt.Errorf(err.Error())
-	}
-
-	imageBase64 := base64.StdEncoding.EncodeToString(imageDataYandexAuth)
-
 	provaders := make(authinterface.MapProviderOauthConf)
 	provaders["yandex"] = &authinterface.ProviderOauthConf{
 		Oauth2Config: &oauth2.Config{
 			ClientID:     os.Getenv("CLIENT_ID_YANDEX"),
 			ClientSecret: os.Getenv("CLIENT_SECRET_YANDEX"),
-			RedirectURL:  os.Getenv("APP_ROOT") + "/YandexAuthCallback",
+			RedirectURL:  os.Getenv("APP_ROOT") + "/auth/callback",
 			Scopes:       []string{"login:email", "login:info"},
 			Endpoint:     yandex.Endpoint,
 		},
 		UrlUserData: "https://login.yandex.ru/info?format=json",
-		ImageBase64: imageBase64,
+		IconSVG:     icons.GetProviderIcon("yandex"),
+	}
+
+	// Добавим Google провайдер для демонстрации
+	provaders["google"] = &authinterface.ProviderOauthConf{
+		Oauth2Config: &oauth2.Config{
+			ClientID:     os.Getenv("CLIENT_ID_GOOGLE"),
+			ClientSecret: os.Getenv("CLIENT_SECRET_GOOGLE"),
+			RedirectURL:   os.Getenv("APP_ROOT") + "/auth/callback",
+			Scopes:       []string{"openid", "email", "profile"},
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://accounts.google.com/o/oauth2/auth",
+				TokenURL: "https://oauth2.googleapis.com/token",
+			},
+		},
+		UrlUserData: "https://www.googleapis.com/oauth2/v2/userinfo",
+		IconSVG:     icons.GetProviderIcon("google"),
+	}
+
+	// Добавим GitHub провайдер для демонстрации
+	provaders["github"] = &authinterface.ProviderOauthConf{
+		Oauth2Config: &oauth2.Config{
+			ClientID:     os.Getenv("CLIENT_ID_GITHUB"),
+			ClientSecret: os.Getenv("CLIENT_SECRET_GITHUB"),
+			RedirectURL:   os.Getenv("APP_ROOT") + "/auth/callback",
+			Scopes:       []string{"user:email"},
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://github.com/login/oauth/authorize",
+				TokenURL: "https://github.com/login/oauth/access_token",
+			},
+		},
+		UrlUserData: "https://api.github.com/user",
+		IconSVG:     icons.GetProviderIcon("github"),
 	}
 
 	config := config{

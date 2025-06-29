@@ -16,9 +16,6 @@ CREATE TABLE exercises (
 
 -- Создаем кластерный индекс по user_id и id
 CREATE INDEX idx_exercises_user_id_clustered ON exercises(user_id, id);
--- Создаем внешний ключ на категории
-ALTER TABLE exercises ADD CONSTRAINT fk_exercises_category_id 
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE;
 -- +goose StatementEnd
 
 -- +goose Down
