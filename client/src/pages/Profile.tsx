@@ -29,7 +29,7 @@ const Profile: React.FC = () => {
         totalExercises: exercises.length,
         completedExercises: Math.floor(exercises.length * 0.7), // Мок: 70% выполнено
         averageScore: 85, // Мок: средний балл
-        totalTime: exercises.length * 15, // Мок: 15 минут на кату
+        totalTime: exercises.length * 15, // Мок: 15 минут на упражнение
       });
     }
   }, [exercises]);

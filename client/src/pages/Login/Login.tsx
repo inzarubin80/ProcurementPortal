@@ -32,7 +32,7 @@ const Login: React.FC = () => {
                         lineHeight: 1.2
                     }}
                 >
-                    CodeKata
+                    Memo-Code
                 </Typography>
 
                 {/* Подзаголовок с преимуществами */}
@@ -45,7 +45,7 @@ const Login: React.FC = () => {
                         maxWidth: 500
                     }}
                 >
-                    Создавайте каты для запоминания кода<br />
+                    Создавайте упражнения для запоминания кода<br />
                     и улучшайте свои навыки программирования<br />
                     <Box component="span" fontWeight="600" color={theme.palette.primary.main}>
                         эффективно и увлекательно!
@@ -165,7 +165,7 @@ const Login: React.FC = () => {
                         <g fill={theme.palette.primary.light} opacity="0.4">
                             <text x="50" y="80" fontSize="12" fontWeight="bold">&lt;/&gt;</text>
                             <text x="250" y="80" fontSize="12" fontWeight="bold">function()</text>
-                            <text x="50" y="220" fontSize="12" fontWeight="bold">return kata;</text>
+                            <text x="50" y="220" fontSize="12" fontWeight="bold">return exercise;</text>
                             <text x="250" y="220" fontSize="12" fontWeight="bold">{}</text>
                         </g>
                         
@@ -191,7 +191,7 @@ const Login: React.FC = () => {
                         fontStyle: 'italic'
                     }}
                 >
-                    Начните создавать свои каты уже сегодня!
+                    Начните создавать свои упражнения уже сегодня!
                 </Typography>
             </Box>
         </Container>

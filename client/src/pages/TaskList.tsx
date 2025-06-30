@@ -165,7 +165,7 @@ const TaskList: React.FC = () => {
         {/* Filters */}
         <Box sx={{ mb: 4, bgcolor: 'white', borderRadius: 4, boxShadow: 2, p: 3 }}>
           <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3, color: 'primary.main' }}>
-            Выберите кату
+            Выберите упражнение
           </Typography>
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} md={4}>

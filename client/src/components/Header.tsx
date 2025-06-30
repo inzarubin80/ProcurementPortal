@@ -43,7 +43,7 @@ const Header: React.FC = () => {
           sx={{ color: 'white', textTransform: 'none', fontWeight: 'bold', fontSize: '1.2rem', mr: 2, display: 'flex', alignItems: 'center' }}
           startIcon={<SchoolIcon sx={{ fontSize: 32 }} />}
         >
-          CodeKata
+          Memo-Code
         </Button>
         {isAuthenticated && (
           <>

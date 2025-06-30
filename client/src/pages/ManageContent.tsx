@@ -124,18 +124,18 @@ const ManageContent: React.FC = () => {
       if (entityType === 'exercise') {
         if (dialogType === 'add') {
           await dispatch(createExercise(form)).unwrap();
-          setSnackbar({open: true, message: 'Ката создана', severity: 'success'});
+          setSnackbar({open: true, message: 'Упражнение создано', severity: 'success'});
         } else {
           await dispatch(updateExercise({ id: editItem.id, updates: form })).unwrap();
-          setSnackbar({open: true, message: 'Ката обновлена', severity: 'success'});
+          setSnackbar({open: true, message: 'Упражнение обновлено', severity: 'success'});
         }
       } else {
         if (dialogType === 'add') {
           await dispatch(createCategory(form)).unwrap();
-          setSnackbar({open: true, message: 'Ката создана', severity: 'success'});
+          setSnackbar({open: true, message: 'Категория создана', severity: 'success'});
         } else {
           await dispatch(updateCategory({ id: editItem.id, updates: form })).unwrap();
-          setSnackbar({open: true, message: 'Ката обновлена', severity: 'success'});
+          setSnackbar({open: true, message: 'Категория обновлена', severity: 'success'});
         }
       }
       setOpenDialog(false);
@@ -149,20 +149,20 @@ const ManageContent: React.FC = () => {
     try {
       if (type === 'exercise') {
         await dispatch(deleteExercise(id)).unwrap();
-        setSnackbar({open: true, message: 'Ката удалена', severity: 'success'});
+        setSnackbar({open: true, message: 'Упражнение удалено', severity: 'success'});
       } else {
         await dispatch(deleteCategory(id)).unwrap();
-        setSnackbar({open: true, message: 'Ката удалена', severity: 'success'});
+        setSnackbar({open: true, message: 'Категория удалена', severity: 'success'});
       }
     } catch (error: any) {
       let errorMessage = error?.message || error?.toString() || 'Ошибка при удалении';
       // Дружелюбные сообщения для удаления категории
       if (type === 'category') {
         if (errorMessage.includes('category contains exercises')) {
-          errorMessage = 'Нельзя удалить категорию, в которой есть каты';
+          errorMessage = 'Нельзя удалить категорию, в которой есть упражнения';
         }
         if (errorMessage.includes('category not found')) {
-          errorMessage = 'Ката не найдена или не принадлежит вам';
+          errorMessage = 'Упражнение не найдено или не принадлежит вам';
         }
       }
       setSnackbar({open: true, message: errorMessage, severity: 'error'});
@@ -186,8 +186,8 @@ const ManageContent: React.FC = () => {
       <Paper sx={{ p: 2, mb: 3, borderRadius: 3, boxShadow: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>Управление контентом</Typography>
         <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 2 }}>
-          <Tab label="Каты" />
-          <Tab label="Каты" />
+          <Tab label="Категории" />
+          <Tab label="Категории" />
         </Tabs>
         <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
           <FormControl sx={{ minWidth: 200 }}>
@@ -198,7 +198,7 @@ const ManageContent: React.FC = () => {
             </Select>
           </FormControl>
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => openAddDialog(tab === 0 ? 'exercise' : 'category')}>
-            Добавить {tab === 0 ? 'кату' : 'категорию'}
+            Добавить {tab === 0 ? 'категорию' : 'категорию'}
           </Button>
         </Stack>
         {tab === 0 ? (
@@ -257,7 +257,7 @@ const ManageContent: React.FC = () => {
       </Paper>
       {/* Диалог добавления/редактирования */}
       <Dialog open={openDialog} onClose={closeDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{dialogType === 'add' ? 'Добавить' : 'Редактировать'} {entityType === 'exercise' ? 'кату' : 'категорию'}</DialogTitle>
+        <DialogTitle>{dialogType === 'add' ? 'Добавить' : 'Редактировать'} {entityType === 'exercise' ? 'упражнение' : 'категорию'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             {entityType === 'exercise' ? (
