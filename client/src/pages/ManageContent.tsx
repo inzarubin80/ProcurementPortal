@@ -170,8 +170,8 @@ const ManageContent: React.FC = () => {
   };
 
   // --- Filtered lists ---
-  const filteredCategories = selectedLanguage === 'all' ? categories : categories.filter(c => c.programming_language === selectedLanguage);
-  const filteredExercises = selectedLanguage === 'all' ? exercises : exercises.filter(e => e.programming_language === selectedLanguage);
+  const filteredCategories = selectedLanguage === 'all' ? categories : categories.filter(c => c.programming_language && c.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
+  const filteredExercises = selectedLanguage === 'all' ? exercises : exercises.filter(e => e.programming_language && e.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
 
   if (loading) {
     return (
@@ -194,7 +194,10 @@ const ManageContent: React.FC = () => {
             <InputLabel>Язык</InputLabel>
             <Select value={selectedLanguage} label="Язык" onChange={handleLanguageChange}>
               <MenuItem value="all">Все языки</MenuItem>
-              {languages.map(l => <MenuItem key={l.value} value={l.value}>{l.name}</MenuItem>)}
+              {languages.map(l => <MenuItem key={l.value} value={l.value}>
+                <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: l.icon_svg}} />
+                {l.name}
+              </MenuItem>)}
             </Select>
           </FormControl>
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => openAddDialog(tab === 0 ? 'exercise' : 'category')}>
@@ -217,7 +220,10 @@ const ManageContent: React.FC = () => {
                 {filteredExercises.map(ex => (
                   <TableRow key={ex.id}>
                     <TableCell>{ex.title}</TableCell>
-                    <TableCell>{ex.programming_language}</TableCell>
+                    <TableCell>
+                      <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: languages.find(l => l.value === ex.programming_language)?.icon_svg || ''}} />
+                      {ex.programming_language}
+                    </TableCell>
                     <TableCell>{categories.find(c => c.id === ex.category_id)?.name}</TableCell>
                     <TableCell>{ex.difficulty}</TableCell>
                     <TableCell>
@@ -243,7 +249,10 @@ const ManageContent: React.FC = () => {
                 {filteredCategories.map(cat => (
                   <TableRow key={cat.id}>
                     <TableCell>{cat.name}</TableCell>
-                    <TableCell>{cat.programming_language}</TableCell>
+                    <TableCell>
+                      <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: languages.find(l => l.value === cat.programming_language)?.icon_svg || ''}} />
+                      {cat.programming_language}
+                    </TableCell>
                     <TableCell>
                       <IconButton onClick={() => openEditDialog('category', cat)}><EditIcon /></IconButton>
                       <IconButton color="error" onClick={() => handleDelete('category', cat.id)}><DeleteIcon /></IconButton>
@@ -286,7 +295,10 @@ const ManageContent: React.FC = () => {
                     label="Язык программирования"
                     onChange={handleFormChange}
                   >
-                    {languages.map(l => <MenuItem key={l.value} value={l.value}>{l.name}</MenuItem>)}
+                    {languages.map(l => <MenuItem key={l.value} value={l.value}>
+                      <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: l.icon_svg}} />
+                      {l.name}
+                    </MenuItem>)}
                   </Select>
                 </FormControl>
                 <FormControl fullWidth>
@@ -351,7 +363,10 @@ const ManageContent: React.FC = () => {
                     label="Язык программирования"
                     onChange={handleFormChange}
                   >
-                    {languages.map(l => <MenuItem key={l.value} value={l.value}>{l.name}</MenuItem>)}
+                    {languages.map(l => <MenuItem key={l.value} value={l.value}>
+                      <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: l.icon_svg}} />
+                      {l.name}
+                    </MenuItem>)}
                   </Select>
                 </FormControl>
               </>

@@ -106,3 +106,19 @@ UPDATE categories SET is_active = FALSE WHERE id = $1 AND user_id = $2;
 -- name: CountExercisesByCategory :one
 SELECT COUNT(*) FROM exercises WHERE category_id = $1 AND is_active = TRUE;
 
+-- name: GetExercisesFiltered :many
+SELECT * FROM exercises
+WHERE user_id = $1
+  AND is_active = TRUE
+  AND ($2::varchar IS NULL OR programming_language = $2)
+  AND ($3::uuid IS NULL OR category_id = $3)
+ORDER BY created_at DESC
+LIMIT $4 OFFSET $5;
+
+-- name: CountExercisesFiltered :one
+SELECT COUNT(*) FROM exercises
+WHERE user_id = $1
+  AND is_active = TRUE
+  AND ($2::varchar IS NULL OR programming_language = $2)
+  AND ($3::uuid IS NULL OR category_id = $3);
+

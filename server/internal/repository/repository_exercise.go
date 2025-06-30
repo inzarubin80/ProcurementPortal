@@ -128,6 +128,45 @@ func (r *ExerciseRepository) DeleteExercise(ctx context.Context, userID model.Us
 	return nil
 }
 
+func (r *ExerciseRepository) GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) ([]*model.Exercise, int, error) {
+	var langValue string
+	if language != nil && *language != "" {
+		langValue = *language
+	}
+	var catUUID pgtype.UUID
+	if categoryID != nil && *categoryID != "" {
+		_ = catUUID.Scan(*categoryID)
+	}
+	// Получаем общее количество
+	countParams := &sqlc_repository.CountExercisesFilteredParams{
+		UserID:  int64(userID),
+		Column2: langValue,
+		Column3: catUUID,
+	}
+	total, err := r.queries.CountExercisesFiltered(ctx, countParams)
+	if err != nil {
+		return nil, 0, err
+	}
+	// Получаем упражнения с пагинацией
+	offset := (page - 1) * pageSize
+	exParams := &sqlc_repository.GetExercisesFilteredParams{
+		UserID:  int64(userID),
+		Column2: langValue,
+		Column3: catUUID,
+		Limit:   int32(pageSize),
+		Offset:  int32(offset),
+	}
+	sqlcExercises, err := r.queries.GetExercisesFiltered(ctx, exParams)
+	if err != nil {
+		return nil, 0, err
+	}
+	exercises := make([]*model.Exercise, len(sqlcExercises))
+	for i, sqlcExercise := range sqlcExercises {
+		exercises[i] = convertSQLCExerciseToModel(sqlcExercise)
+	}
+	return exercises, int(total), nil
+}
+
 // Вспомогательная функция для конвертации sqlc структуры в модель
 func convertSQLCExerciseToModel(sqlcExercise *sqlc_repository.Exercise) *model.Exercise {
 	description := ""

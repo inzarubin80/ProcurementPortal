@@ -13,6 +13,7 @@ import (
 type (
 	GetExercisesService interface {
 		GetExercises(ctx context.Context, userID model.UserID, page, pageSize int) (*model.ExerciseListResponse, error)
+		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) (*model.ExerciseListResponse, error)
 	}
 
 	GetExercisesHandler struct {
@@ -40,6 +41,8 @@ func (h *GetExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	// Получаем параметры пагинации
 	pageStr := r.URL.Query().Get("page")
 	pageSizeStr := r.URL.Query().Get("page_size")
+	language := r.URL.Query().Get("language")
+	categoryID := r.URL.Query().Get("category_id")
 
 	page := 1
 	pageSize := 10
@@ -56,7 +59,21 @@ func (h *GetExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	exercises, err := h.service.GetExercises(ctx, userID, page, pageSize)
+	var langPtr, catPtr *string
+	if language != "" {
+		langPtr = &language
+	}
+	if categoryID != "" {
+		catPtr = &categoryID
+	}
+
+	var exercises *model.ExerciseListResponse
+	var err error
+	if langPtr != nil || catPtr != nil {
+		exercises, err = h.service.GetExercisesFiltered(ctx, userID, langPtr, catPtr, page, pageSize)
+	} else {
+		exercises, err = h.service.GetExercises(ctx, userID, page, pageSize)
+	}
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

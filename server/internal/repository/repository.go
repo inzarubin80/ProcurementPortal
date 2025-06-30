@@ -92,3 +92,7 @@ func (r *Repository) DeleteCategory(ctx context.Context, userID model.UserID, ca
 func (r *Repository) CountExercisesByCategory(ctx context.Context, categoryID model.CategoryID) (int64, error) {
 	return r.categoryRepo.CountExercisesByCategory(ctx, categoryID)
 }
+
+func (r *Repository) GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) ([]*model.Exercise, int, error) {
+	return r.exerciseRepo.GetExercisesFiltered(ctx, userID, language, categoryID, page, pageSize)
+}

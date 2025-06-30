@@ -46,6 +46,7 @@ type (
 		GetExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.Exercise, error)
 		UpdateExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, exercise *model.Exercise) (*model.Exercise, error)
 		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) error
+		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) (*model.ExerciseListResponse, error)
 
 		// Category methods
 		CreateCategory(ctx context.Context, userID model.UserID, category *model.Category) (*model.Category, error)

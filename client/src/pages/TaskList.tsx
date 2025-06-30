@@ -105,17 +105,6 @@ const TaskList: React.FC = () => {
     navigate(`/exercise/${exerciseId}`);
   };
 
-  const getLanguageIcon = (languageName: string) => {
-    switch (languageName.toLowerCase()) {
-      case 'javascript': return '⚡';
-      case 'python': return '🐍';
-      case 'go': return '🚀';
-      case 'rust': return '🦀';
-      case 'typescript': return '📘';
-      default: return '💻';
-    }
-  };
-
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'easy': return 'success';
@@ -138,8 +127,8 @@ const TaskList: React.FC = () => {
     const matchesSearch = exercise.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          exercise.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDifficulty = selectedDifficulty === 'all' || exercise.difficulty === selectedDifficulty;
-    
-    return matchesSearch && matchesDifficulty;
+    const matchesLanguage = selectedLanguage === 'all' || (exercise.programming_language && exercise.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
+    return matchesSearch && matchesDifficulty && matchesLanguage;
   });
 
   if (loading) {
@@ -179,6 +168,7 @@ const TaskList: React.FC = () => {
                   <MenuItem value="all">Все языки</MenuItem>
                   {languages.map((language) => (
                     <MenuItem key={language.value} value={language.value}>
+                      <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: language.icon_svg}} />
                       {language.name}
                     </MenuItem>
                   ))}
@@ -195,7 +185,7 @@ const TaskList: React.FC = () => {
                 >
                   <MenuItem value="all">Все категории</MenuItem>
                   {categories
-                    .filter(c => selectedLanguage === 'all' || c.programming_language === selectedLanguage)
+                    .filter(c => selectedLanguage === 'all' || (c.programming_language && c.programming_language.toLowerCase() === selectedLanguage.toLowerCase()))
                     .map((category) => (
                       <MenuItem key={category.id} value={category.id}>
                         {category.name}
@@ -262,7 +252,7 @@ const TaskList: React.FC = () => {
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Typography variant="h5" sx={{ mr: 1 }}>
-                            {getLanguageIcon(exercise.programming_language)}
+                            <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: languages.find(l => l.value === exercise.programming_language)?.icon_svg || ''}} />
                           </Typography>
                           <Box>
                             <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
@@ -287,9 +277,13 @@ const TaskList: React.FC = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2">
-                          {exercise.programming_language}
-                        </Typography>
+                        {(() => {
+                          const lang = languages.find(l => l.value === exercise.programming_language);
+                          if (lang && lang.icon_svg) {
+                            return <span style={{verticalAlign: 'middle', marginRight: 0}} dangerouslySetInnerHTML={{__html: lang.icon_svg}} />;
+                          }
+                          return <Typography variant="body2" component="span">{exercise.programming_language}</Typography>;
+                        })()}
                       </TableCell>
                       <TableCell>
                         <Button

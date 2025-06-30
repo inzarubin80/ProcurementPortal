@@ -1,0 +1,182 @@
+{
+  "categories": [
+    {
+      "name": "Основы Python",
+      "description": "Базовые упражнения по Python для начинающих",
+      "programming_language": "Python",
+      "color": "#3776AB",
+      "icon": "python",
+      "status": "active"
+    },
+    {
+      "name": "Алгоритмы и структуры данных",
+      "description": "Классические алгоритмы и структуры данных",
+      "programming_language": "Python",
+      "color": "#FF6B6B",
+      "icon": "algorithm",
+      "status": "active"
+    },
+    {
+      "name": "JavaScript Основы",
+      "description": "Базовые концепции JavaScript",
+      "programming_language": "JavaScript",
+      "color": "#F7DF1E",
+      "icon": "javascript",
+      "status": "active"
+    },
+    {
+      "name": "SQL Запросы",
+      "description": "Основные SQL запросы и операции",
+      "programming_language": "SQL",
+      "color": "#336791",
+      "icon": "database",
+      "status": "active"
+    },
+    {
+      "name": "Go Основы",
+      "description": "Базовые упражнения по Go",
+      "programming_language": "Go",
+      "color": "#00ADD8",
+      "icon": "golang",
+      "status": "active"
+    },
+    {
+      "name": "1C:Предприятие",
+      "description": "Основы программирования в 1C:Предприятие",
+      "programming_language": "1C",
+      "color": "#FF6B35",
+      "icon": "1c",
+      "status": "active"
+    }
+  ],
+  "exercises": [
+    {
+      "title": "Hello, World!",
+      "description": "Напишите программу, которая выводит 'Hello, World!'",
+      "category_name": "Основы Python",
+      "difficulty": "beginner",
+      "programming_language": "Python",
+      "code_to_remember": "print('Hello, World!')"
+    },
+    {
+      "title": "Сумма двух чисел",
+      "description": "Напишите функцию, которая возвращает сумму двух чисел",
+      "category_name": "Основы Python",
+      "difficulty": "beginner",
+      "programming_language": "Python",
+      "code_to_remember": "def add(a, b):\n    return a + b\n\n# Пример использования\nresult = add(5, 3)\nprint(result)  # Выведет: 8"
+    },
+    {
+      "title": "Проверка четности",
+      "description": "Напишите функцию для проверки четности числа",
+      "category_name": "Основы Python",
+      "difficulty": "beginner",
+      "programming_language": "Python",
+      "code_to_remember": "def is_even(number):\n    return number % 2 == 0\n\n# Примеры\nprint(is_even(4))  # True\nprint(is_even(7))  # False"
+    },
+    {
+      "title": "Поиск максимального элемента",
+      "description": "Напишите функцию для поиска максимального элемента в списке",
+      "category_name": "Алгоритмы и структуры данных",
+      "difficulty": "beginner",
+      "programming_language": "Python",
+      "code_to_remember": "def find_max(numbers):\n    if not numbers:\n        return None\n    max_num = numbers[0]\n    for num in numbers[1:]:\n        if num > max_num:\n            max_num = num\n    return max_num\n\n# Пример\nnumbers = [3, 7, 2, 9, 1]\nprint(find_max(numbers))  # 9"
+    },
+    {
+      "title": "Палиндром",
+      "description": "Напишите функцию для проверки, является ли строка палиндромом",
+      "category_name": "Алгоритмы и структуры данных",
+      "difficulty": "intermediate",
+      "programming_language": "Python",
+      "code_to_remember": "def is_palindrome(text):\n    # Убираем пробелы и приводим к нижнему регистру\n    cleaned = ''.join(char.lower() for char in text if char.isalnum())\n    return cleaned == cleaned[::-1]\n\n# Примеры\nprint(is_palindrome('A man a plan a canal Panama'))  # True\nprint(is_palindrome('hello'))  # False"
+    },
+    {
+      "title": "JavaScript: Объявление переменных",
+      "description": "Различные способы объявления переменных в JavaScript",
+      "category_name": "JavaScript Основы",
+      "difficulty": "beginner",
+      "programming_language": "JavaScript",
+      "code_to_remember": "// var (устаревший способ)\nvar oldWay = 'old';\n\n// let (блочная область видимости)\nlet modernWay = 'modern';\n\n// const (неизменяемая переменная)\nconst constant = 'constant';\n\n// Примеры использования\nconsole.log(oldWay);\nconsole.log(modernWay);\nconsole.log(constant);"
+    },
+    {
+      "title": "JavaScript: Стрелочные функции",
+      "description": "Синтаксис стрелочных функций в JavaScript",
+      "category_name": "JavaScript Основы",
+      "difficulty": "intermediate",
+      "programming_language": "JavaScript",
+      "code_to_remember": "// Обычная функция\nfunction add(a, b) {\n    return a + b;\n}\n\n// Стрелочная функция\nconst addArrow = (a, b) => a + b;\n\n// Стрелочная функция с блоком\nconst multiply = (a, b) => {\n    const result = a * b;\n    return result;\n};\n\nconsole.log(add(2, 3));        // 5\nconsole.log(addArrow(2, 3));   // 5\nconsole.log(multiply(2, 3));   // 6"
+    },
+    {
+      "title": "SQL: SELECT с WHERE",
+      "description": "Базовый SELECT запрос с условием WHERE",
+      "category_name": "SQL Запросы",
+      "difficulty": "beginner",
+      "programming_language": "SQL",
+      "code_to_remember": "-- Базовый SELECT\nSELECT column1, column2\nFROM table_name\nWHERE condition;\n\n-- Примеры\nSELECT name, age\nFROM users\nWHERE age > 18;\n\nSELECT *\nFROM products\nWHERE price < 100\nAND category = 'electronics';"
+    },
+    {
+      "title": "SQL: JOIN таблиц",
+      "description": "Объединение таблиц с помощью JOIN",
+      "category_name": "SQL Запросы",
+      "difficulty": "intermediate",
+      "programming_language": "SQL",
+      "code_to_remember": "-- INNER JOIN\nSELECT u.name, o.order_date\nFROM users u\nINNER JOIN orders o ON u.id = o.user_id;\n\n-- LEFT JOIN\nSELECT u.name, o.order_date\nFROM users u\nLEFT JOIN orders o ON u.id = o.user_id;\n\n-- RIGHT JOIN\nSELECT u.name, o.order_date\nFROM users u\nRIGHT JOIN orders o ON u.id = o.user_id;"
+    },
+    {
+      "title": "Go: Структуры",
+      "description": "Создание и использование структур в Go",
+      "category_name": "Go Основы",
+      "difficulty": "beginner",
+      "programming_language": "Go",
+      "code_to_remember": "package main\n\nimport \"fmt\"\n\ntype Person struct {\n    Name string\n    Age  int\n}\n\nfunc main() {\n    // Создание структуры\n    person := Person{\n        Name: \"John\",\n        Age:  30,\n    }\n    \n    // Обращение к полям\n    fmt.Printf(\"Name: %s, Age: %d\\n\", person.Name, person.Age)\n    \n    // Создание указателя на структуру\n    personPtr := &Person{Name: \"Jane\", Age: 25}\n    fmt.Printf(\"Name: %s, Age: %d\\n\", personPtr.Name, personPtr.Age)\n}"
+    },
+    {
+      "title": "Go: Слайсы",
+      "description": "Работа со слайсами в Go",
+      "category_name": "Go Основы",
+      "difficulty": "intermediate",
+      "programming_language": "Go",
+      "code_to_remember": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    // Создание слайса\n    numbers := []int{1, 2, 3, 4, 5}\n    \n    // Добавление элемента\n    numbers = append(numbers, 6)\n    \n    // Создание слайса с make\n    slice := make([]int, 0, 10)\n    \n    // Итерация по слайсу\n    for i, num := range numbers {\n        fmt.Printf(\"Index: %d, Value: %d\\n\", i, num)\n    }\n    \n    // Срезы\n    firstThree := numbers[:3]\n    lastThree := numbers[len(numbers)-3:]\n    \n    fmt.Println(\"First three:\", firstThree)\n    fmt.Println(\"Last three:\", lastThree)\n}"
+    },
+    {
+      "title": "1C: Объявление переменных",
+      "description": "Объявление переменных в 1C:Предприятие",
+      "category_name": "1C:Предприятие",
+      "difficulty": "beginner",
+      "programming_language": "1C",
+      "code_to_remember": "// Объявление переменных\nПеременная = 10;\nСтрока = \"Привет, мир!\";\nДата = '20240101';\nБулево = Истина;\n\n// Массивы\nМассив = Новый Массив;\nМассив.Добавить(1);\nМассив.Добавить(2);\n\n// Структуры\nСтруктура = Новый Структура;\nСтруктура.Вставить(\"Имя\", \"Иван\");\nСтруктура.Вставить(\"Возраст\", 25);\n\n// Сообщить результат\nСообщить(\"Переменная: \" + Переменная);\nСообщить(\"Строка: \" + Строка);"
+    },
+    {
+      "title": "1C: Условные операторы",
+      "description": "Использование условных операторов в 1C",
+      "category_name": "1C:Предприятие",
+      "difficulty": "beginner",
+      "programming_language": "1C",
+      "code_to_remember": "// Простое условие\nЕсли Переменная > 0 Тогда\n    Сообщить(\"Переменная положительная\");\nКонецЕсли;\n\n// Условие с иначе\nЕсли Возраст >= 18 Тогда\n    Сообщить(\"Совершеннолетний\");\nИначе\n    Сообщить(\"Несовершеннолетний\");\nКонецЕсли;\n\n// Множественное условие\nЕсли Тип = \"Клиент\" Тогда\n    Скидка = 0.1;\nИначеЕсли Тип = \"Партнер\" Тогда\n    Скидка = 0.15;\nИначе\n    Скидка = 0;\nКонецЕсли;\n\nСообщить(\"Скидка: \" + Скидка);"
+    },
+    {
+      "title": "1C: Циклы",
+      "description": "Использование циклов в 1C:Предприятие",
+      "category_name": "1C:Предприятие",
+      "difficulty": "intermediate",
+      "programming_language": "1C",
+      "code_to_remember": "// Цикл Для\nДля Счетчик = 1 По 10 Цикл\n    Сообщить(\"Счетчик: \" + Счетчик);\nКонецЦикла;\n\n// Цикл Пока\nСчетчик = 1;\nПока Счетчик <= 5 Цикл\n    Сообщить(\"Пока счетчик: \" + Счетчик);\n    Счетчик = Счетчик + 1;\nКонецЦикла;\n\n// Цикл по массиву\nМассив = Новый Массив;\nМассив.Добавить(\"Первый\");\nМассив.Добавить(\"Второй\");\nМассив.Добавить(\"Третий\");\n\nДля Каждого Элемент Из Массив Цикл\n    Сообщить(\"Элемент: \" + Элемент);\nКонецЦикла;"
+    },
+    {
+      "title": "1C: Работа с запросами",
+      "description": "Выполнение запросов к базе данных в 1C",
+      "category_name": "1C:Предприятие",
+      "difficulty": "intermediate",
+      "programming_language": "1C",
+      "code_to_remember": "// Создание запроса\nЗапрос = Новый Запрос;\nЗапрос.Текст = \"\n    ВЫБРАТЬ\n        СправочникНоменклатура.Наименование,\n        СправочникНоменклатура.Код\n    ИЗ\n        Справочник.Номенклатура КАК СправочникНоменклатура\n    ГДЕ\n        СправочникНоменклатура.ЭтоГруппа = ЛОЖЬ\n\";\n\n// Выполнение запроса\nРезультатЗапроса = Запрос.Выполнить();\n\n// Обработка результата\nВыборка = РезультатЗапроса.Выбрать();\nПока Выборка.Следующий() Цикл\n    Сообщить(\"Наименование: \" + Выборка.Наименование + \", Код: \" + Выборка.Код);\nКонецЦикла;"
+    },
+    {
+      "title": "1C: Функции и процедуры",
+      "description": "Создание функций и процедур в 1C",
+      "category_name": "1C:Предприятие",
+      "difficulty": "intermediate",
+      "programming_language": "1C",
+      "code_to_remember": "// Процедура (не возвращает значение)\nПроцедура ВывестиПриветствие(Имя)\n    Сообщить(\"Привет, \" + Имя + \"!\");\nКонецПроцедуры\n\n// Функция (возвращает значение)\nФункция Сумма(Число1, Число2)\n    Возврат Число1 + Число2;\nКонецФункции\n\n// Функция с типом возвращаемого значения\nФункция ПроверитьВозраст(Возраст) Экспорт\n    Если Возраст >= 18 Тогда\n        Возврат Истина;\n    Иначе\n        Возврат Ложь;\n    КонецЕсли;\nКонецФункции\n\n// Использование\nВывестиПриветствие(\"Иван\");\nРезультат = Сумма(5, 3);\nСообщить(\"Сумма: \" + Результат);\n\nЕсли ПроверитьВозраст(20) Тогда\n    Сообщить(\"Совершеннолетний\");\nКонецЕсли;"
+    }
+  ]
+} 

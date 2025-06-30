@@ -90,6 +90,27 @@ func (q *Queries) CountExercisesByCategory(ctx context.Context, categoryID pgtyp
 	return count, err
 }
 
+const countExercisesFiltered = `-- name: CountExercisesFiltered :one
+SELECT COUNT(*) FROM exercises
+WHERE user_id = $1
+  AND is_active = TRUE
+  AND ($2::varchar IS NULL OR programming_language = $2)
+  AND ($3::uuid IS NULL OR category_id = $3)
+`
+
+type CountExercisesFilteredParams struct {
+	UserID  int64
+	Column2 string
+	Column3 pgtype.UUID
+}
+
+func (q *Queries) CountExercisesFiltered(ctx context.Context, arg *CountExercisesFilteredParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countExercisesFiltered, arg.UserID, arg.Column2, arg.Column3)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createCategory = `-- name: CreateCategory :one
 INSERT INTO categories (
     user_id, name, description, programming_language, color, icon, status, created_at, updated_at, is_active
@@ -388,6 +409,62 @@ type GetExercisesParams struct {
 
 func (q *Queries) GetExercises(ctx context.Context, arg *GetExercisesParams) ([]*Exercise, error) {
 	rows, err := q.db.Query(ctx, getExercises, arg.UserID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*Exercise
+	for rows.Next() {
+		var i Exercise
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Title,
+			&i.Description,
+			&i.CategoryID,
+			&i.Difficulty,
+			&i.ProgrammingLanguage,
+			&i.CodeToRemember,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.IsActive,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getExercisesFiltered = `-- name: GetExercisesFiltered :many
+SELECT id, user_id, title, description, category_id, difficulty, programming_language, code_to_remember, created_at, updated_at, is_active FROM exercises
+WHERE user_id = $1
+  AND is_active = TRUE
+  AND ($2::varchar IS NULL OR programming_language = $2)
+  AND ($3::uuid IS NULL OR category_id = $3)
+ORDER BY created_at DESC
+LIMIT $4 OFFSET $5
+`
+
+type GetExercisesFilteredParams struct {
+	UserID  int64
+	Column2 string
+	Column3 pgtype.UUID
+	Limit   int32
+	Offset  int32
+}
+
+func (q *Queries) GetExercisesFiltered(ctx context.Context, arg *GetExercisesFilteredParams) ([]*Exercise, error) {
+	rows, err := q.db.Query(ctx, getExercisesFiltered,
+		arg.UserID,
+		arg.Column2,
+		arg.Column3,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}

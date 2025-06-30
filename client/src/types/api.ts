@@ -89,6 +89,7 @@ export interface CategoryListResponse {
 export interface ProgrammingLanguage {
   name: string;
   value: string;
+  icon_svg: string;
 }
 
 export interface User {
