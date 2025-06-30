@@ -32,9 +32,11 @@ const initialState: ExerciseState = {
 
 export const fetchExercises = createAsyncThunk(
   'exercises/fetchExercises',
-  async ({ page = 1, pageSize = 10 }: { page?: number; pageSize?: number }, { rejectWithValue }) => {
+  async ({ page = 1, pageSize = 10, difficulty }: { page?: number; pageSize?: number; difficulty?: string }, { rejectWithValue }) => {
     try {
-      const response = await authAxios.get(`/exercises?page=${page}&page_size=${pageSize}`);
+      let url = `/exercises?page=${page}&page_size=${pageSize}`;
+      if (difficulty && difficulty !== 'all') url += `&difficulty=${difficulty}`;
+      const response = await authAxios.get(url);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercises');
@@ -92,9 +94,11 @@ export const deleteExercise = createAsyncThunk(
 
 export const fetchExercisesByLanguage = createAsyncThunk(
   'exercises/fetchExercisesByLanguage',
-  async ({ language, page = 1, pageSize = 10 }: { language: string; page?: number; pageSize?: number }, { rejectWithValue }) => {
+  async ({ language, page = 1, pageSize = 10, difficulty }: { language: string; page?: number; pageSize?: number; difficulty?: string }, { rejectWithValue }) => {
     try {
-      const response = await authAxios.get(`/exercises?programming_language=${language}&page=${page}&page_size=${pageSize}`);
+      let url = `/exercises?programming_language=${language}&page=${page}&page_size=${pageSize}`;
+      if (difficulty && difficulty !== 'all') url += `&difficulty=${difficulty}`;
+      const response = await authAxios.get(url);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercises by language');
@@ -104,9 +108,11 @@ export const fetchExercisesByLanguage = createAsyncThunk(
 
 export const fetchExercisesByCategory = createAsyncThunk(
   'exercises/fetchExercisesByCategory',
-  async ({ categoryId, page = 1, pageSize = 10 }: { categoryId: string; page?: number; pageSize?: number }, { rejectWithValue }) => {
+  async ({ categoryId, page = 1, pageSize = 10, difficulty }: { categoryId: string; page?: number; pageSize?: number; difficulty?: string }, { rejectWithValue }) => {
     try {
-      const response = await authAxios.get(`/exercises?category_id=${categoryId}&page=${page}&page_size=${pageSize}`);
+      let url = `/exercises?category_id=${categoryId}&page=${page}&page_size=${pageSize}`;
+      if (difficulty && difficulty !== 'all') url += `&difficulty=${difficulty}`;
+      const response = await authAxios.get(url);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercises by category');
@@ -136,7 +142,11 @@ const exerciseSlice = createSlice({
       })
       .addCase(fetchExercises.fulfilled, (state, action: PayloadAction<ExerciseListResponse>) => {
         state.loading = false;
-        state.exercises = action.payload.exercises;
+        if (action.payload.page > 1) {
+          state.exercises = [...state.exercises, ...action.payload.exercises];
+        } else {
+          state.exercises = action.payload.exercises;
+        }
         state.pagination = {
           page: action.payload.page,
           pageSize: action.payload.page_size,
@@ -213,7 +223,11 @@ const exerciseSlice = createSlice({
       })
       .addCase(fetchExercisesByLanguage.fulfilled, (state, action: PayloadAction<ExerciseListResponse>) => {
         state.loading = false;
-        state.exercises = action.payload.exercises;
+        if (action.payload.page > 1) {
+          state.exercises = [...state.exercises, ...action.payload.exercises];
+        } else {
+          state.exercises = action.payload.exercises;
+        }
         state.pagination = {
           page: action.payload.page,
           pageSize: action.payload.page_size,
@@ -232,7 +246,11 @@ const exerciseSlice = createSlice({
       })
       .addCase(fetchExercisesByCategory.fulfilled, (state, action: PayloadAction<ExerciseListResponse>) => {
         state.loading = false;
-        state.exercises = action.payload.exercises;
+        if (action.payload.page > 1) {
+          state.exercises = [...state.exercises, ...action.payload.exercises];
+        } else {
+          state.exercises = action.payload.exercises;
+        }
         state.pagination = {
           page: action.payload.page,
           pageSize: action.payload.page_size,

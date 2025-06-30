@@ -13,7 +13,7 @@ import (
 type (
 	GetExercisesService interface {
 		GetExercises(ctx context.Context, userID model.UserID, page, pageSize int) (*model.ExerciseListResponse, error)
-		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) (*model.ExerciseListResponse, error)
+		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) (*model.ExerciseListResponse, error)
 	}
 
 	GetExercisesHandler struct {
@@ -41,8 +41,9 @@ func (h *GetExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	// Получаем параметры пагинации
 	pageStr := r.URL.Query().Get("page")
 	pageSizeStr := r.URL.Query().Get("page_size")
-	language := r.URL.Query().Get("language")
+	language := r.URL.Query().Get("programming_language")
 	categoryID := r.URL.Query().Get("category_id")
+	difficulty := r.URL.Query().Get("difficulty")
 
 	page := 1
 	pageSize := 10
@@ -59,18 +60,21 @@ func (h *GetExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	var langPtr, catPtr *string
+	var langPtr, catPtr, diffPtr *string
 	if language != "" {
 		langPtr = &language
 	}
 	if categoryID != "" {
 		catPtr = &categoryID
 	}
+	if difficulty != "" {
+		diffPtr = &difficulty
+	}
 
 	var exercises *model.ExerciseListResponse
 	var err error
-	if langPtr != nil || catPtr != nil {
-		exercises, err = h.service.GetExercisesFiltered(ctx, userID, langPtr, catPtr, page, pageSize)
+	if langPtr != nil || catPtr != nil || diffPtr != nil {
+		exercises, err = h.service.GetExercisesFiltered(ctx, userID, langPtr, catPtr, diffPtr, page, pageSize)
 	} else {
 		exercises, err = h.service.GetExercises(ctx, userID, page, pageSize)
 	}

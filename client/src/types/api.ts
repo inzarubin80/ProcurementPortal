@@ -33,6 +33,7 @@ export interface Exercise {
   created_at: string;
   updated_at: string;
   is_active: boolean;
+  is_solved: boolean;
 }
 
 export interface Session {

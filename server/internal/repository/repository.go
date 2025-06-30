@@ -93,6 +93,14 @@ func (r *Repository) CountExercisesByCategory(ctx context.Context, categoryID mo
 	return r.categoryRepo.CountExercisesByCategory(ctx, categoryID)
 }
 
-func (r *Repository) GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) ([]*model.Exercise, int, error) {
-	return r.exerciseRepo.GetExercisesFiltered(ctx, userID, language, categoryID, page, pageSize)
+func (r *Repository) GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) ([]*model.Exercise, int, error) {
+	return r.exerciseRepo.GetExercisesFiltered(ctx, userID, language, categoryID, difficulty, page, pageSize)
+}
+
+func (r *Repository) UpsertExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, attempts int, successful int, typingTime int64, totalTypedChars int) (*model.ExerciseStat, error) {
+	return r.exerciseRepo.UpsertExerciseStat(ctx, userID, exerciseID, attempts, successful, typingTime, totalTypedChars)
+}
+
+func (r *Repository) GetExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error) {
+	return r.exerciseRepo.GetExerciseStat(ctx, userID, exerciseID)
 }

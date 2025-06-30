@@ -36,6 +36,18 @@ type Exercise struct {
 	IsActive            *bool
 }
 
+type ExerciseStat struct {
+	ID                 int32
+	UserID             int64
+	ExerciseID         pgtype.UUID
+	TotalAttempts      int32
+	SuccessfulAttempts int32
+	TotalTypingTime    int64
+	TotalTypedChars    int32
+	CreatedAt          pgtype.Timestamp
+	UpdatedAt          pgtype.Timestamp
+}
+
 type User struct {
 	UserID             int64
 	Name               string

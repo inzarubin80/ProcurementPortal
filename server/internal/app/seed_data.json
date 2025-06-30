@@ -47,6 +47,710 @@
       "color": "#FF6B35",
       "icon": "1c",
       "status": "active"
+    },
+    {
+      "name": "Python: Синтаксис",
+      "description": "Основы синтаксиса Python",
+      "programming_language": "Python",
+      "color": "#3776AB",
+      "icon": "python",
+      "status": "active"
+    },
+    {
+      "name": "Python: Условные операторы",
+      "description": "Работа с if, elif, else",
+      "programming_language": "Python",
+      "color": "#3776AB",
+      "icon": "python",
+      "status": "active"
+    },
+    {
+      "name": "Python: Циклы",
+      "description": "Работа с циклами for и while",
+      "programming_language": "Python",
+      "color": "#3776AB",
+      "icon": "python",
+      "status": "active"
+    },
+    {
+      "name": "Python: Функции",
+      "description": "Определение и вызов функций",
+      "programming_language": "Python",
+      "color": "#3776AB",
+      "icon": "python",
+      "status": "active"
+    },
+    {
+      "name": "Python: Списки и коллекции",
+      "description": "Работа со списками, словарями, множествами",
+      "programming_language": "Python",
+      "color": "#3776AB",
+      "icon": "python",
+      "status": "active"
+    },
+    {
+      "name": "Python: ООП",
+      "description": "Основы объектно-ориентированного программирования",
+      "programming_language": "Python",
+      "color": "#3776AB",
+      "icon": "python",
+      "status": "active"
+    },
+    {
+      "name": "Python: Работа с файлами",
+      "description": "Чтение и запись файлов",
+      "programming_language": "Python",
+      "color": "#3776AB",
+      "icon": "python",
+      "status": "active"
+    },
+    {
+      "name": "Python: Исключения",
+      "description": "Обработка ошибок и исключений",
+      "programming_language": "Python",
+      "color": "#3776AB",
+      "icon": "python",
+      "status": "active"
+    },
+    {
+      "name": "JavaScript: Синтаксис",
+      "description": "Основы синтаксиса JavaScript",
+      "programming_language": "JavaScript",
+      "color": "#F7DF1E",
+      "icon": "javascript",
+      "status": "active"
+    },
+    {
+      "name": "JavaScript: Условные операторы",
+      "description": "Работа с if, else, switch",
+      "programming_language": "JavaScript",
+      "color": "#F7DF1E",
+      "icon": "javascript",
+      "status": "active"
+    },
+    {
+      "name": "JavaScript: Циклы",
+      "description": "Работа с циклами for, while, do...while",
+      "programming_language": "JavaScript",
+      "color": "#F7DF1E",
+      "icon": "javascript",
+      "status": "active"
+    },
+    {
+      "name": "JavaScript: Функции",
+      "description": "Определение и вызов функций",
+      "programming_language": "JavaScript",
+      "color": "#F7DF1E",
+      "icon": "javascript",
+      "status": "active"
+    },
+    {
+      "name": "JavaScript: Массивы и объекты",
+      "description": "Работа с массивами и объектами",
+      "programming_language": "JavaScript",
+      "color": "#F7DF1E",
+      "icon": "javascript",
+      "status": "active"
+    },
+    {
+      "name": "JavaScript: ООП",
+      "description": "Основы объектно-ориентированного программирования",
+      "programming_language": "JavaScript",
+      "color": "#F7DF1E",
+      "icon": "javascript",
+      "status": "active"
+    },
+    {
+      "name": "JavaScript: Работа с DOM",
+      "description": "Манипуляции с DOM-деревом",
+      "programming_language": "JavaScript",
+      "color": "#F7DF1E",
+      "icon": "javascript",
+      "status": "active"
+    },
+    {
+      "name": "JavaScript: Асинхронность",
+      "description": "Работа с промисами и async/await",
+      "programming_language": "JavaScript",
+      "color": "#F7DF1E",
+      "icon": "javascript",
+      "status": "active"
+    },
+    {
+      "name": "Java: Синтаксис",
+      "description": "Основы синтаксиса Java",
+      "programming_language": "Java",
+      "color": "#007396",
+      "icon": "java",
+      "status": "active"
+    },
+    {
+      "name": "Java: Условные операторы",
+      "description": "Работа с if, else, switch",
+      "programming_language": "Java",
+      "color": "#007396",
+      "icon": "java",
+      "status": "active"
+    },
+    {
+      "name": "Java: Циклы",
+      "description": "Работа с циклами for, while, do...while",
+      "programming_language": "Java",
+      "color": "#007396",
+      "icon": "java",
+      "status": "active"
+    },
+    {
+      "name": "Java: Методы",
+      "description": "Определение и вызов методов",
+      "programming_language": "Java",
+      "color": "#007396",
+      "icon": "java",
+      "status": "active"
+    },
+    {
+      "name": "Java: Массивы и коллекции",
+      "description": "Работа с массивами и коллекциями",
+      "programming_language": "Java",
+      "color": "#007396",
+      "icon": "java",
+      "status": "active"
+    },
+    {
+      "name": "Java: ООП",
+      "description": "Основы объектно-ориентированного программирования",
+      "programming_language": "Java",
+      "color": "#007396",
+      "icon": "java",
+      "status": "active"
+    },
+    {
+      "name": "Java: Работа с файлами",
+      "description": "Чтение и запись файлов",
+      "programming_language": "Java",
+      "color": "#007396",
+      "icon": "java",
+      "status": "active"
+    },
+    {
+      "name": "Java: Исключения",
+      "description": "Обработка ошибок и исключений",
+      "programming_language": "Java",
+      "color": "#007396",
+      "icon": "java",
+      "status": "active"
+    },
+    {
+      "name": "C++: Синтаксис",
+      "description": "Основы синтаксиса C++",
+      "programming_language": "C++",
+      "color": "#00599C",
+      "icon": "cplusplus",
+      "status": "active"
+    },
+    {
+      "name": "C++: Условные операторы",
+      "description": "Работа с if, else, switch",
+      "programming_language": "C++",
+      "color": "#00599C",
+      "icon": "cplusplus",
+      "status": "active"
+    },
+    {
+      "name": "C++: Циклы",
+      "description": "Работа с циклами for, while, do...while",
+      "programming_language": "C++",
+      "color": "#00599C",
+      "icon": "cplusplus",
+      "status": "active"
+    },
+    {
+      "name": "C++: Функции",
+      "description": "Определение и вызов функций",
+      "programming_language": "C++",
+      "color": "#00599C",
+      "icon": "cplusplus",
+      "status": "active"
+    },
+    {
+      "name": "C++: Массивы и векторы",
+      "description": "Работа с массивами и векторами",
+      "programming_language": "C++",
+      "color": "#00599C",
+      "icon": "cplusplus",
+      "status": "active"
+    },
+    {
+      "name": "C++: ООП",
+      "description": "Основы объектно-ориентированного программирования",
+      "programming_language": "C++",
+      "color": "#00599C",
+      "icon": "cplusplus",
+      "status": "active"
+    },
+    {
+      "name": "C++: Работа с файлами",
+      "description": "Чтение и запись файлов",
+      "programming_language": "C++",
+      "color": "#00599C",
+      "icon": "cplusplus",
+      "status": "active"
+    },
+    {
+      "name": "C++: Исключения",
+      "description": "Обработка ошибок и исключений",
+      "programming_language": "C++",
+      "color": "#00599C",
+      "icon": "cplusplus",
+      "status": "active"
+    },
+    {
+      "name": "C#: Синтаксис",
+      "description": "Основы синтаксиса C#",
+      "programming_language": "C#",
+      "color": "#239120",
+      "icon": "csharp",
+      "status": "active"
+    },
+    {
+      "name": "C#: Условные операторы",
+      "description": "Работа с if, else, switch",
+      "programming_language": "C#",
+      "color": "#239120",
+      "icon": "csharp",
+      "status": "active"
+    },
+    {
+      "name": "C#: Циклы",
+      "description": "Работа с циклами for, while, do...while",
+      "programming_language": "C#",
+      "color": "#239120",
+      "icon": "csharp",
+      "status": "active"
+    },
+    {
+      "name": "C#: Методы",
+      "description": "Определение и вызов методов",
+      "programming_language": "C#",
+      "color": "#239120",
+      "icon": "csharp",
+      "status": "active"
+    },
+    {
+      "name": "C#: Коллекции",
+      "description": "Работа с массивами и коллекциями",
+      "programming_language": "C#",
+      "color": "#239120",
+      "icon": "csharp",
+      "status": "active"
+    },
+    {
+      "name": "C#: ООП",
+      "description": "Основы объектно-ориентированного программирования",
+      "programming_language": "C#",
+      "color": "#239120",
+      "icon": "csharp",
+      "status": "active"
+    },
+    {
+      "name": "C#: Работа с файлами",
+      "description": "Чтение и запись файлов",
+      "programming_language": "C#",
+      "color": "#239120",
+      "icon": "csharp",
+      "status": "active"
+    },
+    {
+      "name": "C#: Исключения",
+      "description": "Обработка ошибок и исключений",
+      "programming_language": "C#",
+      "color": "#239120",
+      "icon": "csharp",
+      "status": "active"
+    },
+    {
+      "name": "Go: Синтаксис",
+      "description": "Основы синтаксиса Go",
+      "programming_language": "Go",
+      "color": "#00ADD8",
+      "icon": "go",
+      "status": "active"
+    },
+    {
+      "name": "Go: Условные операторы",
+      "description": "Работа с if, else, switch",
+      "programming_language": "Go",
+      "color": "#00ADD8",
+      "icon": "go",
+      "status": "active"
+    },
+    {
+      "name": "Go: Циклы",
+      "description": "Работа с циклами for",
+      "programming_language": "Go",
+      "color": "#00ADD8",
+      "icon": "go",
+      "status": "active"
+    },
+    {
+      "name": "Go: Функции",
+      "description": "Определение и вызов функций",
+      "programming_language": "Go",
+      "color": "#00ADD8",
+      "icon": "go",
+      "status": "active"
+    },
+    {
+      "name": "Go: Срезы и карты",
+      "description": "Работа со срезами и map",
+      "programming_language": "Go",
+      "color": "#00ADD8",
+      "icon": "go",
+      "status": "active"
+    },
+    {
+      "name": "Go: ООП и интерфейсы",
+      "description": "Интерфейсы и структуры",
+      "programming_language": "Go",
+      "color": "#00ADD8",
+      "icon": "go",
+      "status": "active"
+    },
+    {
+      "name": "Go: Работа с файлами",
+      "description": "Чтение и запись файлов",
+      "programming_language": "Go",
+      "color": "#00ADD8",
+      "icon": "go",
+      "status": "active"
+    },
+    {
+      "name": "Go: Горутины и каналы",
+      "description": "Параллелизм и каналы",
+      "programming_language": "Go",
+      "color": "#00ADD8",
+      "icon": "go",
+      "status": "active"
+    },
+    {
+      "name": "Rust: Синтаксис",
+      "description": "Основы синтаксиса Rust",
+      "programming_language": "Rust",
+      "color": "#000000",
+      "icon": "rust",
+      "status": "active"
+    },
+    {
+      "name": "Rust: Условные операторы",
+      "description": "Работа с if, else, match",
+      "programming_language": "Rust",
+      "color": "#000000",
+      "icon": "rust",
+      "status": "active"
+    },
+    {
+      "name": "Rust: Циклы",
+      "description": "Работа с циклами for, while, loop",
+      "programming_language": "Rust",
+      "color": "#000000",
+      "icon": "rust",
+      "status": "active"
+    },
+    {
+      "name": "Rust: Функции",
+      "description": "Определение и вызов функций",
+      "programming_language": "Rust",
+      "color": "#000000",
+      "icon": "rust",
+      "status": "active"
+    },
+    {
+      "name": "Rust: Векторы и коллекции",
+      "description": "Работа с векторами и коллекциями",
+      "programming_language": "Rust",
+      "color": "#000000",
+      "icon": "rust",
+      "status": "active"
+    },
+    {
+      "name": "Rust: ООП и трейты",
+      "description": "Трейты и структуры",
+      "programming_language": "Rust",
+      "color": "#000000",
+      "icon": "rust",
+      "status": "active"
+    },
+    {
+      "name": "Rust: Работа с файлами",
+      "description": "Чтение и запись файлов",
+      "programming_language": "Rust",
+      "color": "#000000",
+      "icon": "rust",
+      "status": "active"
+    },
+    {
+      "name": "Rust: Владелец и заимствование",
+      "description": "Владение и заимствование",
+      "programming_language": "Rust",
+      "color": "#000000",
+      "icon": "rust",
+      "status": "active"
+    },
+    {
+      "name": "Kotlin: Синтаксис",
+      "description": "Основы синтаксиса Kotlin",
+      "programming_language": "Kotlin",
+      "color": "#7F52FF",
+      "icon": "kotlin",
+      "status": "active"
+    },
+    {
+      "name": "Kotlin: Условные операторы",
+      "description": "Работа с if, else, when",
+      "programming_language": "Kotlin",
+      "color": "#7F52FF",
+      "icon": "kotlin",
+      "status": "active"
+    },
+    {
+      "name": "Kotlin: Циклы",
+      "description": "Работа с циклами for, while, do...while",
+      "programming_language": "Kotlin",
+      "color": "#7F52FF",
+      "icon": "kotlin",
+      "status": "active"
+    },
+    {
+      "name": "Kotlin: Функции",
+      "description": "Определение и вызов функций",
+      "programming_language": "Kotlin",
+      "color": "#7F52FF",
+      "icon": "kotlin",
+      "status": "active"
+    },
+    {
+      "name": "Kotlin: Коллекции",
+      "description": "Работа с коллекциями",
+      "programming_language": "Kotlin",
+      "color": "#7F52FF",
+      "icon": "kotlin",
+      "status": "active"
+    },
+    {
+      "name": "Kotlin: ООП",
+      "description": "Основы объектно-ориентированного программирования",
+      "programming_language": "Kotlin",
+      "color": "#7F52FF",
+      "icon": "kotlin",
+      "status": "active"
+    },
+    {
+      "name": "Kotlin: Работа с файлами",
+      "description": "Чтение и запись файлов",
+      "programming_language": "Kotlin",
+      "color": "#7F52FF",
+      "icon": "kotlin",
+      "status": "active"
+    },
+    {
+      "name": "Kotlin: Исключения",
+      "description": "Обработка ошибок и исключений",
+      "programming_language": "Kotlin",
+      "color": "#7F52FF",
+      "icon": "kotlin",
+      "status": "active"
+    },
+    {
+      "name": "Swift: Синтаксис",
+      "description": "Основы синтаксиса Swift",
+      "programming_language": "Swift",
+      "color": "#F05138",
+      "icon": "swift",
+      "status": "active"
+    },
+    {
+      "name": "Swift: Условные операторы",
+      "description": "Работа с if, else, switch",
+      "programming_language": "Swift",
+      "color": "#F05138",
+      "icon": "swift",
+      "status": "active"
+    },
+    {
+      "name": "Swift: Циклы",
+      "description": "Работа с циклами for, while, repeat...while",
+      "programming_language": "Swift",
+      "color": "#F05138",
+      "icon": "swift",
+      "status": "active"
+    },
+    {
+      "name": "Swift: Функции",
+      "description": "Определение и вызов функций",
+      "programming_language": "Swift",
+      "color": "#F05138",
+      "icon": "swift",
+      "status": "active"
+    },
+    {
+      "name": "Swift: Массивы и словари",
+      "description": "Работа с массивами и словарями",
+      "programming_language": "Swift",
+      "color": "#F05138",
+      "icon": "swift",
+      "status": "active"
+    },
+    {
+      "name": "Swift: ООП",
+      "description": "Основы объектно-ориентированного программирования",
+      "programming_language": "Swift",
+      "color": "#F05138",
+      "icon": "swift",
+      "status": "active"
+    },
+    {
+      "name": "Swift: Работа с файлами",
+      "description": "Чтение и запись файлов",
+      "programming_language": "Swift",
+      "color": "#F05138",
+      "icon": "swift",
+      "status": "active"
+    },
+    {
+      "name": "Swift: Опционалы",
+      "description": "Работа с optional типами",
+      "programming_language": "Swift",
+      "color": "#F05138",
+      "icon": "swift",
+      "status": "active"
+    },
+    {
+      "name": "TypeScript: Синтаксис",
+      "description": "Основы синтаксиса TypeScript",
+      "programming_language": "TypeScript",
+      "color": "#3178C6",
+      "icon": "typescript",
+      "status": "active"
+    },
+    {
+      "name": "TypeScript: Условные операторы",
+      "description": "Работа с if, else, switch",
+      "programming_language": "TypeScript",
+      "color": "#3178C6",
+      "icon": "typescript",
+      "status": "active"
+    },
+    {
+      "name": "TypeScript: Циклы",
+      "description": "Работа с циклами for, while, do...while",
+      "programming_language": "TypeScript",
+      "color": "#3178C6",
+      "icon": "typescript",
+      "status": "active"
+    },
+    {
+      "name": "TypeScript: Функции",
+      "description": "Определение и вызов функций",
+      "programming_language": "TypeScript",
+      "color": "#3178C6",
+      "icon": "typescript",
+      "status": "active"
+    },
+    {
+      "name": "TypeScript: Массивы и объекты",
+      "description": "Работа с массивами и объектами",
+      "programming_language": "TypeScript",
+      "color": "#3178C6",
+      "icon": "typescript",
+      "status": "active"
+    },
+    {
+      "name": "TypeScript: ООП",
+      "description": "Основы объектно-ориентированного программирования",
+      "programming_language": "TypeScript",
+      "color": "#3178C6",
+      "icon": "typescript",
+      "status": "active"
+    },
+    {
+      "name": "TypeScript: Generics",
+      "description": "Работа с обобщениями (generics)",
+      "programming_language": "TypeScript",
+      "color": "#3178C6",
+      "icon": "typescript",
+      "status": "active"
+    },
+    {
+      "name": "TypeScript: Работа с файлами",
+      "description": "Чтение и запись файлов (Node.js)",
+      "programming_language": "TypeScript",
+      "color": "#3178C6",
+      "icon": "typescript",
+      "status": "active"
+    },
+    {
+      "name": "1C: Синтаксис",
+      "description": "Основы синтаксиса 1C",
+      "programming_language": "1C",
+      "color": "#1C1C1C",
+      "icon": "1c",
+      "status": "active"
+    },
+    {
+      "name": "1C: Условные операторы",
+      "description": "Работа с Если, ИначеЕсли, Иначе",
+      "programming_language": "1C",
+      "color": "#1C1C1C",
+      "icon": "1c",
+      "status": "active"
+    },
+    {
+      "name": "1C: Циклы",
+      "description": "Работа с циклами Пока, Для, По",
+      "programming_language": "1C",
+      "color": "#1C1C1C",
+      "icon": "1c",
+      "status": "active"
+    },
+    {
+      "name": "1C: Процедуры и функции",
+      "description": "Определение и вызов процедур и функций",
+      "programming_language": "1C",
+      "color": "#1C1C1C",
+      "icon": "1c",
+      "status": "active"
+    },
+    {
+      "name": "1C: Массивы и структуры",
+      "description": "Работа с массивами и структурами",
+      "programming_language": "1C",
+      "color": "#1C1C1C",
+      "icon": "1c",
+      "status": "active"
+    },
+    {
+      "name": "1C: Работа с файлами",
+      "description": "Чтение и запись файлов",
+      "programming_language": "1C",
+      "color": "#1C1C1C",
+      "icon": "1c",
+      "status": "active"
+    },
+    {
+      "name": "1C: Запросы",
+      "description": "Работа с запросами в 1С",
+      "programming_language": "1C",
+      "color": "#1C1C1C",
+      "icon": "1c",
+      "status": "active"
+    },
+    {
+      "name": "1C: Обработка ошибок",
+      "description": "Обработка ошибок и исключений",
+      "programming_language": "1C",
+      "color": "#1C1C1C",
+      "icon": "1c",
+      "status": "active"
     }
   ],
   "exercises": [

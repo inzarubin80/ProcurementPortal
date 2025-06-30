@@ -33,7 +33,9 @@ type (
 		GetExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.Exercise, error)
 		UpdateExercise(ctx context.Context, exercise *model.Exercise) (*model.Exercise, error)
 		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) error
-		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) ([]*model.Exercise, int, error)
+		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) ([]*model.Exercise, int, error)
+		UpsertExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, attempts int, successful int, typingTime int64, totalTypedChars int) (*model.ExerciseStat, error)
+		GetExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error)
 
 		//Category
 		CreateCategory(ctx context.Context, category *model.Category) (*model.Category, error)
@@ -186,21 +188,30 @@ func (s *PokerService) DeleteCategory(ctx context.Context, userID model.UserID, 
 	return s.repository.DeleteCategory(ctx, userID, categoryID)
 }
 
-func (s *PokerService) GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) (*model.ExerciseListResponse, error) {
-	exercises, total, err := s.repository.GetExercisesFiltered(ctx, userID, language, categoryID, page, pageSize)
+func (s *PokerService) GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) (*model.ExerciseListResponse, error) {
+	exercises, total, err := s.repository.GetExercisesFiltered(ctx, userID, language, categoryID, difficulty, page, pageSize)
 	if err != nil {
 		return nil, err
 	}
-
-	hasNext := (page * pageSize) < total
-	hasPrev := page > 1
-
 	return &model.ExerciseListResponse{
 		Exercises: exercises,
-		Total:     total,
 		Page:      page,
 		PageSize:  pageSize,
-		HasNext:   hasNext,
-		HasPrev:   hasPrev,
+		Total:     total,
+		HasNext:   (page * pageSize) < total,
+		HasPrev:   page > 1,
 	}, nil
+}
+
+func (s *PokerService) UpsertExerciseStat(userID model.UserID, exerciseID model.ExerciseID, isSuccess bool, typingTime int64, totalTypedChars int) (*model.ExerciseStat, error) {
+	attempts := 1
+	successful := 0
+	if isSuccess {
+		successful = 1
+	}
+	return s.repository.UpsertExerciseStat(context.Background(), userID, exerciseID, attempts, successful, typingTime, totalTypedChars)
+}
+
+func (s *PokerService) GetExerciseStat(userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error) {
+	return s.repository.GetExerciseStat(context.Background(), userID, exerciseID)
 }

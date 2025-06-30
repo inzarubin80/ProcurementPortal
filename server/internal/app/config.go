@@ -25,7 +25,10 @@ type (
 		getCategories, createCategory, getCategory, updateCategory, deleteCategory string
 
 		// Languages route
-		getLanguages string
+		getLanguages, getDifficulties string
+
+		// Exercise stat route
+		updateExerciseStat, getExerciseStat string
 	}
 
 	sectrets struct {
@@ -62,7 +65,7 @@ func NewConfig(opts Options) config {
 		Oauth2Config: &oauth2.Config{
 			ClientID:     os.Getenv("CLIENT_ID_GOOGLE"),
 			ClientSecret: os.Getenv("CLIENT_SECRET_GOOGLE"),
-			RedirectURL:   os.Getenv("APP_ROOT") + "/auth/callback",
+			RedirectURL:  os.Getenv("APP_ROOT") + "/auth/callback",
 			Scopes:       []string{"openid", "email", "profile"},
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://accounts.google.com/o/oauth2/auth",
@@ -78,7 +81,7 @@ func NewConfig(opts Options) config {
 		Oauth2Config: &oauth2.Config{
 			ClientID:     os.Getenv("CLIENT_ID_GITHUB"),
 			ClientSecret: os.Getenv("CLIENT_SECRET_GITHUB"),
-			RedirectURL:   os.Getenv("APP_ROOT") + "/auth/callback",
+			RedirectURL:  os.Getenv("APP_ROOT") + "/auth/callback",
 			Scopes:       []string{"user:email"},
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://github.com/login/oauth/authorize",
@@ -117,7 +120,12 @@ func NewConfig(opts Options) config {
 			deleteCategory: "DELETE /api/categories/delete",
 
 			// Languages route
-			getLanguages: "GET    /api/languages",
+			getLanguages:    "GET    /api/languages",
+			getDifficulties: "GET    /api/difficulties",
+
+			// Exercise stat route
+			updateExerciseStat: "POST   /api/exercise_stat/update",
+			getExerciseStat:    "GET    /api/exercise_stat",
 		},
 
 		sectrets: sectrets{

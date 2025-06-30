@@ -46,7 +46,8 @@ type (
 		GetExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.Exercise, error)
 		UpdateExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, exercise *model.Exercise) (*model.Exercise, error)
 		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) error
-		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) (*model.ExerciseListResponse, error)
+		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) (*model.ExerciseListResponse, error)
+		UpsertExerciseStat(userID model.UserID, exerciseID model.ExerciseID, isSuccess bool, typingTime int64, totalTypedChars int) (*model.ExerciseStat, error)
 
 		// Category methods
 		CreateCategory(ctx context.Context, userID model.UserID, category *model.Category) (*model.Category, error)
@@ -54,6 +55,9 @@ type (
 		GetCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID) (*model.Category, error)
 		UpdateCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID, category *model.Category) (*model.Category, error)
 		DeleteCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID) error
+
+		// Добавлено для соответствия GetExerciseStatService
+		GetExerciseStat(userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error)
 	}
 
 	TokenService interface {
@@ -79,11 +83,13 @@ func (a *App) ListenAndServe() error {
 		a.config.path.setUserName: appHttp.NewSetUserNameHandler(a.pokerService, a.config.path.setUserName),
 
 		// Exercise handlers
-		a.config.path.getExercises:   appHttp.NewGetExercisesHandler(a.pokerService, "get_exercises"),
-		a.config.path.createExercise: appHttp.NewCreateExerciseHandler(a.pokerService, "create_exercise"),
-		a.config.path.getExercise:    appHttp.NewGetExerciseHandler(a.pokerService, "get_exercise"),
-		a.config.path.updateExercise: appHttp.NewUpdateExerciseHandler(a.pokerService, "update_exercise"),
-		a.config.path.deleteExercise: appHttp.NewDeleteExerciseHandler(a.pokerService, "delete_exercise"),
+		a.config.path.getExercises:       appHttp.NewGetExercisesHandler(a.pokerService, "get_exercises"),
+		a.config.path.createExercise:     appHttp.NewCreateExerciseHandler(a.pokerService, "create_exercise"),
+		a.config.path.getExercise:        appHttp.NewGetExerciseHandler(a.pokerService, "get_exercise"),
+		a.config.path.updateExercise:     appHttp.NewUpdateExerciseHandler(a.pokerService, "update_exercise"),
+		a.config.path.deleteExercise:     appHttp.NewDeleteExerciseHandler(a.pokerService, "delete_exercise"),
+		a.config.path.updateExerciseStat: appHttp.NewUpdateExerciseStatHandler(a.pokerService),
+		a.config.path.getExerciseStat:    appHttp.NewGetExerciseStatHandler(a.pokerService),
 
 		// Category handlers
 		a.config.path.getCategories:  appHttp.NewGetCategoriesHandler(a.pokerService, "get_categories"),
@@ -103,6 +109,7 @@ func (a *App) ListenAndServe() error {
 
 	// Languages handler (без авторизации)
 	a.mux.Handle(a.config.path.getLanguages, appHttp.NewGetLanguagesHandler("get_languages"))
+	a.mux.Handle(a.config.path.getDifficulties, appHttp.NewGetDifficultiesHandler("get_difficulties"))
 
 	fmt.Println("start server")
 	return a.server.ListenAndServe()

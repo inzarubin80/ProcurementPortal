@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Container,
@@ -45,6 +45,9 @@ import { fetchExercises, fetchExercisesByLanguage, fetchExercisesByCategory } fr
 import { fetchLanguages } from '../store/slices/languageSlice';
 import { fetchCategories } from '../store/slices/categorySlice';
 import { ProgrammingLanguage, Exercise, Category } from '../types/api';
+import CircularProgress from '@mui/material/CircularProgress';
+import axios from 'axios';
+import { fetchDifficulties, Difficulty } from '../store/slices/difficultySlice';
 
 const TaskList: React.FC = () => {
   const theme = useTheme();
@@ -56,6 +59,7 @@ const TaskList: React.FC = () => {
   const { exercises, loading: exercisesLoading, pagination } = useSelector((state: RootState) => state.exercises);
   const { languages, loading: languagesLoading } = useSelector((state: RootState) => state.languages);
   const { categories, loading: categoriesLoading } = useSelector((state: RootState) => state.categories);
+  const { difficulties, loading: difficultiesLoading } = useSelector((state: RootState) => state.difficulties as { difficulties: Difficulty[]; loading: boolean; error: string | null });
   
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
@@ -63,12 +67,42 @@ const TaskList: React.FC = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  const loading = exercisesLoading || languagesLoading || categoriesLoading;
+  // Сброс страницы и задач при изменении фильтров
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedLanguage, selectedCategory, selectedDifficulty, searchTerm]);
+
+  const loading = exercisesLoading || languagesLoading || categoriesLoading || difficultiesLoading;
 
   useEffect(() => {
     loadData();
-  }, [currentPage, selectedLanguage, selectedCategory]);
+  }, [currentPage, selectedLanguage, selectedCategory, selectedDifficulty]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const container = tableContainerRef.current;
+      if (!container || loading || !pagination.hasNext) return;
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      if (scrollTop + clientHeight >= scrollHeight - 50) {
+        setCurrentPage((prev) => prev + 1);
+      }
+    };
+    const container = tableContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+    }
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [loading, pagination.hasNext]);
+
+  useEffect(() => {
+    dispatch(fetchDifficulties());
+  }, [dispatch]);
 
   const loadData = async () => {
     try {
@@ -77,16 +111,15 @@ const TaskList: React.FC = () => {
         await dispatch(fetchLanguages());
       }
       if (categories.length === 0) {
-        await dispatch(fetchCategories({ page: 1, pageSize: 100 }));
+        await dispatch(fetchCategories({ page: 1, pageSize: 30 }));
       }
-      
       // Загружаем каты с фильтрами
       if (selectedLanguage !== 'all' && selectedCategory !== 'all') {
-        await dispatch(fetchExercisesByCategory({ categoryId: selectedCategory, page: currentPage, pageSize: 10 }));
+        await dispatch(fetchExercisesByCategory({ categoryId: selectedCategory, page: currentPage, pageSize: 30, difficulty: selectedDifficulty }));
       } else if (selectedLanguage !== 'all') {
-        await dispatch(fetchExercisesByLanguage({ language: selectedLanguage, page: currentPage, pageSize: 10 }));
+        await dispatch(fetchExercisesByLanguage({ language: selectedLanguage, page: currentPage, pageSize: 30, difficulty: selectedDifficulty }));
       } else {
-        await dispatch(fetchExercises({ page: currentPage, pageSize: 10 }));
+        await dispatch(fetchExercises({ page: currentPage, pageSize: 30, difficulty: selectedDifficulty }));
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -126,12 +159,11 @@ const TaskList: React.FC = () => {
   const filteredExercises = exercises.filter((exercise) => {
     const matchesSearch = exercise.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          exercise.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDifficulty = selectedDifficulty === 'all' || exercise.difficulty === selectedDifficulty;
     const matchesLanguage = selectedLanguage === 'all' || (exercise.programming_language && exercise.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
-    return matchesSearch && matchesDifficulty && matchesLanguage;
+    return matchesSearch && matchesLanguage;
   });
 
-  if (loading) {
+  if (loading && currentPage === 1) {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         <AppBar position="static" sx={{ background: '#1da1f2' }}>
@@ -163,7 +195,10 @@ const TaskList: React.FC = () => {
                 <Select
                   value={selectedLanguage}
                   label="Язык программирования"
-                  onChange={(e: SelectChangeEvent) => setSelectedLanguage(e.target.value)}
+                  onChange={(e: SelectChangeEvent) => {
+                    setSelectedLanguage(e.target.value);
+                    setSelectedCategory('all');
+                  }}
                 >
                   <MenuItem value="all">Все языки</MenuItem>
                   {languages.map((language) => (
@@ -181,7 +216,12 @@ const TaskList: React.FC = () => {
                 <Select
                   value={selectedCategory}
                   label="Категория"
-                  onChange={(e: SelectChangeEvent) => setSelectedCategory(e.target.value)}
+                  onChange={(e: SelectChangeEvent) => {
+                    setCurrentPage(1);
+                    setSelectedCategory(e.target.value);
+                    setTimeout(() => loadData(), 0);
+                  }}
+                  disabled={selectedLanguage === 'all'}
                 >
                   <MenuItem value="all">Все категории</MenuItem>
                   {categories
@@ -203,9 +243,9 @@ const TaskList: React.FC = () => {
                   onChange={(e: SelectChangeEvent) => setSelectedDifficulty(e.target.value)}
                 >
                   <MenuItem value="all">Все уровни</MenuItem>
-                  <MenuItem value="easy">Легко</MenuItem>
-                  <MenuItem value="medium">Средне</MenuItem>
-                  <MenuItem value="hard">Сложно</MenuItem>
+                  {difficulties.map(diff => (
+                    <MenuItem key={diff.value} value={diff.value}>{diff.name}</MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
@@ -219,7 +259,7 @@ const TaskList: React.FC = () => {
 
         {/* Results */}
         <Box sx={{ bgcolor: 'white', borderRadius: 4, boxShadow: 2, p: 2 }}>
-          <TableContainer component={Paper} sx={{ maxHeight: 500, borderRadius: 4 }}>
+          <TableContainer component={Paper} sx={{ maxHeight: 500, borderRadius: 4, position: 'relative' }} ref={tableContainerRef}>
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
@@ -234,6 +274,9 @@ const TaskList: React.FC = () => {
                   </TableCell>
                   <TableCell sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[100] }}>
                     Язык
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[100] }}>
+                    Решено
                   </TableCell>
                   <TableCell sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[100] }}>
                     Действия
@@ -285,6 +328,13 @@ const TaskList: React.FC = () => {
                           return <Typography variant="body2" component="span">{exercise.programming_language}</Typography>;
                         })()}
                       </TableCell>
+                      <TableCell align="center">
+                        {exercise.is_solved ? (
+                          <Chip label="Да" color="success" size="small" />
+                        ) : (
+                          <Chip label="Нет" color="default" size="small" />
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Button
                           variant="contained"
@@ -319,6 +369,12 @@ const TaskList: React.FC = () => {
                 })}
               </TableBody>
             </Table>
+            {/* Индикатор подгрузки при скролле */}
+            {loading && currentPage > 1 && pagination.hasNext && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 2 }}>
+                <CircularProgress size={32} />
+              </Box>
+            )}
           </TableContainer>
         </Box>
       </Container>

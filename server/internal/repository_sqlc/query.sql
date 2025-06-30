@@ -34,9 +34,11 @@ INSERT INTO exercises (
 ) RETURNING *;
 
 -- name: GetExercises :many
-SELECT * FROM exercises
-WHERE user_id = $1 AND is_active = TRUE
-ORDER BY created_at DESC
+SELECT e.*, es.successful_attempts
+FROM exercises e
+LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND es.user_id = $1
+WHERE e.user_id = $1 AND e.is_active = TRUE
+ORDER BY e.created_at DESC
 LIMIT $2 OFFSET $3;
 
 -- name: CountExercises :one
@@ -107,18 +109,46 @@ UPDATE categories SET is_active = FALSE WHERE id = $1 AND user_id = $2;
 SELECT COUNT(*) FROM exercises WHERE category_id = $1 AND is_active = TRUE;
 
 -- name: GetExercisesFiltered :many
-SELECT * FROM exercises
-WHERE user_id = $1
-  AND is_active = TRUE
-  AND ($2::varchar IS NULL OR programming_language = $2)
-  AND ($3::uuid IS NULL OR category_id = $3)
-ORDER BY created_at DESC
-LIMIT $4 OFFSET $5;
+SELECT e.*, es.successful_attempts
+FROM exercises e
+LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND es.user_id = $1
+WHERE e.user_id = $1
+  AND e.is_active = TRUE
+  AND ($2::varchar = '' OR e.programming_language = $2)
+  AND ($3::uuid IS NULL OR e.category_id = $3)
+  AND ($4::varchar = '' OR e.difficulty = $4)
+ORDER BY e.created_at DESC
+LIMIT $5 OFFSET $6;
 
 -- name: CountExercisesFiltered :one
-SELECT COUNT(*) FROM exercises
-WHERE user_id = $1
-  AND is_active = TRUE
-  AND ($2::varchar IS NULL OR programming_language = $2)
-  AND ($3::uuid IS NULL OR category_id = $3);
+SELECT COUNT(*) FROM exercises e
+WHERE e.user_id = $1
+  AND e.is_active = TRUE
+  AND ($2::varchar IS NULL OR e.programming_language = $2)
+  AND ($3::uuid IS NULL OR e.category_id = $3)
+  AND ($4::varchar IS NULL OR e.difficulty = $4);
+
+-- name: GetExerciseStat :one
+SELECT id, user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at FROM exercise_stats WHERE user_id = $1 AND exercise_id = $2;
+
+-- name: UpsertExerciseStat :one
+INSERT INTO exercise_stats (user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+ON CONFLICT (user_id, exercise_id) DO UPDATE SET
+    total_attempts = exercise_stats.total_attempts + EXCLUDED.total_attempts,
+    successful_attempts = exercise_stats.successful_attempts + EXCLUDED.successful_attempts,
+    total_typing_time = exercise_stats.total_typing_time + EXCLUDED.total_typing_time,
+    total_typed_chars = exercise_stats.total_typed_chars + EXCLUDED.total_typed_chars,
+    updated_at = NOW()
+RETURNING id, user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at;
+
+-- name: UpdateExerciseStat :one
+UPDATE exercise_stats SET
+    total_attempts = $3,
+    successful_attempts = $4,
+    total_typing_time = $5,
+    total_typed_chars = $6,
+    updated_at = NOW()
+WHERE user_id = $1 AND exercise_id = $2
+RETURNING id, user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at;
 

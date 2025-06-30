@@ -91,6 +91,7 @@ type (
 		CreatedAt           time.Time           `json:"created_at"`
 		UpdatedAt           time.Time           `json:"updated_at"`
 		IsActive            bool                `json:"is_active"`
+		IsSolved            bool                `json:"is_solved"`
 	}
 
 	Category struct {
@@ -125,6 +126,16 @@ type (
 		HasNext    bool        `json:"has_next"`
 		HasPrev    bool        `json:"has_prev"`
 	}
+
+	// ExerciseStat хранит статистику пользователя по задаче
+	ExerciseStat struct {
+		UserID             UserID `json:"user_id"`
+		ExerciseID         string `json:"exercise_id"`
+		TotalAttempts      int    `json:"total_attempts"`
+		SuccessfulAttempts int    `json:"successful_attempts"`
+		TotalTypingTime    int64  `json:"total_typing_time"` // в секундах
+		TotalTypedChars    int    `json:"total_typed_chars"`
+	}
 )
 
 // GetSupportedLanguages возвращает список поддерживаемых языков программирования
@@ -153,4 +164,13 @@ func IsSupportedLanguage(language ProgrammingLanguage) bool {
 		}
 	}
 	return false
+}
+
+// GetSupportedDifficulties возвращает список поддерживаемых уровней сложности
+func GetSupportedDifficulties() []Difficulty {
+	return []Difficulty{
+		"beginner",
+		"intermediate",
+		"hard",
+	}
 }

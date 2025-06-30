@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { ProgrammingLanguage } from '../../types/api';
 import { publicAxios } from '../../service/http-common';
+import axios from 'axios';
 
 interface LanguageState {
   languages: ProgrammingLanguage[];

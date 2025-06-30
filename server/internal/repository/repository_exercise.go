@@ -57,14 +57,39 @@ func (r *ExerciseRepository) GetExercises(ctx context.Context, userID model.User
 		Offset: int32(offset),
 	}
 
-	sqlcExercises, err := r.queries.GetExercises(ctx, params)
+	sqlcRows, err := r.queries.GetExercises(ctx, params)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	exercises := make([]*model.Exercise, len(sqlcExercises))
-	for i, sqlcExercise := range sqlcExercises {
-		exercises[i] = convertSQLCExerciseToModel(sqlcExercise)
+	exercises := make([]*model.Exercise, len(sqlcRows))
+	for i, row := range sqlcRows {
+		description := ""
+		if row.Description != nil {
+			description = *row.Description
+		}
+		isActive := true
+		if row.IsActive != nil {
+			isActive = *row.IsActive
+		}
+		isSolved := false
+		if row.SuccessfulAttempts != nil && *row.SuccessfulAttempts > 0 {
+			isSolved = true
+		}
+		exercises[i] = &model.Exercise{
+			ID:                  row.ID.String(),
+			UserID:              model.UserID(row.UserID),
+			Title:               row.Title,
+			Description:         description,
+			CategoryID:          row.CategoryID.String(),
+			Difficulty:          model.Difficulty(row.Difficulty),
+			ProgrammingLanguage: model.ProgrammingLanguage(row.ProgrammingLanguage),
+			CodeToRemember:      row.CodeToRemember,
+			CreatedAt:           row.CreatedAt.Time,
+			UpdatedAt:           row.UpdatedAt.Time,
+			IsActive:            isActive,
+			IsSolved:            isSolved,
+		}
 	}
 
 	return exercises, int(total), nil
@@ -128,10 +153,14 @@ func (r *ExerciseRepository) DeleteExercise(ctx context.Context, userID model.Us
 	return nil
 }
 
-func (r *ExerciseRepository) GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) ([]*model.Exercise, int, error) {
+func (r *ExerciseRepository) GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) ([]*model.Exercise, int, error) {
 	var langValue string
+	var diffValue string
 	if language != nil && *language != "" {
 		langValue = *language
+	}
+	if difficulty != nil && *difficulty != "" {
+		diffValue = *difficulty
 	}
 	var catUUID pgtype.UUID
 	if categoryID != nil && *categoryID != "" {
@@ -142,6 +171,7 @@ func (r *ExerciseRepository) GetExercisesFiltered(ctx context.Context, userID mo
 		UserID:  int64(userID),
 		Column2: langValue,
 		Column3: catUUID,
+		Column4: diffValue,
 	}
 	total, err := r.queries.CountExercisesFiltered(ctx, countParams)
 	if err != nil {
@@ -153,18 +183,86 @@ func (r *ExerciseRepository) GetExercisesFiltered(ctx context.Context, userID mo
 		UserID:  int64(userID),
 		Column2: langValue,
 		Column3: catUUID,
+		Column4: diffValue,
 		Limit:   int32(pageSize),
 		Offset:  int32(offset),
 	}
-	sqlcExercises, err := r.queries.GetExercisesFiltered(ctx, exParams)
+	sqlcRows, err := r.queries.GetExercisesFiltered(ctx, exParams)
 	if err != nil {
 		return nil, 0, err
 	}
-	exercises := make([]*model.Exercise, len(sqlcExercises))
-	for i, sqlcExercise := range sqlcExercises {
-		exercises[i] = convertSQLCExerciseToModel(sqlcExercise)
+	exercises := make([]*model.Exercise, len(sqlcRows))
+	for i, row := range sqlcRows {
+		description := ""
+		if row.Description != nil {
+			description = *row.Description
+		}
+		isActive := true
+		if row.IsActive != nil {
+			isActive = *row.IsActive
+		}
+		isSolved := false
+		if row.SuccessfulAttempts != nil && *row.SuccessfulAttempts > 0 {
+			isSolved = true
+		}
+		exercises[i] = &model.Exercise{
+			ID:                  row.ID.String(),
+			UserID:              model.UserID(row.UserID),
+			Title:               row.Title,
+			Description:         description,
+			CategoryID:          row.CategoryID.String(),
+			Difficulty:          model.Difficulty(row.Difficulty),
+			ProgrammingLanguage: model.ProgrammingLanguage(row.ProgrammingLanguage),
+			CodeToRemember:      row.CodeToRemember,
+			CreatedAt:           row.CreatedAt.Time,
+			UpdatedAt:           row.UpdatedAt.Time,
+			IsActive:            isActive,
+			IsSolved:            isSolved,
+		}
 	}
 	return exercises, int(total), nil
+}
+
+func (r *ExerciseRepository) GetExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error) {
+	params := sqlc_repository.GetExerciseStatParams{
+		UserID:     int64(userID),
+		ExerciseID: pgtype.UUID(exerciseID),
+	}
+	stat, err := r.queries.GetExerciseStat(ctx, &params)
+	if err != nil {
+		return nil, err
+	}
+	return &model.ExerciseStat{
+		UserID:             model.UserID(stat.UserID),
+		ExerciseID:         stat.ExerciseID.String(),
+		TotalAttempts:      int(stat.TotalAttempts),
+		SuccessfulAttempts: int(stat.SuccessfulAttempts),
+		TotalTypingTime:    stat.TotalTypingTime,
+		TotalTypedChars:    int(stat.TotalTypedChars),
+	}, nil
+}
+
+func (r *ExerciseRepository) UpsertExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, attempts, successful int, typingTime int64, totalTypedChars int) (*model.ExerciseStat, error) {
+	params := sqlc_repository.UpsertExerciseStatParams{
+		UserID:             int64(userID),
+		ExerciseID:         pgtype.UUID(exerciseID),
+		TotalAttempts:      int32(attempts),
+		SuccessfulAttempts: int32(successful),
+		TotalTypingTime:    typingTime,
+		TotalTypedChars:    int32(totalTypedChars),
+	}
+	stat, err := r.queries.UpsertExerciseStat(ctx, &params)
+	if err != nil {
+		return nil, err
+	}
+	return &model.ExerciseStat{
+		UserID:             model.UserID(stat.UserID),
+		ExerciseID:         stat.ExerciseID.String(),
+		TotalAttempts:      int(stat.TotalAttempts),
+		SuccessfulAttempts: int(stat.SuccessfulAttempts),
+		TotalTypingTime:    stat.TotalTypingTime,
+		TotalTypedChars:    int(stat.TotalTypedChars),
+	}, nil
 }
 
 // Вспомогательная функция для конвертации sqlc структуры в модель

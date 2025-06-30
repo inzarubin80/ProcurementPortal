@@ -91,21 +91,28 @@ func (q *Queries) CountExercisesByCategory(ctx context.Context, categoryID pgtyp
 }
 
 const countExercisesFiltered = `-- name: CountExercisesFiltered :one
-SELECT COUNT(*) FROM exercises
-WHERE user_id = $1
-  AND is_active = TRUE
-  AND ($2::varchar IS NULL OR programming_language = $2)
-  AND ($3::uuid IS NULL OR category_id = $3)
+SELECT COUNT(*) FROM exercises e
+WHERE e.user_id = $1
+  AND e.is_active = TRUE
+  AND ($2::varchar IS NULL OR e.programming_language = $2)
+  AND ($3::uuid IS NULL OR e.category_id = $3)
+  AND ($4::varchar IS NULL OR e.difficulty = $4)
 `
 
 type CountExercisesFilteredParams struct {
 	UserID  int64
 	Column2 string
 	Column3 pgtype.UUID
+	Column4 string
 }
 
 func (q *Queries) CountExercisesFiltered(ctx context.Context, arg *CountExercisesFilteredParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countExercisesFiltered, arg.UserID, arg.Column2, arg.Column3)
+	row := q.db.QueryRow(ctx, countExercisesFiltered,
+		arg.UserID,
+		arg.Column2,
+		arg.Column3,
+		arg.Column4,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -394,10 +401,38 @@ func (q *Queries) GetExercise(ctx context.Context, arg *GetExerciseParams) (*Exe
 	return &i, err
 }
 
+const getExerciseStat = `-- name: GetExerciseStat :one
+SELECT id, user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at FROM exercise_stats WHERE user_id = $1 AND exercise_id = $2
+`
+
+type GetExerciseStatParams struct {
+	UserID     int64
+	ExerciseID pgtype.UUID
+}
+
+func (q *Queries) GetExerciseStat(ctx context.Context, arg *GetExerciseStatParams) (*ExerciseStat, error) {
+	row := q.db.QueryRow(ctx, getExerciseStat, arg.UserID, arg.ExerciseID)
+	var i ExerciseStat
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ExerciseID,
+		&i.TotalAttempts,
+		&i.SuccessfulAttempts,
+		&i.TotalTypingTime,
+		&i.TotalTypedChars,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return &i, err
+}
+
 const getExercises = `-- name: GetExercises :many
-SELECT id, user_id, title, description, category_id, difficulty, programming_language, code_to_remember, created_at, updated_at, is_active FROM exercises
-WHERE user_id = $1 AND is_active = TRUE
-ORDER BY created_at DESC
+SELECT e.id, e.user_id, e.title, e.description, e.category_id, e.difficulty, e.programming_language, e.code_to_remember, e.created_at, e.updated_at, e.is_active, es.successful_attempts
+FROM exercises e
+LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND es.user_id = $1
+WHERE e.user_id = $1 AND e.is_active = TRUE
+ORDER BY e.created_at DESC
 LIMIT $2 OFFSET $3
 `
 
@@ -407,15 +442,30 @@ type GetExercisesParams struct {
 	Offset int32
 }
 
-func (q *Queries) GetExercises(ctx context.Context, arg *GetExercisesParams) ([]*Exercise, error) {
+type GetExercisesRow struct {
+	ID                  pgtype.UUID
+	UserID              int64
+	Title               string
+	Description         *string
+	CategoryID          pgtype.UUID
+	Difficulty          string
+	ProgrammingLanguage string
+	CodeToRemember      string
+	CreatedAt           pgtype.Timestamptz
+	UpdatedAt           pgtype.Timestamptz
+	IsActive            *bool
+	SuccessfulAttempts  *int32
+}
+
+func (q *Queries) GetExercises(ctx context.Context, arg *GetExercisesParams) ([]*GetExercisesRow, error) {
 	rows, err := q.db.Query(ctx, getExercises, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*Exercise
+	var items []*GetExercisesRow
 	for rows.Next() {
-		var i Exercise
+		var i GetExercisesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -428,6 +478,7 @@ func (q *Queries) GetExercises(ctx context.Context, arg *GetExercisesParams) ([]
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.IsActive,
+			&i.SuccessfulAttempts,
 		); err != nil {
 			return nil, err
 		}
@@ -440,28 +491,48 @@ func (q *Queries) GetExercises(ctx context.Context, arg *GetExercisesParams) ([]
 }
 
 const getExercisesFiltered = `-- name: GetExercisesFiltered :many
-SELECT id, user_id, title, description, category_id, difficulty, programming_language, code_to_remember, created_at, updated_at, is_active FROM exercises
-WHERE user_id = $1
-  AND is_active = TRUE
-  AND ($2::varchar IS NULL OR programming_language = $2)
-  AND ($3::uuid IS NULL OR category_id = $3)
-ORDER BY created_at DESC
-LIMIT $4 OFFSET $5
+SELECT e.id, e.user_id, e.title, e.description, e.category_id, e.difficulty, e.programming_language, e.code_to_remember, e.created_at, e.updated_at, e.is_active, es.successful_attempts
+FROM exercises e
+LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND es.user_id = $1
+WHERE e.user_id = $1
+  AND e.is_active = TRUE
+  AND ($2::varchar = '' OR e.programming_language = $2)
+  AND ($3::uuid IS NULL OR e.category_id = $3)
+  AND ($4::varchar = '' OR e.difficulty = $4)
+ORDER BY e.created_at DESC
+LIMIT $5 OFFSET $6
 `
 
 type GetExercisesFilteredParams struct {
 	UserID  int64
 	Column2 string
 	Column3 pgtype.UUID
+	Column4 string
 	Limit   int32
 	Offset  int32
 }
 
-func (q *Queries) GetExercisesFiltered(ctx context.Context, arg *GetExercisesFilteredParams) ([]*Exercise, error) {
+type GetExercisesFilteredRow struct {
+	ID                  pgtype.UUID
+	UserID              int64
+	Title               string
+	Description         *string
+	CategoryID          pgtype.UUID
+	Difficulty          string
+	ProgrammingLanguage string
+	CodeToRemember      string
+	CreatedAt           pgtype.Timestamptz
+	UpdatedAt           pgtype.Timestamptz
+	IsActive            *bool
+	SuccessfulAttempts  *int32
+}
+
+func (q *Queries) GetExercisesFiltered(ctx context.Context, arg *GetExercisesFilteredParams) ([]*GetExercisesFilteredRow, error) {
 	rows, err := q.db.Query(ctx, getExercisesFiltered,
 		arg.UserID,
 		arg.Column2,
 		arg.Column3,
+		arg.Column4,
 		arg.Limit,
 		arg.Offset,
 	)
@@ -469,9 +540,9 @@ func (q *Queries) GetExercisesFiltered(ctx context.Context, arg *GetExercisesFil
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*Exercise
+	var items []*GetExercisesFilteredRow
 	for rows.Next() {
-		var i Exercise
+		var i GetExercisesFilteredRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -484,6 +555,7 @@ func (q *Queries) GetExercisesFiltered(ctx context.Context, arg *GetExercisesFil
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.IsActive,
+			&i.SuccessfulAttempts,
 		); err != nil {
 			return nil, err
 		}
@@ -668,6 +740,50 @@ func (q *Queries) UpdateExercise(ctx context.Context, arg *UpdateExerciseParams)
 	return &i, err
 }
 
+const updateExerciseStat = `-- name: UpdateExerciseStat :one
+UPDATE exercise_stats SET
+    total_attempts = $3,
+    successful_attempts = $4,
+    total_typing_time = $5,
+    total_typed_chars = $6,
+    updated_at = NOW()
+WHERE user_id = $1 AND exercise_id = $2
+RETURNING id, user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at
+`
+
+type UpdateExerciseStatParams struct {
+	UserID             int64
+	ExerciseID         pgtype.UUID
+	TotalAttempts      int32
+	SuccessfulAttempts int32
+	TotalTypingTime    int64
+	TotalTypedChars    int32
+}
+
+func (q *Queries) UpdateExerciseStat(ctx context.Context, arg *UpdateExerciseStatParams) (*ExerciseStat, error) {
+	row := q.db.QueryRow(ctx, updateExerciseStat,
+		arg.UserID,
+		arg.ExerciseID,
+		arg.TotalAttempts,
+		arg.SuccessfulAttempts,
+		arg.TotalTypingTime,
+		arg.TotalTypedChars,
+	)
+	var i ExerciseStat
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ExerciseID,
+		&i.TotalAttempts,
+		&i.SuccessfulAttempts,
+		&i.TotalTypingTime,
+		&i.TotalTypedChars,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return &i, err
+}
+
 const updateUserName = `-- name: UpdateUserName :one
 UPDATE users
 SET name = $1
@@ -688,6 +804,51 @@ func (q *Queries) UpdateUserName(ctx context.Context, arg *UpdateUserNameParams)
 		&i.Name,
 		&i.EvaluationStrategy,
 		&i.MaximumScore,
+	)
+	return &i, err
+}
+
+const upsertExerciseStat = `-- name: UpsertExerciseStat :one
+INSERT INTO exercise_stats (user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+ON CONFLICT (user_id, exercise_id) DO UPDATE SET
+    total_attempts = exercise_stats.total_attempts + EXCLUDED.total_attempts,
+    successful_attempts = exercise_stats.successful_attempts + EXCLUDED.successful_attempts,
+    total_typing_time = exercise_stats.total_typing_time + EXCLUDED.total_typing_time,
+    total_typed_chars = exercise_stats.total_typed_chars + EXCLUDED.total_typed_chars,
+    updated_at = NOW()
+RETURNING id, user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at
+`
+
+type UpsertExerciseStatParams struct {
+	UserID             int64
+	ExerciseID         pgtype.UUID
+	TotalAttempts      int32
+	SuccessfulAttempts int32
+	TotalTypingTime    int64
+	TotalTypedChars    int32
+}
+
+func (q *Queries) UpsertExerciseStat(ctx context.Context, arg *UpsertExerciseStatParams) (*ExerciseStat, error) {
+	row := q.db.QueryRow(ctx, upsertExerciseStat,
+		arg.UserID,
+		arg.ExerciseID,
+		arg.TotalAttempts,
+		arg.SuccessfulAttempts,
+		arg.TotalTypingTime,
+		arg.TotalTypedChars,
+	)
+	var i ExerciseStat
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ExerciseID,
+		&i.TotalAttempts,
+		&i.SuccessfulAttempts,
+		&i.TotalTypingTime,
+		&i.TotalTypedChars,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return &i, err
 }

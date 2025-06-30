@@ -19,7 +19,7 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     // Загружаем каты для подсчета статистики
-    dispatch(fetchExercises({ page: 1, pageSize: 100 }));
+    dispatch(fetchExercises({ page: 1, pageSize: 10000 }));
   }, [dispatch]);
 
   useEffect(() => {
