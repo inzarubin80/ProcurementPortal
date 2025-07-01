@@ -152,3 +152,17 @@ UPDATE exercise_stats SET
 WHERE user_id = $1 AND exercise_id = $2
 RETURNING id, user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at;
 
+-- name: GetUserStats :one
+SELECT
+    $1::bigint as user_id,
+    COUNT(DISTINCT e.id) as total_exercises,
+    COUNT(DISTINCT CASE WHEN es.successful_attempts > 0 THEN e.id END) as completed_exercises,
+    CASE WHEN SUM(es.total_attempts) > 0
+         THEN ROUND(SUM(es.successful_attempts)::numeric / NULLIF(SUM(es.total_attempts),0) * 100)::int
+         ELSE 0
+    END as average_score,
+    (COALESCE(SUM(es.total_typing_time),0)::bigint / 60)::int as total_time
+FROM exercises e
+LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND es.user_id = $1
+WHERE e.is_active = TRUE AND e.user_id = $1;
+

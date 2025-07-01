@@ -28,7 +28,7 @@ type (
 		getLanguages, getDifficulties string
 
 		// Exercise stat route
-		updateExerciseStat, getExerciseStat string
+		updateExerciseStat, getExerciseStat, getUserStats string
 	}
 
 	sectrets struct {
@@ -126,6 +126,7 @@ func NewConfig(opts Options) config {
 			// Exercise stat route
 			updateExerciseStat: "POST   /api/exercise_stat/update",
 			getExerciseStat:    "GET    /api/exercise_stat",
+			getUserStats:       "GET    /api/user/stats",
 		},
 
 		sectrets: sectrets{

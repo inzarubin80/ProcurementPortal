@@ -606,6 +606,42 @@ func (q *Queries) GetUserByID(ctx context.Context, userID int64) (*User, error) 
 	return &i, err
 }
 
+const getUserStats = `-- name: GetUserStats :one
+SELECT
+    $1::bigint as user_id,
+    COUNT(DISTINCT e.id) as total_exercises,
+    COUNT(DISTINCT CASE WHEN es.successful_attempts > 0 THEN e.id END) as completed_exercises,
+    CASE WHEN SUM(es.total_attempts) > 0
+         THEN ROUND(SUM(es.successful_attempts)::numeric / NULLIF(SUM(es.total_attempts),0) * 100)::int
+         ELSE 0
+    END as average_score,
+    (COALESCE(SUM(es.total_typing_time),0)::bigint / 60)::int as total_time
+FROM exercises e
+LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND es.user_id = $1
+WHERE e.is_active = TRUE AND e.user_id = $1
+`
+
+type GetUserStatsRow struct {
+	UserID             int64
+	TotalExercises     int64
+	CompletedExercises int64
+	AverageScore       int32
+	TotalTime          int32
+}
+
+func (q *Queries) GetUserStats(ctx context.Context, dollar_1 int64) (*GetUserStatsRow, error) {
+	row := q.db.QueryRow(ctx, getUserStats, dollar_1)
+	var i GetUserStatsRow
+	err := row.Scan(
+		&i.UserID,
+		&i.TotalExercises,
+		&i.CompletedExercises,
+		&i.AverageScore,
+		&i.TotalTime,
+	)
+	return &i, err
+}
+
 const getUsersByIDs = `-- name: GetUsersByIDs :many
 SELECT user_id, name, evaluation_strategy, maximum_score FROM users
 WHERE user_id = ANY($1::bigint[])

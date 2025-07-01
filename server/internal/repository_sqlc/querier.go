@@ -31,6 +31,7 @@ type Querier interface {
 	GetExercisesFiltered(ctx context.Context, arg *GetExercisesFilteredParams) ([]*GetExercisesFilteredRow, error)
 	GetUserAuthProvidersByProviderUid(ctx context.Context, arg *GetUserAuthProvidersByProviderUidParams) (*UserAuthProvider, error)
 	GetUserByID(ctx context.Context, userID int64) (*User, error)
+	GetUserStats(ctx context.Context, dollar_1 int64) (*GetUserStatsRow, error)
 	GetUsersByIDs(ctx context.Context, dollar_1 []int64) ([]*User, error)
 	UpdateCategory(ctx context.Context, arg *UpdateCategoryParams) (*Category, error)
 	UpdateExercise(ctx context.Context, arg *UpdateExerciseParams) (*Exercise, error)

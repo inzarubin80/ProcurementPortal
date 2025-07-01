@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { logoutUser } from '../store/slices/userSlice';
+import UserCardButton from './UserCardButton';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -59,20 +60,9 @@ const Header: React.FC = () => {
         <Box sx={{ flexGrow: 1 }} />
         {isAuthenticated && userID ? (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {/* TODO: Вывести имя пользователя, если оно есть в другом слайсе или из API */}
-            <Typography variant="body2" sx={{ color: 'white', mr: 1 }}>
-              Пользователь #{userID}
-            </Typography>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleMenu}
-              sx={{ color: 'white' }}
-            >
-              <AccountCircleIcon />
-            </IconButton>
+            <Box onClick={handleMenu} sx={{ cursor: 'pointer' }}>
+              <UserCardButton />
+            </Box>
             <Menu
               id="menu-appbar"
               anchorEl={anchorEl}

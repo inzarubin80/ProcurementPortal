@@ -9,6 +9,9 @@ const authAxios: AxiosInstance = axios.create({ baseURL: baseURL, timeout: 30000
 const publicAxios: AxiosInstance = axios.create({ baseURL: baseURL, timeout: 30000 });
 
 createAuthRefreshInterceptor(authAxios, async (failedRequest) => {
+
+  console.log('createAuthRefreshInterceptor');
+
   const refreshToken = localStorage.getItem('refreshToken');
   if (!refreshToken) {
     localStorage.removeItem('accessToken');
@@ -16,9 +19,9 @@ createAuthRefreshInterceptor(authAxios, async (failedRequest) => {
   }
   try {
     const response = await publicAxios.post('/user/refresh', {}, { withCredentials: true });
-    const { access_token } = response.data;
-    localStorage.setItem('accessToken', access_token);
-    failedRequest.response.config.headers['Authorization'] = 'Bearer ' + access_token;
+    const { Token } = response.data;
+    localStorage.setItem('accessToken', Token);
+    failedRequest.response.config.headers['Authorization'] = 'Bearer ' + Token;
     return Promise.resolve();
   } catch (e) {
     localStorage.removeItem('accessToken');

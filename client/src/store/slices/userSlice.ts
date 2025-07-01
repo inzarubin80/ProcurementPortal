@@ -27,6 +27,7 @@ interface UserState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  userName: string | null;
 }
 
 // Начальное состояние
@@ -36,6 +37,7 @@ const initialState: UserState = {
   isAuthenticated: isTokenValid(),
   isLoading: false,
   error: null,
+  userName: null,
 };
 
 // Async thunk для логина
@@ -192,6 +194,8 @@ const userSlice = createSlice({
         state.isLoading = false;
         state.isAuthenticated = true;
         state.error = null;
+        state.userID = action.payload.ID;
+        state.userName = action.payload.Name;
       })
       .addCase(getUser.rejected, (state) => {
         state.isLoading = false;
@@ -202,7 +206,8 @@ const userSlice = createSlice({
       })
       // Update name
       .addCase(updateUserName.fulfilled, (state, action) => {
-        state.userID = action.payload.id;
+        state.userID = action.payload.ID;
+        state.userName = action.payload.Name;
       })
       // Logout
       .addCase(logoutUser.fulfilled, (state) => {

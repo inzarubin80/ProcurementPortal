@@ -6,6 +6,7 @@ import userReducer from './slices/userSlice';
 import sessionReducer from './slices/sessionSlice';
 import authProviderReducer from './slices/authProviderSlice';
 import difficultyReducer from './slices/difficultySlice';
+import userStatsReducer from './slices/userStatsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     session: sessionReducer,
     authProviders: authProviderReducer,
     difficulties: difficultyReducer,
+    userStats: userStatsReducer,
   },
 });
 

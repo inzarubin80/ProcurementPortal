@@ -26,6 +26,12 @@ import {
   Stack,
   Snackbar,
   Alert,
+  Card,
+  CardContent,
+  CardActions,
+  Grid,
+  Pagination,
+  Chip,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
@@ -55,6 +61,8 @@ const ManageContent: React.FC = () => {
   const [form, setForm] = useState<any>({});
   // Snackbar
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success'|'error'}>({open: false, message: '', severity: 'success'});
+  const [exercisePage, setExercisePage] = useState(1);
+  const exercisesPerPage = 12;
 
   const loading = exercisesLoading || categoriesLoading || languagesLoading;
 
@@ -172,6 +180,7 @@ const ManageContent: React.FC = () => {
   // --- Filtered lists ---
   const filteredCategories = selectedLanguage === 'all' ? categories : categories.filter(c => c.programming_language && c.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
   const filteredExercises = selectedLanguage === 'all' ? exercises : exercises.filter(e => e.programming_language && e.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
+  const paginatedExercises = filteredExercises.slice((exercisePage - 1) * exercisesPerPage, exercisePage * exercisesPerPage);
 
   if (loading) {
     return (
@@ -186,7 +195,7 @@ const ManageContent: React.FC = () => {
       <Paper sx={{ p: 2, mb: 3, borderRadius: 3, boxShadow: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>Управление контентом</Typography>
         <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 2 }}>
-          <Tab label="Категории" />
+          <Tab label="Упражнения" />
           <Tab label="Категории" />
         </Tabs>
         <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
@@ -201,40 +210,45 @@ const ManageContent: React.FC = () => {
             </Select>
           </FormControl>
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => openAddDialog(tab === 0 ? 'exercise' : 'category')}>
-            Добавить {tab === 0 ? 'категорию' : 'категорию'}
+            {tab === 0 ? 'Добавить упражнение' : 'Добавить категорию'}
           </Button>
         </Stack>
         {tab === 0 ? (
-          <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Название</TableCell>
-                  <TableCell>Язык</TableCell>
-                  <TableCell>Категория</TableCell>
-                  <TableCell>Сложность</TableCell>
-                  <TableCell>Действия</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredExercises.map(ex => (
-                  <TableRow key={ex.id}>
-                    <TableCell>{ex.title}</TableCell>
-                    <TableCell>
-                      <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: languages.find(l => l.value === ex.programming_language)?.icon_svg || ''}} />
-                      {ex.programming_language}
-                    </TableCell>
-                    <TableCell>{categories.find(c => c.id === ex.category_id)?.name}</TableCell>
-                    <TableCell>{ex.difficulty}</TableCell>
-                    <TableCell>
+          <>
+            <Grid container spacing={2}>
+              {paginatedExercises.map(ex => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={ex.id}>
+                  <Card variant="outlined" sx={{ borderRadius: 3, boxShadow: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <CardContent sx={{ pb: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: languages.find(l => l.value === ex.programming_language)?.icon_svg || ''}} />
+                        <Typography variant="subtitle1" fontWeight={700} sx={{ flexGrow: 1 }}>{ex.title}</Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1, minHeight: 36, maxHeight: 48, overflow: 'hidden', textOverflow: 'ellipsis' }}>{ex.description}</Typography>
+                      <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+                        <Chip size="small" label={categories.find(c => c.id === ex.category_id)?.name || '—'} />
+                        <Chip size="small" label={ex.difficulty} color="info" />
+                        <Chip size="small" label={ex.programming_language} color="default" />
+                      </Stack>
+                    </CardContent>
+                    <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
                       <IconButton onClick={() => openEditDialog('exercise', ex)}><EditIcon /></IconButton>
                       <IconButton color="error" onClick={() => handleDelete('exercise', ex.id)}><DeleteIcon /></IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <Pagination
+                count={Math.ceil(filteredExercises.length / exercisesPerPage)}
+                page={exercisePage}
+                onChange={(_, value) => setExercisePage(value)}
+                color="primary"
+                shape="rounded"
+              />
+            </Box>
+          </>
         ) : (
           <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
             <Table size="small">

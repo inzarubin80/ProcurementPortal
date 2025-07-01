@@ -28,8 +28,8 @@ export const createSession = createAsyncThunk(
   }
 );
 
-export const fetchUserStats = createAsyncThunk(
-  'session/fetchUserStats',
+export const fetchSessionUserStats = createAsyncThunk(
+  'session/fetchSessionUserStats',
   async (_, { rejectWithValue }) => {
     try {
       const response = await publicAxios.get('/user/stats');
@@ -77,15 +77,15 @@ const sessionSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to create session';
       })
-      .addCase(fetchUserStats.pending, (state) => {
+      .addCase(fetchSessionUserStats.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchUserStats.fulfilled, (state, action: PayloadAction<UserStats>) => {
+      .addCase(fetchSessionUserStats.fulfilled, (state, action: PayloadAction<UserStats>) => {
         state.loading = false;
         state.userStats = action.payload;
       })
-      .addCase(fetchUserStats.rejected, (state, action) => {
+      .addCase(fetchSessionUserStats.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch user stats';
       })

@@ -58,6 +58,7 @@ type (
 
 		// Добавлено для соответствия GetExerciseStatService
 		GetExerciseStat(userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error)
+		GetUserStats(ctx context.Context, userID model.UserID) (*model.UserStats, error)
 	}
 
 	TokenService interface {
@@ -97,6 +98,9 @@ func (a *App) ListenAndServe() error {
 		a.config.path.getCategory:    appHttp.NewGetCategoryHandler(a.pokerService, "get_category"),
 		a.config.path.updateCategory: appHttp.NewUpdateCategoryHandler(a.pokerService, "update_category"),
 		a.config.path.deleteCategory: appHttp.NewDeleteCategoryHandler(a.pokerService, "delete_category"),
+
+		// New handler for getUserStats
+		a.config.path.getUserStats: appHttp.NewGetUserStatsHandler(a.pokerService),
 	}
 
 	for path, handler := range handlers {

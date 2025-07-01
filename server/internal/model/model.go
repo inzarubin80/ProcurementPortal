@@ -136,6 +136,13 @@ type (
 		TotalTypingTime    int64  `json:"total_typing_time"` // в секундах
 		TotalTypedChars    int    `json:"total_typed_chars"`
 	}
+
+	// UserStats хранит агрегированную статистику пользователя
+	UserStats struct {
+		TotalExercises     int   `json:"total_exercises"`
+		CompletedExercises int   `json:"completed_exercises"`
+		TotalTime          int64 `json:"total_time"`
+	}
 )
 
 // GetSupportedLanguages возвращает список поддерживаемых языков программирования

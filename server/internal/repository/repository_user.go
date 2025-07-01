@@ -85,3 +85,15 @@ func (r *Repository) GetUsersByIDs(ctx context.Context, userIDs []model.UserID) 
 	return usersRes, nil
 
 }
+
+func (r *Repository) GetUserStats(ctx context.Context, userID model.UserID) (*model.UserStats, error) {
+	row, err := r.queries.GetUserStats(ctx, int64(userID))
+	if err != nil {
+		return nil, err
+	}
+	return &model.UserStats{
+		TotalExercises:     int(row.TotalExercises),
+		CompletedExercises: int(row.CompletedExercises),
+		TotalTime:          int64(row.TotalTime),
+	}, nil
+}

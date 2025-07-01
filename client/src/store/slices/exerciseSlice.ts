@@ -14,6 +14,11 @@ interface ExerciseState {
     hasNext: boolean;
     hasPrev: boolean;
   };
+  currentPage: number;
+  selectedLanguage: string;
+  selectedCategory: string;
+  selectedDifficulty: string;
+  searchTerm: string;
 }
 
 const initialState: ExerciseState = {
@@ -28,6 +33,11 @@ const initialState: ExerciseState = {
     hasNext: false,
     hasPrev: false,
   },
+  currentPage: 1,
+  selectedLanguage: 'all',
+  selectedCategory: 'all',
+  selectedDifficulty: 'all',
+  searchTerm: '',
 };
 
 export const fetchExercises = createAsyncThunk(
@@ -92,30 +102,21 @@ export const deleteExercise = createAsyncThunk(
   }
 );
 
-export const fetchExercisesByLanguage = createAsyncThunk(
-  'exercises/fetchExercisesByLanguage',
-  async ({ language, page = 1, pageSize = 10, difficulty }: { language: string; page?: number; pageSize?: number; difficulty?: string }, { rejectWithValue }) => {
+export const fetchExercisesWithFilters = createAsyncThunk(
+  'exercises/fetchExercisesWithFilters',
+  async (
+    { language, category, difficulty, page = 1, pageSize = 10 }: { language?: string; category?: string; difficulty?: string; page?: number; pageSize?: number },
+    { rejectWithValue }
+  ) => {
     try {
-      let url = `/exercises?programming_language=${language}&page=${page}&page_size=${pageSize}`;
+      let url = `/exercises?page=${page}&page_size=${pageSize}`;
+      if (language && language !== 'all') url += `&programming_language=${language}`;
+      if (category && category !== 'all') url += `&category_id=${category}`;
       if (difficulty && difficulty !== 'all') url += `&difficulty=${difficulty}`;
       const response = await authAxios.get(url);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercises by language');
-    }
-  }
-);
-
-export const fetchExercisesByCategory = createAsyncThunk(
-  'exercises/fetchExercisesByCategory',
-  async ({ categoryId, page = 1, pageSize = 10, difficulty }: { categoryId: string; page?: number; pageSize?: number; difficulty?: string }, { rejectWithValue }) => {
-    try {
-      let url = `/exercises?category_id=${categoryId}&page=${page}&page_size=${pageSize}`;
-      if (difficulty && difficulty !== 'all') url += `&difficulty=${difficulty}`;
-      const response = await authAxios.get(url);
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercises by category');
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercises');
     }
   }
 );
@@ -132,6 +133,21 @@ const exerciseSlice = createSlice({
     },
     setCurrentExercise: (state, action: PayloadAction<Exercise>) => {
       state.currentExercise = action.payload;
+    },
+    setCurrentPage: (state, action: PayloadAction<number>) => {
+      state.currentPage = action.payload;
+    },
+    setSelectedLanguage: (state, action: PayloadAction<string>) => {
+      state.selectedLanguage = action.payload;
+    },
+    setSelectedCategory: (state, action: PayloadAction<string>) => {
+      state.selectedCategory = action.payload;
+    },
+    setSelectedDifficulty: (state, action: PayloadAction<string>) => {
+      state.selectedDifficulty = action.payload;
+    },
+    setSearchTerm: (state, action: PayloadAction<string>) => {
+      state.searchTerm = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -217,11 +233,11 @@ const exerciseSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to delete exercise';
       })
-      .addCase(fetchExercisesByLanguage.pending, (state) => {
+      .addCase(fetchExercisesWithFilters.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchExercisesByLanguage.fulfilled, (state, action: PayloadAction<ExerciseListResponse>) => {
+      .addCase(fetchExercisesWithFilters.fulfilled, (state, action: PayloadAction<ExerciseListResponse>) => {
         state.loading = false;
         if (action.payload.page > 1) {
           state.exercises = [...state.exercises, ...action.payload.exercises];
@@ -236,35 +252,12 @@ const exerciseSlice = createSlice({
           hasPrev: action.payload.has_prev,
         };
       })
-      .addCase(fetchExercisesByLanguage.rejected, (state, action) => {
+      .addCase(fetchExercisesWithFilters.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to fetch exercises by language';
-      })
-      .addCase(fetchExercisesByCategory.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchExercisesByCategory.fulfilled, (state, action: PayloadAction<ExerciseListResponse>) => {
-        state.loading = false;
-        if (action.payload.page > 1) {
-          state.exercises = [...state.exercises, ...action.payload.exercises];
-        } else {
-          state.exercises = action.payload.exercises;
-        }
-        state.pagination = {
-          page: action.payload.page,
-          pageSize: action.payload.page_size,
-          total: action.payload.total,
-          hasNext: action.payload.has_next,
-          hasPrev: action.payload.has_prev,
-        };
-      })
-      .addCase(fetchExercisesByCategory.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to fetch exercises by category';
+        state.error = action.error.message || 'Failed to fetch exercises';
       });
   },
 });
 
-export const { clearError, clearCurrentExercise, setCurrentExercise } = exerciseSlice.actions;
+export const { clearError, clearCurrentExercise, setCurrentExercise, setCurrentPage, setSelectedLanguage, setSelectedCategory, setSelectedDifficulty, setSearchTerm } = exerciseSlice.actions;
 export default exerciseSlice.reducer; 

@@ -44,6 +44,9 @@ type (
 		UpdateCategory(ctx context.Context, category *model.Category) (*model.Category, error)
 		DeleteCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID) error
 		CountExercisesByCategory(ctx context.Context, categoryID model.CategoryID) (int64, error)
+
+		// User Stats
+		GetUserStats(ctx context.Context, userID model.UserID) (*model.UserStats, error)
 	}
 
 	TokenService interface {
@@ -214,4 +217,16 @@ func (s *PokerService) UpsertExerciseStat(userID model.UserID, exerciseID model.
 
 func (s *PokerService) GetExerciseStat(userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error) {
 	return s.repository.GetExerciseStat(context.Background(), userID, exerciseID)
+}
+
+func (s *PokerService) GetUserStats(ctx context.Context, userID model.UserID) (*model.UserStats, error) {
+	return s.repository.GetUserStats(ctx, userID)
+}
+
+func (s *PokerService) GetUser(ctx context.Context, userID model.UserID) (*model.User, error) {
+	return s.repository.GetUser(ctx, userID)
+}
+
+func (s *PokerService) SetUserName(ctx context.Context, userID model.UserID, name string) error {
+	return s.repository.SetUserName(ctx, userID, name)
 }

@@ -142,11 +142,11 @@ const ExerciseCard: React.FC = () => {
   };
 
   useEffect(() => {
-    if (isStarted && exercise) {
+    if (exercise) {
       fetchStat();
     }
     // eslint-disable-next-line
-  }, [isStarted, exercise]);
+  }, [exercise]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
