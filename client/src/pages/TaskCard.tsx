@@ -67,7 +67,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </Box>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
           <Chip label={difficultyLabel} color={difficultyColor} size="small" />
-          <Chip label={isSolved ? 'Решено' : 'Не решено'} color={isSolved ? 'success' : 'default'} size="small" />
+          {isSolved && (
+            <Chip label="Решено" color="success" size="small" />
+          )}
         </Box>
       </CardContent>
       <Box sx={{ p: 3, pt: 0, display: 'flex', justifyContent: 'flex-end' }}>

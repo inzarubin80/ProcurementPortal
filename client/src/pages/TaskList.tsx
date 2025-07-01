@@ -39,6 +39,7 @@ import { fetchLanguages } from '../store/slices/languageSlice';
 import { fetchCategories } from '../store/slices/categorySlice';
 import { fetchDifficulties } from '../store/slices/difficultySlice';
 import TaskCard from './TaskCard';
+import { getUser } from '../store/slices/userSlice';
 
 
 const TaskList: React.FC = () => {
@@ -89,6 +90,8 @@ const TaskList: React.FC = () => {
       pageSize: 30
     }));
   }, [selectedLanguage, selectedCategory, selectedDifficulty, currentPage, dispatch, filtersLoaded]);
+
+
 
   // Обработка бесконечного скролла
   useEffect(() => {
