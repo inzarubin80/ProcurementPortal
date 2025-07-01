@@ -149,6 +149,12 @@ const exerciseSlice = createSlice({
     setSearchTerm: (state, action: PayloadAction<string>) => {
       state.searchTerm = action.payload;
     },
+    setExerciseSolved: (state, action: PayloadAction<string>) => {
+      const ex = state.exercises.find(e => e.id === action.payload);
+      if (ex) ex.is_solved = true;
+      if (state.currentExercise?.id === action.payload && state.currentExercise)
+        state.currentExercise.is_solved = true;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -259,5 +265,5 @@ const exerciseSlice = createSlice({
   },
 });
 
-export const { clearError, clearCurrentExercise, setCurrentExercise, setCurrentPage, setSelectedLanguage, setSelectedCategory, setSelectedDifficulty, setSearchTerm } = exerciseSlice.actions;
+export const { clearError, clearCurrentExercise, setCurrentExercise, setCurrentPage, setSelectedLanguage, setSelectedCategory, setSelectedDifficulty, setSearchTerm, setExerciseSolved } = exerciseSlice.actions;
 export default exerciseSlice.reducer; 

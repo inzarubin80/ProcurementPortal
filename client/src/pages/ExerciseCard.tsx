@@ -17,7 +17,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import MonacoEditor from '@monaco-editor/react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
-import { fetchExerciseById } from '../store/slices/exerciseSlice';
+import { fetchExerciseById, setExerciseSolved } from '../store/slices/exerciseSlice';
 import { Exercise } from '../types/api';
 import axios from 'axios';
 import { authAxios } from '../service/http-common';
@@ -111,6 +111,7 @@ const ExerciseCard: React.FC = () => {
       setDiffLines(null);
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2500);
+      dispatch(setExerciseSolved(exercise.id));
     }
     // Отправляем статистику
     let typingTime = 0;
