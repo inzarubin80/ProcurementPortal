@@ -59,6 +59,7 @@ const ManageContent: React.FC = () => {
   const [entityType, setEntityType] = useState<'exercise' | 'category'>('exercise');
   // Form state
   const [form, setForm] = useState<any>({});
+  const [triedSave, setTriedSave] = useState(false);
   // Snackbar
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success'|'error'}>({open: false, message: '', severity: 'success'});
   const [exercisePage, setExercisePage] = useState(1);
@@ -120,7 +121,10 @@ const ManageContent: React.FC = () => {
     setEditItem(item);
     setOpenDialog(true);
   };
-  const closeDialog = () => setOpenDialog(false);
+  const closeDialog = () => {
+    setOpenDialog(false);
+    setTriedSave(false);
+  };
 
   // --- CRUD Logic ---
   const handleFormChange = (e: any) => {
@@ -128,6 +132,22 @@ const ManageContent: React.FC = () => {
   };
   
   const handleSave = async () => {
+    setTriedSave(true);
+    if (entityType === 'exercise') {
+      const required = ['title', 'description', 'programming_language', 'category_id', 'difficulty', 'code_to_remember'];
+      const empty = required.filter(f => !form[f] || String(form[f]).trim() === '');
+      if (empty.length > 0) {
+        setSnackbar({open: true, message: 'Заполните все поля упражнения', severity: 'error'});
+        return;
+      }
+    } else {
+      const required = ['name', 'description', 'programming_language'];
+      const empty = required.filter(f => !form[f] || String(form[f]).trim() === '');
+      if (empty.length > 0) {
+        setSnackbar({open: true, message: 'Заполните все поля категории', severity: 'error'});
+        return;
+      }
+    }
     try {
       if (entityType === 'exercise') {
         if (dialogType === 'add') {
@@ -291,6 +311,8 @@ const ManageContent: React.FC = () => {
                   value={form.title || ''}
                   onChange={handleFormChange}
                   fullWidth
+                  error={triedSave && (!form.title || String(form.title).trim() === '')}
+                  helperText={triedSave && (!form.title || String(form.title).trim() === '') ? 'Обязательное поле' : ''}
                 />
                 <TextField
                   name="description"
@@ -300,8 +322,10 @@ const ManageContent: React.FC = () => {
                   multiline
                   rows={3}
                   fullWidth
+                  error={triedSave && (!form.description || String(form.description).trim() === '')}
+                  helperText={triedSave && (!form.description || String(form.description).trim() === '') ? 'Обязательное поле' : ''}
                 />
-                <FormControl fullWidth>
+                <FormControl fullWidth error={triedSave && (!form.programming_language || String(form.programming_language).trim() === '')}>
                   <InputLabel>Язык программирования</InputLabel>
                   <Select
                     name="programming_language"
@@ -315,7 +339,7 @@ const ManageContent: React.FC = () => {
                     </MenuItem>)}
                   </Select>
                 </FormControl>
-                <FormControl fullWidth>
+                <FormControl fullWidth error={triedSave && (!form.category_id || String(form.category_id).trim() === '')}>
                   <InputLabel>Категория</InputLabel>
                   <Select
                     name="category_id"
@@ -328,7 +352,7 @@ const ManageContent: React.FC = () => {
                       .map(c => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
                   </Select>
                 </FormControl>
-                <FormControl fullWidth>
+                <FormControl fullWidth error={triedSave && (!form.difficulty || String(form.difficulty).trim() === '')}>
                   <InputLabel>Сложность</InputLabel>
                   <Select
                     name="difficulty"
@@ -349,6 +373,8 @@ const ManageContent: React.FC = () => {
                   multiline
                   rows={6}
                   fullWidth
+                  error={triedSave && (!form.code_to_remember || String(form.code_to_remember).trim() === '')}
+                  helperText={triedSave && (!form.code_to_remember || String(form.code_to_remember).trim() === '') ? 'Обязательное поле' : ''}
                 />
               </>
             ) : (
@@ -359,6 +385,8 @@ const ManageContent: React.FC = () => {
                   value={form.name || ''}
                   onChange={handleFormChange}
                   fullWidth
+                  error={triedSave && (!form.name || String(form.name).trim() === '')}
+                  helperText={triedSave && (!form.name || String(form.name).trim() === '') ? 'Обязательное поле' : ''}
                 />
                 <TextField
                   name="description"
@@ -368,8 +396,10 @@ const ManageContent: React.FC = () => {
                   multiline
                   rows={3}
                   fullWidth
+                  error={triedSave && (!form.description || String(form.description).trim() === '')}
+                  helperText={triedSave && (!form.description || String(form.description).trim() === '') ? 'Обязательное поле' : ''}
                 />
-                <FormControl fullWidth>
+                <FormControl fullWidth error={triedSave && (!form.programming_language || String(form.programming_language).trim() === '')}>
                   <InputLabel>Язык программирования</InputLabel>
                   <Select
                     name="programming_language"
