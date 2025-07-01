@@ -125,7 +125,7 @@ func NewConfig(opts Options) config {
 
 			// Exercise stat route
 			updateExerciseStat: "POST   /api/exercise_stat/update",
-			getExerciseStat:    "GET    /api/exercise_stat",
+			getExerciseStat:    "GET 	/api/exercise_stat",
 			getUserStats:       "GET    /api/user/stats",
 		},
 
