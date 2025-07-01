@@ -10,13 +10,7 @@ const publicAxios: AxiosInstance = axios.create({ baseURL: baseURL, timeout: 300
 
 createAuthRefreshInterceptor(authAxios, async (failedRequest) => {
 
-  console.log('createAuthRefreshInterceptor');
 
-  const refreshToken = localStorage.getItem('refreshToken');
-  if (!refreshToken) {
-    localStorage.removeItem('accessToken');
-    return Promise.reject();
-  }
   try {
     const response = await publicAxios.post('/user/refresh', {}, { withCredentials: true });
     const { Token } = response.data;
@@ -25,7 +19,6 @@ createAuthRefreshInterceptor(authAxios, async (failedRequest) => {
     return Promise.resolve();
   } catch (e) {
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     return Promise.reject();
   }
 });
@@ -40,5 +33,17 @@ authAxios.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+// --- Автоматическое обновление accessToken раз в 20 минут ---
+setInterval(async () => {
+  try {
+    const response = await publicAxios.post('/user/refresh', {}, { withCredentials: true });
+    const { Token } = response.data;
+    localStorage.setItem('accessToken', Token);
+  } catch (e) {
+    localStorage.removeItem('accessToken');
+
+  }
+}, 10 * 60 * 1000); // 20 минут
 
 export { authAxios, publicAxios };
