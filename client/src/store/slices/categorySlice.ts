@@ -73,7 +73,7 @@ export const updateCategory = createAsyncThunk(
   'categories/updateCategory',
   async ({ id, updates }: { id: string; updates: Partial<Category> }, { rejectWithValue }) => {
     try {
-      const response = await authAxios.put(`/categories/update?id=${id}`, updates);
+      const response = await authAxios.put(`/categories/update?category_id=${id}`, updates);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error?.response?.data?.message || 'Failed to update category');

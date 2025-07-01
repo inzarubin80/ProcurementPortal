@@ -117,7 +117,11 @@ const ManageContent: React.FC = () => {
   const openEditDialog = (type: 'exercise' | 'category', item: any) => {
     setEntityType(type);
     setDialogType('edit');
-    setForm(item);
+    if (type === 'category') {
+      setForm({ ...item, category_id: item.id });
+    } else {
+      setForm(item);
+    }
     setEditItem(item);
     setOpenDialog(true);
   };
@@ -158,13 +162,9 @@ const ManageContent: React.FC = () => {
           setSnackbar({open: true, message: 'Упражнение обновлено', severity: 'success'});
         }
       } else {
-        if (dialogType === 'add') {
-          await dispatch(createCategory(form)).unwrap();
-          setSnackbar({open: true, message: 'Категория создана', severity: 'success'});
-        } else {
-          await dispatch(updateCategory({ id: editItem.id, updates: form })).unwrap();
-          setSnackbar({open: true, message: 'Категория обновлена', severity: 'success'});
-        }
+        const { name, description, programming_language } = form;
+        await dispatch(updateCategory({ id: editItem.id, updates: { name, description, programming_language } })).unwrap();
+        setSnackbar({open: true, message: 'Категория обновлена', severity: 'success'});
       }
       setOpenDialog(false);
     } catch (error: any) {
