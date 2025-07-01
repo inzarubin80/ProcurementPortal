@@ -21,8 +21,10 @@ import {
   Toolbar,
   Button,
   Chip,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
-import { PlayArrow as PlayIcon } from '@mui/icons-material';
+import { PlayArrow as PlayIcon, TableRows as TableRowsIcon, ViewModule as ViewModuleIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
@@ -36,6 +38,7 @@ import {
 import { fetchLanguages } from '../store/slices/languageSlice';
 import { fetchCategories } from '../store/slices/categorySlice';
 import { fetchDifficulties } from '../store/slices/difficultySlice';
+import TaskCard from './TaskCard';
 
 
 const TaskList: React.FC = () => {
@@ -60,6 +63,11 @@ const TaskList: React.FC = () => {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const loading = exercisesLoading || languagesLoading || categoriesLoading || difficultiesLoading;
   const loadingInitial = loading && currentPage === 1;
+
+  const [viewMode, setViewMode] = React.useState<'table' | 'cards'>('cards');
+  const handleViewModeChange = (_: any, nextView: 'table' | 'cards') => {
+    if (nextView !== null) setViewMode(nextView);
+  };
 
   // useEffect для загрузки справочников (языки, категории, сложности)
   useEffect(() => {
@@ -103,6 +111,7 @@ const TaskList: React.FC = () => {
   };
 
   const handleLanguageChange = (language: string) => {
+    dispatch(setCurrentPage(1));
     dispatch(setSelectedLanguage(language));
     dispatch(setSelectedCategory('all'));
   };
@@ -113,6 +122,7 @@ const TaskList: React.FC = () => {
   };
 
   const handleDifficultyChange = (difficulty: string) => {
+    dispatch(setCurrentPage(1));
     dispatch(setSelectedDifficulty(difficulty));
   };
 
@@ -151,11 +161,27 @@ const TaskList: React.FC = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        {/* Фильтры */}
+        {/* Фильтры и переключатель вида */}
         <Box sx={{ mb: 4, bgcolor: 'white', borderRadius: 4, boxShadow: 2, p: 3 }}>
-          <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3, color: 'primary.main' }}>
-            Выберите упражнение
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+              Выберите упражнение
+            </Typography>
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={handleViewModeChange}
+              size="small"
+              sx={{ background: '#f5f5f5', borderRadius: 2 }}
+            >
+              <ToggleButton value="table" aria-label="Таблица">
+                <TableRowsIcon />
+              </ToggleButton>
+              <ToggleButton value="cards" aria-label="Карточки">
+                <ViewModuleIcon />
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} md={4}>
               <FormControl fullWidth>
@@ -224,115 +250,157 @@ const TaskList: React.FC = () => {
         </Box>
         {/* Результаты */}
         <Box sx={{ bgcolor: 'white', borderRadius: 4, boxShadow: 2, p: 2 }}>
-          <TableContainer
-            component={Paper}
-            sx={{ maxHeight: 500, borderRadius: 4, position: 'relative' }}
-            ref={tableContainerRef}
-          >
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Название</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Категория</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Сложность</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Язык</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Решено</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Действия</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+          {viewMode === 'table' ? (
+            <TableContainer
+              component={Paper}
+              sx={{ maxHeight: 800, borderRadius: 4, position: 'relative' }}
+              ref={tableContainerRef}
+            >
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Название</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Категория</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Сложность</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Язык</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Решено</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Действия</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {exercises.map((exercise) => {
+                    const category = categories.find(c => c.id === exercise.category_id);
+                    const language = languages.find(l => l.value === exercise.programming_language);
+                    const difficultyProps = getDifficultyProps(exercise.difficulty);
+                    return (
+                      <TableRow
+                        key={exercise.id}
+                        hover
+                        onClick={() => handleExerciseClick(exercise.id)}
+                        sx={{ cursor: 'pointer' }}
+                      >
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            {language?.icon_svg && (
+                              <span
+                                style={{verticalAlign: 'middle', marginRight: 8}}
+                                dangerouslySetInnerHTML={{__html: language.icon_svg}}
+                              />
+                            )}
+                            <Box>
+                              <Typography variant="subtitle1" fontWeight="bold">
+                                {exercise.title}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {exercise.description}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {category?.name || '—'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={difficultyProps.label}
+                            color={difficultyProps.color}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {language?.icon_svg ? (
+                            <span
+                              dangerouslySetInnerHTML={{__html: language.icon_svg}}
+                            />
+                          ) : (
+                            <Typography variant="body2">
+                              {exercise.programming_language}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={exercise.is_solved ? "Да" : "Нет"}
+                            color={exercise.is_solved ? "success" : "default"}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="contained"
+                            startIcon={<PlayIcon />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleExerciseClick(exercise.id);
+                            }}
+                            sx={{
+                              background: 'linear-gradient(90deg, #1da1f2 0%, #21cbf3 100%)',
+                              color: 'white',
+                              borderRadius: 3,
+                              fontWeight: 'bold',
+                              '&:hover': {
+                                background: 'linear-gradient(90deg, #21cbf3 0%, #1da1f2 100%)',
+                                transform: 'scale(1.05)',
+                              },
+                            }}
+                          >
+                            Начать
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              {exercisesLoading && currentPage > 1 && pagination.hasNext && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                  <CircularProgress size={32} />
+                </Box>
+              )}
+            </TableContainer>
+          ) : (
+            <Box
+              ref={tableContainerRef}
+              sx={{
+                maxHeight: 800,
+                overflowY: 'auto',
+                position: 'relative',
+                p: 1,
+              }}
+            >
+              <Grid container spacing={2}>
                 {exercises.map((exercise) => {
                   const category = categories.find(c => c.id === exercise.category_id);
                   const language = languages.find(l => l.value === exercise.programming_language);
                   const difficultyProps = getDifficultyProps(exercise.difficulty);
                   return (
-                    <TableRow
-                      key={exercise.id}
-                      hover
-                      onClick={() => handleExerciseClick(exercise.id)}
-                      sx={{ cursor: 'pointer' }}
-                    >
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          {language?.icon_svg && (
-                            <span
-                              style={{verticalAlign: 'middle', marginRight: 8}}
-                              dangerouslySetInnerHTML={{__html: language.icon_svg}}
-                            />
-                          )}
-                          <Box>
-                            <Typography variant="subtitle1" fontWeight="bold">
-                              {exercise.title}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {exercise.description}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {category?.name || '—'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={difficultyProps.label}
-                          color={difficultyProps.color}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {language?.icon_svg ? (
-                          <span
-                            dangerouslySetInnerHTML={{__html: language.icon_svg}}
-                          />
-                        ) : (
-                          <Typography variant="body2">
-                            {exercise.programming_language}
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip
-                          label={exercise.is_solved ? "Да" : "Нет"}
-                          color={exercise.is_solved ? "success" : "default"}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          startIcon={<PlayIcon />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleExerciseClick(exercise.id);
-                          }}
-                          sx={{
-                            background: 'linear-gradient(90deg, #1da1f2 0%, #21cbf3 100%)',
-                            color: 'white',
-                            borderRadius: 3,
-                            fontWeight: 'bold',
-                            '&:hover': {
-                              background: 'linear-gradient(90deg, #21cbf3 0%, #1da1f2 100%)',
-                              transform: 'scale(1.05)',
-                            },
-                          }}
-                        >
-                          Начать
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={exercise.id}>
+                      <TaskCard
+                        id={exercise.id}
+                        title={exercise.title}
+                        description={exercise.description}
+                        languageIcon={language?.icon_svg}
+                        languageName={language?.name || exercise.programming_language}
+                        categoryName={category?.name}
+                        difficulty={exercise.difficulty}
+                        isSolved={exercise.is_solved}
+                        onStart={handleExerciseClick}
+                        difficultyLabel={difficultyProps.label}
+                        difficultyColor={difficultyProps.color}
+                      />
+                    </Grid>
                   );
                 })}
-              </TableBody>
-            </Table>
-            {exercisesLoading && currentPage > 1 && pagination.hasNext && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                <CircularProgress size={32} />
-              </Box>
-            )}
-          </TableContainer>
+              </Grid>
+              {exercisesLoading && currentPage > 1 && pagination.hasNext && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                  <CircularProgress size={32} />
+                </Box>
+              )}
+            </Box>
+          )}
         </Box>
       </Container>
     </Box>
