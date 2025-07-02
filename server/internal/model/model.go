@@ -143,6 +143,16 @@ type (
 		CompletedExercises int   `json:"completed_exercises"`
 		TotalTime          int64 `json:"total_time"`
 	}
+
+
+	 ExerciseStatUpdate struct {
+		UserID          UserID `json:"user_id"`
+		ExerciseID      string `json:"exercise_id"`
+		Attempts        int    `json:"attempts"`         // всегда 1
+		SuccessAttempts int    `json:"success_attempts"` // 1 если успешно, 0 если нет
+		TypingTime      int64  `json:"typing_time"`      // в секундах
+		TypedChars      int    `json:"typed_chars"`
+	}
 )
 
 // GetSupportedLanguages возвращает список поддерживаемых языков программирования

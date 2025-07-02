@@ -47,7 +47,7 @@ type (
 		UpdateExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, exercise *model.Exercise) (*model.Exercise, error)
 		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) error
 		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) (*model.ExerciseListResponse, error)
-		UpsertExerciseStat(userID model.UserID, exerciseID model.ExerciseID, isSuccess bool, typingTime int64, totalTypedChars int) (*model.ExerciseStat, error)
+		UpsertExerciseStat(userID model.UserID, exerciseID model.ExerciseID, attempts int, successAttempts int, typingTime int64, typedChars int) (*model.ExerciseStat, error)
 
 		// Category methods
 		CreateCategory(ctx context.Context, userID model.UserID, category *model.Category) (*model.Category, error)

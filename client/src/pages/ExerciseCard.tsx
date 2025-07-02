@@ -27,6 +27,8 @@ import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { diffWords, diffLines as diffLinesFn } from 'diff';
 import Confetti from 'react-confetti';
 import './ExerciseCard.css';
+import { useTheme } from '@mui/material/styles';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 const ExerciseCard: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -55,6 +57,8 @@ const ExerciseCard: React.FC = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showShake, setShowShake] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [lastCheckedUserCode, setLastCheckedUserCode] = useState<string | null>(null);
+  const theme = useTheme();
 
   // Индекс текущей задачи и id следующей
   const currentIndex = exercises.findIndex(e => e.id === id);
@@ -216,6 +220,8 @@ const ExerciseCard: React.FC = () => {
     if (!exercise) return;
     setChecking(true);
     
+    setLastCheckedUserCode(userCode);
+
     const result = smartCompare(userCode, exercise.code_to_remember, exercise.programming_language);
     
     setIsCorrect(result.correct);
@@ -241,12 +247,13 @@ const ExerciseCard: React.FC = () => {
     
     // Отправляем статистику
     try {
-      const typingTime = startTime ? Date.now() - startTime : 0;
+      const typingTime = startTime ? Math.round((Date.now() - startTime) / 1000) : 0;
       await authAxios.post('/exercise_stat/update', {
         exercise_id: exercise.id,
-        is_success: result.correct,
+        attempts: 1,
+        success_attempts: result.correct ? 1 : 0,
         typing_time: typingTime,
-        total_typed_chars: userCode.length,
+        typed_chars: userCode.length,
       });
       await fetchStat();
     } catch (error) {
@@ -293,6 +300,43 @@ const ExerciseCard: React.FC = () => {
       if (timer) clearInterval(timer);
     };
   }, [isStarted, startTime]);
+
+  // Функция для генерации списка ошибок с подсветкой отличий
+  function getLineErrorList(expected: string, actual: string) {
+    const expectedLines = expected.split('\n');
+    const actualLines = actual.split('\n');
+    const maxLen = Math.max(expectedLines.length, actualLines.length);
+    const errors: { line: number, expected?: string, actual?: string, type: string, diffHtml?: string }[] = [];
+
+    for (let i = 0; i < maxLen; i++) {
+      const e = expectedLines[i];
+      const a = actualLines[i];
+      if (e === undefined) {
+        errors.push({ line: i + 1, actual: a, type: 'extra', diffHtml: `<span style=\"background:#ffeef0\">${a}</span>` });
+      } else if (a === undefined) {
+        errors.push({ line: i + 1, expected: e, type: 'missing', diffHtml: `<span style=\"background:#ffeef0;text-decoration:line-through\">${e}</span>` });
+      } else if (e !== a) {
+        // Посимвольный diff
+        const wordDiff = diffWords(e, a);
+        const diffHtml = wordDiff.map(part =>
+          part.added
+            ? `<span style=\"background:#d4fcbc\">${part.value}</span>`
+            : part.removed
+            ? `<span style=\"background:#ffeef0;text-decoration:line-through\">${part.value}</span>`
+            : part.value
+        ).join('');
+        errors.push({ line: i + 1, expected: e, actual: a, type: 'mismatch', diffHtml });
+      }
+    }
+    return errors;
+  }
+
+  const cpm = elapsedTime > 0 ? Math.round((userCode.length / elapsedTime) * 60) : 0;
+  function getSpeedColor(cpm: number) {
+    if (cpm < 100) return '#e57373'; // красный
+    if (cpm < 250) return '#ffd54f'; // жёлтый
+    return '#64b5f6'; // синий
+  }
 
   if (loading || !exercise) {
     return (
@@ -444,12 +488,20 @@ const ExerciseCard: React.FC = () => {
               {resultMsg}
             </Alert>
           )}
-          {isCorrect === false && diffLines && (
+          {isCorrect === false && lastCheckedUserCode !== null && (
             <Box sx={{ my: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>Отличия:</Typography>
-              <Paper variant="outlined" sx={{ p: 2, bgcolor: '#fff8e1', borderRadius: 2, overflowX: 'auto' }}>
-                <div dangerouslySetInnerHTML={{ __html: diffLines }} />
-              </Paper>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>Ошибки:</Typography>
+              <ul style={{ paddingLeft: 20 }}>
+                {getLineErrorList(exercise.code_to_remember, lastCheckedUserCode).map(err => (
+                  <li key={err.line} style={{ marginBottom: 8 }}>
+                    <b>Строка {err.line}:</b> {err.type === 'missing' && <>Ожидалось: <code>{err.expected}</code> (строка пропущена)</>}
+                    {err.type === 'extra' && <>Лишняя строка: <code>{err.actual}</code></>}
+                    {err.type === 'mismatch' && (
+                      err.diffHtml ? <span dangerouslySetInnerHTML={{ __html: err.diffHtml }} /> : null
+                    )}
+                  </li>
+                ))}
+              </ul>
             </Box>
           )}
           {showConfetti && (
@@ -470,9 +522,12 @@ const ExerciseCard: React.FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 2 }}>
             <EditIcon color="primary" sx={{ mr: 1 }} />
             <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.15rem' }}>Введите код</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 2 }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>⏱ {elapsedTime} сек.</Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>✍️ {userCode.length} символов</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
+            <Box sx={{ textAlign: 'center', minWidth: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+              <SpeedIcon color="secondary" sx={{ fontSize: 24 }} />
+              <Typography variant="body2" sx={{ color: getSpeedColor(cpm), fontWeight: 500 }}>{cpm}</Typography>
+              <span style={{ fontSize: 15, color: getSpeedColor(cpm), fontWeight: 500, marginLeft: 4 }}>симв/мин</span>
             </Box>
           </Box>
           <Paper variant="outlined" sx={{ mb: 2, borderRadius: 2, overflow: 'hidden' }}>

@@ -202,6 +202,7 @@ const userSlice = createSlice({
         state.isAuthenticated = false;
         state.userID = null;
         state.accessToken = null;
+        state.userName = null;
         clearStoredAuth();
       })
       // Update name

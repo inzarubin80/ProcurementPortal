@@ -242,14 +242,14 @@ func (r *ExerciseRepository) GetExerciseStat(ctx context.Context, userID model.U
 	}, nil
 }
 
-func (r *ExerciseRepository) UpsertExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, attempts, successful int, typingTime int64, totalTypedChars int) (*model.ExerciseStat, error) {
+func (r *ExerciseRepository) UpsertExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, attempts, successAttempts int, typingTime int64, typedChars int) (*model.ExerciseStat, error) {
 	params := sqlc_repository.UpsertExerciseStatParams{
 		UserID:             int64(userID),
 		ExerciseID:         pgtype.UUID(exerciseID),
 		TotalAttempts:      int32(attempts),
-		SuccessfulAttempts: int32(successful),
+		SuccessfulAttempts: int32(successAttempts),
 		TotalTypingTime:    typingTime,
-		TotalTypedChars:    int32(totalTypedChars),
+		TotalTypedChars:    int32(typedChars),
 	}
 	stat, err := r.queries.UpsertExerciseStat(ctx, &params)
 	if err != nil {
