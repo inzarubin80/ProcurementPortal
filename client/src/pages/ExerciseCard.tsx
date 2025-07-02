@@ -11,6 +11,7 @@ import {
   CircularProgress,
   Tabs,
   Tab,
+  Chip,
 } from '@mui/material';
 import { PlayArrow as PlayIcon, Check as CheckIcon, Refresh as RefreshIcon, BarChart as BarChartIcon, ThumbUp as ThumbUpIcon, Visibility as VisibilityIcon, Edit as EditIcon, TrendingUp as TrendingUpIcon, CheckCircle as CheckCircleIcon, Speed as SpeedIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -18,6 +19,7 @@ import MonacoEditor from '@monaco-editor/react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { fetchExerciseById, setExerciseSolved } from '../store/slices/exerciseSlice';
+import { fetchLanguages } from '../store/slices/languageSlice';
 import { Exercise } from '../types/api';
 import axios from 'axios';
 import { authAxios } from '../service/http-common';
@@ -32,7 +34,8 @@ const ExerciseCard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   
   // Redux state
-  const { currentExercise: exercise, loading } = useSelector((state: RootState) => state.exercises);
+  const { currentExercise: exercise, loading, exercises } = useSelector((state: RootState) => state.exercises);
+  const { languages } = useSelector((state: RootState) => state.languages);
   
   // Local state
   const [userCode, setUserCode] = useState('');
@@ -53,11 +56,26 @@ const ExerciseCard: React.FC = () => {
   const [showShake, setShowShake] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
 
+  // Индекс текущей задачи и id следующей
+  const currentIndex = exercises.findIndex(e => e.id === id);
+  const hasExercises = exercises.length > 0;
+  let nextExerciseId: string | undefined = undefined;
+  if (hasExercises && currentIndex !== -1) {
+    if (currentIndex === exercises.length - 1) {
+      nextExerciseId = exercises[0].id;
+    } else {
+      nextExerciseId = exercises[currentIndex + 1]?.id;
+    }
+  }
+
   useEffect(() => {
     if (id) {
       dispatch(fetchExerciseById(id));
     }
-  }, [id, dispatch]);
+    if (languages.length === 0) {
+      dispatch(fetchLanguages());
+    }
+  }, [id, dispatch, languages.length]);
 
   const handleStart = () => {
     setIsStarted(true);
@@ -88,16 +106,123 @@ const ExerciseCard: React.FC = () => {
     }
   };
 
+  // Функция для умной нормализации кода по языкам программирования
+  const normalizeCode = (code: string, language: string): string => {
+    const lang = language.toLowerCase();
+    
+    switch (lang) {
+      case 'javascript':
+      case 'typescript':
+      case 'js':
+      case 'ts':
+        return code
+          // Убираем лишние пробелы вокруг операторов
+          .replace(/\s*([+\-*/=<>!&|])\s*/g, '$1')
+          // Убираем пробелы вокруг скобок, точек с запятой, запятых
+          .replace(/\s*([{}();,])\s*/g, '$1')
+          // Убираем пробелы вокруг точек (для методов)
+          .replace(/\s*\.\s*/g, '.')
+          // Убираем пробелы вокруг двоеточий (для объектов)
+          .replace(/\s*:\s*/g, ':')
+          // Заменяем множественные пробелы на один
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      case 'python':
+      case 'py':
+        return code
+          // Сохраняем отступы, но нормализуем лишние пробелы
+          .replace(/\s*([+\-*/=<>!&|])\s*/g, ' $1 ')
+          // Убираем пробелы вокруг скобок
+          .replace(/\s*([()])\s*/g, '$1')
+          // Убираем пробелы вокруг запятых
+          .replace(/\s*,\s*/g, ', ')
+          // Убираем пробелы вокруг двоеточий
+          .replace(/\s*:\s*/g, ': ')
+          // Заменяем множественные пробелы на один
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      case 'java':
+        return code
+          // Убираем пробелы вокруг операторов
+          .replace(/\s*([+\-*/=<>!&|])\s*/g, '$1')
+          // Убираем пробелы вокруг скобок, точек с запятой
+          .replace(/\s*([{}();,])\s*/g, '$1')
+          // Убираем пробелы вокруг точек
+          .replace(/\s*\.\s*/g, '.')
+          // Заменяем множественные пробелы на один
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      case 'rust':
+        return code
+          // Убираем пробелы вокруг операторов
+          .replace(/\s*([+\-*/=<>!&|])\s*/g, '$1')
+          // Убираем пробелы вокруг скобок, точек с запятой
+          .replace(/\s*([{}();,])\s*/g, '$1')
+          // Убираем пробелы вокруг точек
+          .replace(/\s*\.\s*/g, '.')
+          // Убираем пробелы вокруг двоеточий (для типов)
+          .replace(/\s*:\s*/g, ': ')
+          // Убираем пробелы вокруг стрелок (->)
+          .replace(/\s*->\s*/g, ' -> ')
+          // Заменяем множественные пробелы на один
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      case 'go':
+        return code
+          // Убираем пробелы вокруг операторов
+          .replace(/\s*([+\-*/=<>!&|])\s*/g, '$1')
+          // Убираем пробелы вокруг скобок, точек с запятой
+          .replace(/\s*([{}();,])\s*/g, '$1')
+          // Убираем пробелы вокруг точек
+          .replace(/\s*\.\s*/g, '.')
+          // Убираем пробелы вокруг двоеточий (для типов)
+          .replace(/\s*:\s*/g, ': ')
+          // Заменяем множественные пробелы на один
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      default:
+        // Базовая нормализация для остальных языков
+        return code
+          .replace(/\s+/g, ' ')
+          .trim();
+    }
+  };
+
+  // Гибридное сравнение кода
+  const smartCompare = (userCode: string, expectedCode: string, language: string) => {
+    // Сначала пробуем строгое сравнение
+    if (userCode.trim() === expectedCode.trim()) {
+      return { correct: true, type: 'exact' };
+    }
+    
+    // Затем пробуем нормализованное сравнение
+    const normalizedUser = normalizeCode(userCode, language);
+    const normalizedExpected = normalizeCode(expectedCode, language);
+    
+    if (normalizedUser === normalizedExpected) {
+      return { correct: true, type: 'normalized' };
+    }
+    
+    // Если и это не помогло, показываем различия
+    return { correct: false, type: 'diff' };
+  };
+
   const handleCheck = async () => {
     if (!exercise) return;
     setChecking(true);
-    const normalizedUserCode = userCode.trim().replace(/\s+/g, ' ');
-    const normalizedExerciseCode = exercise.code_to_remember.trim().replace(/\s+/g, ' ');
-    const correct = normalizedUserCode === normalizedExerciseCode;
-    setIsCorrect(correct);
-    setResultMsg(correct ? 'Поздравляем! Ваш код правильный!' : '');
+    
+    const result = smartCompare(userCode, exercise.code_to_remember, exercise.programming_language);
+    
+    setIsCorrect(result.correct);
+    setResultMsg(result.correct ? 'Поздравляем! Ваш код правильный!' : '');
+    
     // Diff для визуализации различий (построчно)
-    if (!correct) {
+    if (!result.correct) {
       const diff = diffLinesFn(exercise.code_to_remember, userCode);
       const diffHtml = diff.map((part, idx) => {
         if (part.added) return `<div style='background:#d4fcbc'>+ ${part.value.replace(/\n/g, '<br/>')}</div>`;
@@ -113,26 +238,28 @@ const ExerciseCard: React.FC = () => {
       setTimeout(() => setShowConfetti(false), 2500);
       dispatch(setExerciseSolved(exercise.id));
     }
+    
     // Отправляем статистику
-    let typingTime = 0;
-    if (startTime) {
-      typingTime = Math.floor((Date.now() - startTime) / 1000);
-    }
     try {
+      const typingTime = startTime ? Date.now() - startTime : 0;
       await authAxios.post('/exercise_stat/update', {
         exercise_id: exercise.id,
-        is_success: correct,
+        is_success: result.correct,
         typing_time: typingTime,
         total_typed_chars: userCode.length,
       });
       await fetchStat();
-    } catch (e) {
+    } catch (error) {
+      console.error('Ошибка при отправке статистики:', error);
       setStatError('Ошибка обновления статистики');
     }
-    setChecking(false);
+    
+    // Показываем правильный ответ
     setUserCode(exercise.code_to_remember);
     setStartTime(Date.now());
     setIsStarted(false);
+    
+    setChecking(false);
   };
 
   const handleReset = () => {
@@ -140,6 +267,10 @@ const ExerciseCard: React.FC = () => {
     setUserCode('');
     setIsCorrect(null);
     setResultMsg('');
+  };
+
+  const handleBackToList = () => {
+    navigate('/');
   };
 
   useEffect(() => {
@@ -173,12 +304,28 @@ const ExerciseCard: React.FC = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Card className={showShake ? 'shake' : ''} sx={{ mb: 3, p: 2, borderRadius: 3, boxShadow: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box>
-          <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>Описание</Typography>
-          <Typography variant="body1">{exercise.description}</Typography>
-        </Box>
-      </Card>
+      <Box>
+        <Button
+          variant="outlined"
+          onClick={handleBackToList}
+          sx={{ mb: 2, fontWeight: 500 }}
+        >
+          Вернуться в список
+        </Button>
+        <Card className={showShake ? 'shake' : ''} sx={{ mb: 3, p: 2, borderRadius: 3, boxShadow: 1 }}>
+          <Box>
+            {languages.find(l => l.value === exercise.programming_language)?.icon_svg && (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
+                <span
+                  style={{ verticalAlign: 'middle', width: 32, height: 32, display: 'inline-block' }}
+                  dangerouslySetInnerHTML={{ __html: languages.find(l => l.value === exercise.programming_language)?.icon_svg || '' }}
+                />
+              </Box>
+            )}
+            <Typography variant="body1">{exercise.description}</Typography>
+          </Box>
+        </Card>
+      </Box>
       {!isStarted ? (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -219,11 +366,11 @@ const ExerciseCard: React.FC = () => {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 120 }}>
-              <TrendingUpIcon color="primary" sx={{ mr: 1 }} />
+              <TrendingUpIcon color="secondary" sx={{ mr: 1 }} />
               <Typography variant="body2">Попыток: <b>{exerciseStat ? (exerciseStat.total_attempts ?? 0) : 0}</b></Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 120 }}>
-              <ThumbUpIcon color="success" sx={{ mr: 1 }} />
+              <ThumbUpIcon color="secondary" sx={{ mr: 1 }} />
               <Typography variant="body2">Успешных: <b>{exerciseStat ? (exerciseStat.successful_attempts ?? 0) : 0}</b></Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 180 }}>
@@ -239,37 +386,59 @@ const ExerciseCard: React.FC = () => {
               </Typography>
             </Box>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<PlayIcon />}
-            size="large"
-            sx={{
-              background: 'linear-gradient(90deg, #1da1f2 0%, #21cbf3 100%)',
-              color: 'white',
-              borderRadius: 3,
-              boxShadow: 3,
-              fontWeight: 'bold',
-              px: 4,
-              py: 1.5,
-              fontSize: '1.1rem',
-              letterSpacing: 0.5,
-              transition: 'all 0.2s',
-              '&:hover': {
-                background: 'linear-gradient(90deg, #21cbf3 0%, #1da1f2 100%)',
-                boxShadow: 6,
-                transform: 'scale(1.04)',
-              },
-            }}
-            onClick={() => {
-              setIsStarted(true);
-              setUserCode('');
-              setIsCorrect(null);
-              setResultMsg('');
-              setStartTime(Date.now());
-            }}
-          >
-            Начать выполнение
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<PlayIcon />}
+              size="large"
+              sx={{
+                background: 'linear-gradient(90deg, #1da1f2 0%, #21cbf3 100%)',
+                color: 'white',
+                borderRadius: 3,
+                boxShadow: 3,
+                fontWeight: 'bold',
+                px: 4,
+                py: 1.5,
+                fontSize: '1.1rem',
+                letterSpacing: 0.5,
+                transition: 'all 0.2s',
+                '&:hover': {
+                  background: 'linear-gradient(90deg, #21cbf3 0%, #1da1f2 100%)',
+                  boxShadow: 6,
+                  transform: 'scale(1.04)',
+                },
+              }}
+              onClick={() => {
+                setIsStarted(true);
+                setUserCode('');
+                setIsCorrect(null);
+                setResultMsg('');
+                setStartTime(Date.now());
+              }}
+            >
+              Начать выполнение
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<PlayIcon />}
+              size="large"
+              sx={{
+                borderRadius: 3,
+                fontWeight: 'bold',
+                px: 4,
+                py: 1.5,
+                fontSize: '1.1rem',
+                letterSpacing: 0.5,
+                transition: 'all 0.2s',
+              }}
+              onClick={() => {
+                if (nextExerciseId) navigate(`/exercise/${nextExerciseId}`);
+              }}
+              disabled={!hasExercises}
+            >
+              Перейти к следующей задаче
+            </Button>
+          </Box>
           {isCorrect !== null && isCorrect && (
             <Alert severity="success" sx={{ mt: 2, fontWeight: 'bold' }}>
               {resultMsg}

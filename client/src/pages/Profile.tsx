@@ -32,11 +32,11 @@ const Profile: React.FC = () => {
         <Typography variant="h6" sx={{ mb: 2 }}>Ваша статистика</Typography>
         <Stack spacing={2}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <TrendingUp color="primary" sx={{ mr: 1 }} />
+            <TrendingUp color="secondary" sx={{ mr: 1 }} />
             <Typography>Всего упражнений: <b>{userStats ? userStats.total_exercises : 0}</b></Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <ThumbUp color="success" sx={{ mr: 1 }} />
+            <ThumbUp color="secondary" sx={{ mr: 1 }} />
             <Typography>Выполнено упражнений: <b>{userStats ? userStats.completed_exercises : 0}</b></Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>

@@ -175,7 +175,7 @@ const TaskList: React.FC = () => {
               exclusive
               onChange={handleViewModeChange}
               size="small"
-              sx={{ background: '#f5f5f5', borderRadius: 2 }}
+              sx={{ background: '#fafafa', borderRadius: 2 }}
             >
               <ToggleButton value="table" aria-label="Таблица">
                 <TableRowsIcon />
