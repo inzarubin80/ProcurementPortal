@@ -523,7 +523,7 @@ const ExerciseCard: React.FC = () => {
             <EditIcon color="primary" sx={{ mr: 1 }} />
             <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.15rem' }}>Введите код</Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4, ml: 2 }}>
             <Box sx={{ textAlign: 'center', minWidth: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
               <SpeedIcon color="secondary" sx={{ fontSize: 24 }} />
               <Typography variant="body2" sx={{ color: getSpeedColor(cpm), fontWeight: 500 }}>{cpm}</Typography>
