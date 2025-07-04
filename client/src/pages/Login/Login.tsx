@@ -4,13 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Container, Typography, useTheme, useMediaQuery, Button, Alert } from '@mui/material';
 import AuthProviders from '../../components/AuthProviders';
 import { RootState, AppDispatch } from '../../store';
-import { getProviders } from '../../store/slices/authProviderSlice';
+import { fetchProviders } from '../../store/slices/authProviderSlice';
 import { publicAxios } from '../../service/http-common';
+import { AuthProvider } from '../../types/api';
 
 const Login: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
-    const { providers, isLoading, error } = useSelector((state: RootState) => state.authProvider);
+    const { providers, loading: isLoading, error } = useSelector((state: RootState) => state.authProviders);
     const { isAuthenticated } = useSelector((state: RootState) => state.user);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -24,7 +25,7 @@ const Login: React.FC = () => {
 
         // Загружаем провайдеров аутентификации
         console.log('Login: Loading providers...');
-        dispatch(getProviders());
+        dispatch(fetchProviders());
 
         // Тестируем CORS
         testCORS();
@@ -128,7 +129,7 @@ const Login: React.FC = () => {
                     )}
 
                     <Box display="flex" flexDirection="column" gap={2} width="100%">
-                        {providers.map((provider) => (
+                        {providers.map((provider: AuthProvider) => (
                             <Button
                                 key={provider.Provider}
                                 variant="contained"
