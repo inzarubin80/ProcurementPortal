@@ -16,8 +16,8 @@ RUN chown -R appuser:appgroup /app
 # Переключаемся на непривилегированного пользователя
 USER appuser
 
-# Запускаем сборку (используем явный путь к react-scripts)
-RUN ./node_modules/.bin/react-scripts build
+# Запускаем сборку через npm script
+RUN npm run build
 
 # Production Stage
 # Вариант 1: Nginx (может быть заблокирован лимитами)
