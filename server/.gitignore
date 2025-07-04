@@ -52,8 +52,7 @@ Thumbs.db
 *.bak
 *.orig
 
-# Go modules
-go.sum
+
 
 # Coverage reports
 coverage.out
