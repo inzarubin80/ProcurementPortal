@@ -151,8 +151,10 @@ func NewApp(ctx context.Context, config config, dbConn *pgxpool.Pool) (*App, err
 
 	// Создаем CORS middleware
 	corsMiddleware := cors.New(cors.Options{
-		// Явно разрешаем оба домена (без точки в начале)
+		// Разрешаем все необходимые домены
 		AllowedOrigins: []string{
+			"https://memo-code.ru",
+			"https://api.memo-code.ru",
 			"https://codekata.ru",
 			"https://api.codekata.ru",
 			"http://localhost:3000",
