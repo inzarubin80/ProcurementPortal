@@ -9,15 +9,14 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps --silent
 
-# Копируем исходный код и меняем владельца
+# Копируем исходный код
 COPY . .
-RUN chown -R appuser:appgroup /app
 
-# Переключаемся на непривилегированного пользователя
-USER appuser
-
-# Запускаем сборку через npm script (исправлено для решения проблемы с правами доступа)
+# Запускаем сборку от имени root (временно)
 RUN npm run build
+
+# Меняем владельца собранных файлов
+RUN chown -R appuser:appgroup /app
 
 # Production Stage
 # Вариант 1: Nginx (может быть заблокирован лимитами)
