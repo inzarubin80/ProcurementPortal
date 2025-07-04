@@ -16,7 +16,7 @@ RUN chown -R appuser:appgroup /app
 # Переключаемся на непривилегированного пользователя
 USER appuser
 
-# Запускаем сборку через npm script
+# Запускаем сборку через npm script (исправлено для решения проблемы с правами доступа)
 RUN npm run build
 
 # Production Stage
