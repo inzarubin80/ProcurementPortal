@@ -45,6 +45,8 @@ type (
 	}
 )
 
+
+
 func NewConfig(opts Options) config {
 
 	provaders := make(authinterface.MapProviderOauthConf)
@@ -52,7 +54,7 @@ func NewConfig(opts Options) config {
 		Oauth2Config: &oauth2.Config{
 			ClientID:     os.Getenv("CLIENT_ID_YANDEX"),
 			ClientSecret: os.Getenv("CLIENT_SECRET_YANDEX"),
-			RedirectURL:  os.Getenv("APP_ROOT") + "/auth/callback",
+			RedirectURL:  os.Getenv("APP_ROOT") + "/auth/callback?provider=yandex",
 			Scopes:       []string{"login:email", "login:info"},
 			Endpoint:     yandex.Endpoint,
 		},
