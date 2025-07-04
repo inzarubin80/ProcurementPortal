@@ -5,12 +5,14 @@ FROM node:lts-alpine AS build
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
-# Копируем и устанавливаем зависимости
+# Копируем package.json для кэширования зависимостей
 COPY package*.json ./
-RUN npm install --legacy-peer-deps --silent
 
 # Копируем исходный код
 COPY . .
+
+# Устанавливаем зависимости (переустанавливаем для правильных прав доступа)
+RUN npm install --legacy-peer-deps --silent
 
 # Запускаем сборку от имени root (временно)
 RUN npm run build
