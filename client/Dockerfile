@@ -11,6 +11,10 @@ COPY package*.json ./
 # Копируем исходный код
 COPY . .
 
+# Создаем папку public если её нет и добавляем index.html
+RUN mkdir -p public
+RUN echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Language Learning Platform</title></head><body><div id="root"></div></body></html>' > public/index.html
+
 # Устанавливаем зависимости (переустанавливаем для правильных прав доступа)
 RUN npm install --legacy-peer-deps --silent
 
