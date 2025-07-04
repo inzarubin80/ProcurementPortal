@@ -1,10 +1,73 @@
-import React from 'react';
-import { Box, Container, Typography, useTheme, useMediaQuery } from '@mui/material';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { Box, Container, Typography, useTheme, useMediaQuery, Button, Alert } from '@mui/material';
 import AuthProviders from '../../components/AuthProviders';
+import { RootState, AppDispatch } from '../../store';
+import { getProviders } from '../../store/slices/authProviderSlice';
+import { publicAxios } from '../../service/http-common';
 
 const Login: React.FC = () => {
+    const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
+    const { providers, isLoading, error } = useSelector((state: RootState) => state.authProvider);
+    const { isAuthenticated } = useSelector((state: RootState) => state.user);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+    useEffect(() => {
+        // Если пользователь уже авторизован, перенаправляем на главную
+        if (isAuthenticated) {
+            navigate('/');
+            return;
+        }
+
+        // Загружаем провайдеров аутентификации
+        console.log('Login: Loading providers...');
+        dispatch(getProviders());
+
+        // Тестируем CORS
+        testCORS();
+    }, [dispatch, navigate, isAuthenticated]);
+
+    const testCORS = async () => {
+        try {
+            console.log('Login: Testing CORS...');
+            const response = await publicAxios.get('/ping');
+            console.log('Login: CORS test successful:', response.data);
+        } catch (error: any) {
+            console.error('Login: CORS test failed:', error);
+            console.error('Login: Error details:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+                headers: error.response?.headers
+            });
+        }
+    };
+
+    const handleProviderLogin = (provider: string) => {
+        console.log('Login: Attempting login with provider:', provider);
+        // Здесь будет логика входа через провайдера
+    };
+
+    if (isLoading) {
+        return (
+            <Container maxWidth="sm">
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                    minHeight="100vh"
+                >
+                    <Typography variant="h4" gutterBottom>
+                        Загрузка провайдеров...
+                    </Typography>
+                </Box>
+            </Container>
+        );
+    }
 
     return (
         <Container maxWidth="sm" sx={{ px: isMobile ? 2 : 3 }}>
@@ -58,7 +121,25 @@ const Login: React.FC = () => {
                     maxWidth: 400,
                     mt: 2,
                 }}>
-                    <AuthProviders />
+                    {error && (
+                        <Alert severity="error" style={{ marginBottom: 16, width: '100%' }}>
+                            Ошибка загрузки провайдеров: {error}
+                        </Alert>
+                    )}
+
+                    <Box display="flex" flexDirection="column" gap={2} width="100%">
+                        {providers.map((provider) => (
+                            <Button
+                                key={provider.Provider}
+                                variant="contained"
+                                size="large"
+                                onClick={() => handleProviderLogin(provider.Provider)}
+                                style={{ marginBottom: 8 }}
+                            >
+                                Войти через {provider.Provider}
+                            </Button>
+                        ))}
+                    </Box>
                 </Box>
 
                 {/* Мотивационная иллюстрация - иероглиф упорства */}

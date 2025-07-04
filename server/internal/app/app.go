@@ -158,18 +158,22 @@ func NewApp(ctx context.Context, config config, dbConn *pgxpool.Pool) (*App, err
 			"https://codekata.ru",
 			"https://api.codekata.ru",
 			"http://localhost:3000",
+			"http://localhost:3001",
 		},
 		// Добавляем все необходимые методы
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"},
 		// Разрешаем все стандартные заголовки + кастомные
 		AllowedHeaders: []string{
 			"Origin", "Content-Type", "Accept", "Authorization",
 			"X-Requested-With", "X-CSRF-Token", "Custom-Header",
+			"Cache-Control", "Pragma",
 		},
 		// Разрешаем куки и авторизацию
 		AllowCredentials: true,
 		// Опционально: максимальное время кеширования preflight-запросов
 		MaxAge: 86400,
+		// Добавляем отладочную информацию
+		Debug: true,
 	})
 
 	// Обертываем основной обработчик

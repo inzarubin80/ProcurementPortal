@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Box, CircularProgress, Container } from '@mui/material';
+import { Box, CircularProgress, Container, Typography } from '@mui/material';
 import { RootState, AppDispatch } from '../../store';
 import { checkAuthToken } from '../../store/slices/userSlice';
 import { isTokenValid } from '../../utils/authUtils';
@@ -13,25 +13,31 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, userID } = useSelector((state: RootState) => state.user);
+  const { isAuthenticated, isLoading, userID, error } = useSelector((state: RootState) => state.user);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
-  // Проверяем токен при монтировании компонента
+  // Проверяем токен только один раз при монтировании компонента
   useEffect(() => {
-    if (isTokenValid()) {
-      // Если токен есть в localStorage, проверяем его валидность
-      dispatch(checkAuthToken());
-    } else {
-      // Если токена нет, сразу редиректим на логин
-      navigate('/login');
+    if (!hasCheckedAuth) {
+      console.log('ProtectedRoute: Checking authentication...');
+      if (isTokenValid()) {
+        console.log('ProtectedRoute: Token found, validating...');
+        dispatch(checkAuthToken());
+      } else {
+        console.log('ProtectedRoute: No valid token found, redirecting to login');
+        navigate('/login');
+      }
+      setHasCheckedAuth(true);
     }
-  }, [dispatch, navigate]);
+  }, [dispatch, navigate, hasCheckedAuth]);
 
   // Если после проверки пользователь не авторизован, редиректим на логин
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (hasCheckedAuth && !isLoading && !isAuthenticated) {
+      console.log('ProtectedRoute: User not authenticated, redirecting to login');
       navigate('/login');
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, navigate, hasCheckedAuth]);
 
   // Показываем загрузку пока проверяем авторизацию
   if (isLoading) {
@@ -45,6 +51,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
           minHeight="100vh"
         >
           <CircularProgress size={60} />
+          <Typography variant="h6" style={{ marginTop: 16 }}>
+            Проверка авторизации...
+          </Typography>
         </Box>
       </Container>
     );
@@ -52,7 +61,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   // Если пользователь авторизован, показываем защищенный контент
   if (isAuthenticated && userID) {
+    console.log('ProtectedRoute: User authenticated, showing content');
     return <>{children}</>;
+  }
+
+  // Если есть ошибка, показываем её
+  if (error) {
+    console.log('ProtectedRoute: Authentication error:', error);
   }
 
   // Если не авторизован, показываем загрузку (будет редирект)
@@ -66,6 +81,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         minHeight="100vh"
       >
         <CircularProgress size={60} />
+        <Typography variant="h6" style={{ marginTop: 16 }}>
+          Перенаправление на страницу входа...
+        </Typography>
       </Box>
     </Container>
   );

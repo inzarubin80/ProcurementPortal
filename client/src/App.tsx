@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import TaskList from './pages/TaskList';
 import ExerciseCard from './pages/ExerciseCard';
@@ -8,15 +8,8 @@ import Login from './pages/Login/Login';
 import AuthCallback from './pages/AuthCallback/AuthCallback';
 import Header from './components/Header';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from './store';
-import { getUser } from './store/slices/userSlice';
 
 const App: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  useEffect(() => {
-    dispatch(getUser());
-  }, [dispatch]);
   return (
     <>
       <Header />
