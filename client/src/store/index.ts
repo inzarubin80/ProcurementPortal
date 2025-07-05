@@ -3,7 +3,6 @@ import exerciseReducer from './slices/exerciseSlice';
 import languageReducer from './slices/languageSlice';
 import categoryReducer from './slices/categorySlice';
 import userReducer from './slices/userSlice';
-import sessionReducer from './slices/sessionSlice';
 import authProviderReducer from './slices/authProviderSlice';
 import difficultyReducer from './slices/difficultySlice';
 import userStatsReducer from './slices/userStatsSlice';
@@ -14,7 +13,6 @@ export const store = configureStore({
     languages: languageReducer,
     categories: categoryReducer,
     user: userReducer,
-    session: sessionReducer,
     authProviders: authProviderReducer,
     difficulties: difficultyReducer,
     userStats: userStatsReducer,

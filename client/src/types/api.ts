@@ -36,14 +36,7 @@ export interface Exercise {
   is_solved: boolean;
 }
 
-export interface Session {
-  id: UUID;
-  user_id: number;
-  exercise_id: UUID;
-  score: number;
-  time_spent: number;
-  created_at: string;
-}
+
 
 export interface UserStats {
   total_exercises: number;

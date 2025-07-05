@@ -38,8 +38,8 @@ import {
 import { fetchLanguages } from '../store/slices/languageSlice';
 import { fetchCategories } from '../store/slices/categorySlice';
 import { fetchDifficulties } from '../store/slices/difficultySlice';
-import TaskCard from './TaskCard';
 import { getUser } from '../store/slices/userSlice';
+import TaskCard from './TaskCard';
 
 
 const TaskList: React.FC = () => {
@@ -77,6 +77,7 @@ const TaskList: React.FC = () => {
     if (difficulties.length === 0) dispatch(fetchDifficulties());
   }, [dispatch, languages.length, categories.length, difficulties.length]);
 
+
   // useEffect для загрузки задач только после загрузки справочников
   const filtersLoaded = !languagesLoading && !categoriesLoading && !difficultiesLoading;
 
@@ -92,6 +93,9 @@ const TaskList: React.FC = () => {
   }, [selectedLanguage, selectedCategory, selectedDifficulty, currentPage, dispatch, filtersLoaded]);
 
 
+  useEffect(() => {
+    dispatch(getUser());
+  }, [dispatch]); 
 
   // Обработка бесконечного скролла
   useEffect(() => {

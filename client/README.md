@@ -78,7 +78,7 @@ src/
 
 ## Переменные окружения
 
-- `REACT_APP_API_URL` - URL API сервера (по умолчанию: http://localhost:8080/api/v1)
+- `REACT_APP_API_URL` - URL API сервера (по умолчанию: http://localhost:8090/api/v1)
 
 ## Лицензия
 

@@ -23,7 +23,7 @@ import { fetchLanguages } from '../store/slices/languageSlice';
 import { Exercise } from '../types/api';
 import axios from 'axios';
 import { authAxios } from '../service/http-common';
-import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+
 import { diffWords, diffLines as diffLinesFn } from 'diff';
 import Confetti from 'react-confetti';
 import './ExerciseCard.css';

@@ -1,92 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { Box, CircularProgress, Container, Typography } from '@mui/material';
-import { RootState, AppDispatch } from '../../store';
-import { checkAuthToken } from '../../store/slices/userSlice';
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { RootState } from '../../store';
 import { isTokenValid } from '../../utils/authUtils';
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
+const ProtectedRoute: React.FC = () => {
+  const location = useLocation();
+  const { isAuthenticated } = useSelector((state: RootState) => state.user);
+  
+  // Проверяем токен и статус авторизации
+  const hasValidToken = isTokenValid();
+  const isUserAuthenticated = hasValidToken && isAuthenticated;
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  const { isAuthenticated, isLoading, userID, error } = useSelector((state: RootState) => state.user);
-  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
-
-  // Проверяем токен только один раз при монтировании компонента
-  useEffect(() => {
-    if (!hasCheckedAuth) {
-      console.log('ProtectedRoute: Checking authentication...');
-      if (isTokenValid()) {
-        console.log('ProtectedRoute: Token found, validating...');
-        dispatch(checkAuthToken());
-      } else {
-        console.log('ProtectedRoute: No valid token found, redirecting to login');
-        navigate('/login');
-      }
-      setHasCheckedAuth(true);
-    }
-  }, [dispatch, navigate, hasCheckedAuth]);
-
-  // Если после проверки пользователь не авторизован, редиректим на логин
-  useEffect(() => {
-    if (hasCheckedAuth && !isLoading && !isAuthenticated) {
-      console.log('ProtectedRoute: User not authenticated, redirecting to login');
-      navigate('/login');
-    }
-  }, [isAuthenticated, isLoading, navigate, hasCheckedAuth]);
-
-  // Показываем загрузку пока проверяем авторизацию
-  if (isLoading) {
-    return (
-      <Container maxWidth="sm">
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          minHeight="100vh"
-        >
-          <CircularProgress size={60} />
-          <Typography variant="h6" style={{ marginTop: 16 }}>
-            Проверка авторизации...
-          </Typography>
-        </Box>
-      </Container>
-    );
+  if (!isUserAuthenticated) {
+    // Сохраняем URL для редиректа после входа
+    localStorage.setItem('redirectUrl', location.pathname);
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
-  // Если пользователь авторизован, показываем защищенный контент
-  if (isAuthenticated && userID) {
-    console.log('ProtectedRoute: User authenticated, showing content');
-    return <>{children}</>;
-  }
-
-  // Если есть ошибка, показываем её
-  if (error) {
-    console.log('ProtectedRoute: Authentication error:', error);
-  }
-
-  // Если не авторизован, показываем загрузку (будет редирект)
-  return (
-    <Container maxWidth="sm">
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        minHeight="100vh"
-      >
-        <CircularProgress size={60} />
-        <Typography variant="h6" style={{ marginTop: 16 }}>
-          Перенаправление на страницу входа...
-        </Typography>
-      </Box>
-    </Container>
-  );
+  return <Outlet />;
 };
 
 export default ProtectedRoute; 

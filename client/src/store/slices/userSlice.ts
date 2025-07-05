@@ -45,7 +45,7 @@ export const loginUser = createAsyncThunk(
   'user/login',
   async (loginData: any, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/user/login`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8090'}/api/user/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -134,7 +134,7 @@ export const refreshAccessToken = createAsyncThunk(
   'user/refreshAccessToken',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/user/refresh`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8090'}/api/user/refresh`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -165,6 +165,14 @@ const userSlice = createSlice({
       state.isAuthenticated = true;
       state.error = null;
       setStoredAuth(action.payload.Token, action.payload.UserID);
+    },
+    logout: (state) => {
+      state.userID = null;
+      state.accessToken = null;
+      state.isAuthenticated = false;
+      state.error = null;
+      state.userName = null;
+      clearStoredAuth();
     },
   },
   extraReducers: (builder) => {
@@ -247,5 +255,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { clearError, setLoginData } = userSlice.actions;
+export const { clearError, setLoginData, logout } = userSlice.actions;
 export default userSlice.reducer; 

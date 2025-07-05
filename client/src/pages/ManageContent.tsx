@@ -162,9 +162,18 @@ const ManageContent: React.FC = () => {
           setSnackbar({open: true, message: 'Упражнение обновлено', severity: 'success'});
         }
       } else {
-        const { name, description, programming_language } = form;
-        await dispatch(updateCategory({ id: editItem.id, updates: { name, description, programming_language } })).unwrap();
-        setSnackbar({open: true, message: 'Категория обновлена', severity: 'success'});
+        if (dialogType === 'add') {
+          await dispatch(createCategory(form)).unwrap();
+          setSnackbar({open: true, message: 'Категория создана', severity: 'success'});
+          // Обновляем список категорий после создания
+          dispatch(fetchCategories({ page: 1, pageSize: 100 }));
+        } else {
+          const { name, description, programming_language } = form;
+          await dispatch(updateCategory({ id: editItem.id, updates: { name, description, programming_language } })).unwrap();
+          setSnackbar({open: true, message: 'Категория обновлена', severity: 'success'});
+          // Обновляем список категорий после редактирования
+          dispatch(fetchCategories({ page: 1, pageSize: 100 }));
+        }
       }
       setOpenDialog(false);
     } catch (error: any) {
