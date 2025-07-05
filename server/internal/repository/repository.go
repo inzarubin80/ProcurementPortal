@@ -97,8 +97,8 @@ func (r *Repository) GetExercisesFiltered(ctx context.Context, userID model.User
 	return r.exerciseRepo.GetExercisesFiltered(ctx, userID, language, categoryID, difficulty, page, pageSize)
 }
 
-func (r *Repository) UpsertExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, attempts int, successful int, typingTime int64, totalTypedChars int) (*model.ExerciseStat, error) {
-	return r.exerciseRepo.UpsertExerciseStat(ctx, userID, exerciseID, attempts, successful, typingTime, totalTypedChars)
+func (r *Repository) UpsertExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, attempts int, successful int) (*model.ExerciseStat, error) {
+	return r.exerciseRepo.UpsertExerciseStat(ctx, userID, exerciseID, attempts, successful, 0, 0)
 }
 
 func (r *Repository) GetExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error) {

@@ -94,6 +94,5 @@ func (r *Repository) GetUserStats(ctx context.Context, userID model.UserID) (*mo
 	return &model.UserStats{
 		TotalExercises:     int(row.TotalExercises),
 		CompletedExercises: int(row.CompletedExercises),
-		TotalTime:          int64(row.TotalTime),
 	}, nil
 }

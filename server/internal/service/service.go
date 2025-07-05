@@ -34,7 +34,7 @@ type (
 		UpdateExercise(ctx context.Context, exercise *model.Exercise) (*model.Exercise, error)
 		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) error
 		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) ([]*model.Exercise, int, error)
-		UpsertExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, attempts int, successAttempts int, typingTime int64, typedChars int) (*model.ExerciseStat, error)
+		UpsertExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, attempts int, successAttempts int) (*model.ExerciseStat, error)
 		GetExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error)
 
 		//Category
@@ -206,8 +206,8 @@ func (s *PokerService) GetExercisesFiltered(ctx context.Context, userID model.Us
 	}, nil
 }
 
-func (s *PokerService) UpsertExerciseStat(userID model.UserID, exerciseID model.ExerciseID, attempts int, successAttempts int, typingTime int64, typedChars int) (*model.ExerciseStat, error) {
-	return s.repository.UpsertExerciseStat(context.Background(), userID, exerciseID, attempts, successAttempts, typingTime, typedChars)
+func (s *PokerService) UpsertExerciseStat(userID model.UserID, exerciseID model.ExerciseID, attempts int, successAttempts int) (*model.ExerciseStat, error) {
+	return s.repository.UpsertExerciseStat(context.Background(), userID, exerciseID, attempts, successAttempts)
 }
 
 func (s *PokerService) GetExerciseStat(userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error) {

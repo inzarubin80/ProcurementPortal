@@ -139,13 +139,11 @@ type (
 
 	// UserStats хранит агрегированную статистику пользователя
 	UserStats struct {
-		TotalExercises     int   `json:"total_exercises"`
-		CompletedExercises int   `json:"completed_exercises"`
-		TotalTime          int64 `json:"total_time"`
+		TotalExercises     int `json:"total_exercises"`
+		CompletedExercises int `json:"completed_exercises"`
 	}
 
-
-	 ExerciseStatUpdate struct {
+	ExerciseStatUpdate struct {
 		UserID          UserID `json:"user_id"`
 		ExerciseID      string `json:"exercise_id"`
 		Attempts        int    `json:"attempts"`         // всегда 1

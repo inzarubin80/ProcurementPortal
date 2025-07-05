@@ -5,15 +5,19 @@ import {
   Typography,
   Card,
   Button,
-  LinearProgress,
   Alert,
   Paper,
   CircularProgress,
   Tabs,
   Tab,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
 } from '@mui/material';
-import { PlayArrow as PlayIcon, Check as CheckIcon, Refresh as RefreshIcon, BarChart as BarChartIcon, ThumbUp as ThumbUpIcon, Visibility as VisibilityIcon, Edit as EditIcon, TrendingUp as TrendingUpIcon, CheckCircle as CheckCircleIcon, Speed as SpeedIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import { PlayArrow as PlayIcon, Check as CheckIcon, Refresh as RefreshIcon, BarChart as BarChartIcon, ThumbUp as ThumbUpIcon, Visibility as VisibilityIcon, Edit as EditIcon, TrendingUp as TrendingUpIcon, CheckCircle as CheckCircleIcon, ExpandMore as ExpandMoreIcon, Compare as CompareIcon, VisibilityOff as VisibilityOffIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import MonacoEditor from '@monaco-editor/react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -28,7 +32,7 @@ import { diffWords, diffLines as diffLinesFn } from 'diff';
 import Confetti from 'react-confetti';
 import './ExerciseCard.css';
 import { useTheme } from '@mui/material/styles';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
+
 
 const ExerciseCard: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -51,26 +55,33 @@ const ExerciseCard: React.FC = () => {
     total_typed_chars: number;
   }>(null);
   const [statError, setStatError] = useState<string | null>(null);
-  const [startTime, setStartTime] = useState<number | null>(null);
+  const [checkError, setCheckError] = useState<string | null>(null);
   const [diffLines, setDiffLines] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showShake, setShowShake] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
   const [lastCheckedUserCode, setLastCheckedUserCode] = useState<string | null>(null);
+  const [showDiff, setShowDiff] = useState(false);
+  const [diffHtml, setDiffHtml] = useState<string | null>(null);
+  const [detailedDiff, setDetailedDiff] = useState<{ lineNumber: number; expected: string; actual: string; hasDiff: boolean; diffHtml: string }[]>([]);
+  const [showSolution, setShowSolution] = useState(false);
+  const [showDiffButton, setShowDiffButton] = useState(false);
+  const [errorCount, setErrorCount] = useState(0);
+  const [openDiffModal, setOpenDiffModal] = useState(false);
+  const [openSolutionModal, setOpenSolutionModal] = useState(false);
   const theme = useTheme();
 
-  // Индекс текущей задачи и id следующей
-  const currentIndex = exercises.findIndex(e => e.id === id);
+  // Индекс текущей задачи и id следующей - мемоизируем для оптимизации
+  const currentIndex = React.useMemo(() => exercises.findIndex(e => e.id === id), [exercises, id]);
   const hasExercises = exercises.length > 0;
-  let nextExerciseId: string | undefined = undefined;
-  if (hasExercises && currentIndex !== -1) {
+  const nextExerciseId = React.useMemo(() => {
+    if (!hasExercises || currentIndex === -1) return undefined;
     if (currentIndex === exercises.length - 1) {
-      nextExerciseId = exercises[0].id;
+      return exercises[0].id;
     } else {
-      nextExerciseId = exercises[currentIndex + 1]?.id;
+      return exercises[currentIndex + 1]?.id;
     }
-  }
+  }, [hasExercises, currentIndex, exercises]);
 
   useEffect(() => {
     if (id) {
@@ -83,10 +94,15 @@ const ExerciseCard: React.FC = () => {
 
   const handleStart = () => {
     setIsStarted(true);
-    setUserCode(exercise?.code_to_remember || '');
+    setUserCode('');
     setIsCorrect(null);
     setResultMsg('');
-    setStartTime(Date.now());
+    setShowDiff(false);
+    setDiffHtml(null);
+    setLastCheckedUserCode(null);
+    setShowSolution(false);
+    setShowDiffButton(false);
+    setErrorCount(0);
   };
 
   const fetchStat = async () => {
@@ -219,6 +235,8 @@ const ExerciseCard: React.FC = () => {
   const handleCheck = async () => {
     if (!exercise) return;
     setChecking(true);
+    setCheckError(null);
+    setShowDiff(false);
     
     setLastCheckedUserCode(userCode);
 
@@ -230,41 +248,48 @@ const ExerciseCard: React.FC = () => {
     // Diff для визуализации различий (построчно)
     if (!result.correct) {
       const diff = diffLinesFn(exercise.code_to_remember, userCode);
-      const diffHtml = diff.map((part, idx) => {
+      const diffHtmlResult = diff.map((part, idx) => {
         if (part.added) return `<div style='background:#d4fcbc'>+ ${part.value.replace(/\n/g, '<br/>')}</div>`;
         if (part.removed) return `<div style='background:#ffeef0;text-decoration:line-through;'>- ${part.value.replace(/\n/g, '<br/>')}</div>`;
         return `<div>${part.value.replace(/\n/g, '<br/>')}</div>`;
       }).join('');
-      setDiffLines(diffHtml);
+      
+      // Генерируем детальный построчный diff
+      const detailedDiffResult = generateDetailedDiff(exercise.code_to_remember, userCode);
+      setDetailedDiff(detailedDiffResult);
+      
+      // Подсчитываем количество ошибок
+      const errors = getLineErrorList(exercise.code_to_remember, userCode);
+      setErrorCount(errors.length);
+      
+      setDiffHtml(diffHtmlResult);
       setShowShake(true);
+      setShowDiffButton(detailedDiffResult.some(line => line.hasDiff));
       setTimeout(() => setShowShake(false), 700);
     } else {
-      setDiffLines(null);
+      setDiffHtml(null);
+      setDetailedDiff([]);
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2500);
       dispatch(setExerciseSolved(exercise.id));
+      // Возвращаемся к отображению исходного кода при успешном выполнении
+      setIsStarted(false);
+      setUserCode('');
+      // Оставляем isCorrect = true для отображения сообщения об успехе
     }
     
     // Отправляем статистику
     try {
-      const typingTime = startTime ? Math.round((Date.now() - startTime) / 1000) : 0;
       await authAxios.post('/exercise_stat/update', {
         exercise_id: exercise.id,
         attempts: 1,
         success_attempts: result.correct ? 1 : 0,
-        typing_time: typingTime,
-        typed_chars: userCode.length,
       });
       await fetchStat();
     } catch (error) {
       console.error('Ошибка при отправке статистики:', error);
       setStatError('Ошибка обновления статистики');
     }
-    
-    // Показываем правильный ответ
-    setUserCode(exercise.code_to_remember);
-    setStartTime(Date.now());
-    setIsStarted(false);
     
     setChecking(false);
   };
@@ -274,6 +299,15 @@ const ExerciseCard: React.FC = () => {
     setUserCode('');
     setIsCorrect(null);
     setResultMsg('');
+    setShowDiff(false);
+    setDiffHtml(null);
+    setDetailedDiff([]);
+    setLastCheckedUserCode(null);
+    setShowSolution(false);
+    setShowDiffButton(false);
+    setErrorCount(0);
+    setOpenDiffModal(false);
+    setOpenSolutionModal(false);
   };
 
   const handleBackToList = () => {
@@ -287,19 +321,31 @@ const ExerciseCard: React.FC = () => {
     // eslint-disable-next-line
   }, [exercise]);
 
+
+
+  // Клавиатурные сокращения
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    if (isStarted && startTime) {
-      timer = setInterval(() => {
-        setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
-      }, 1000);
-    } else {
-      setElapsedTime(0);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (!isStarted) return;
+      
+      // Ctrl+Enter или Cmd+Enter для проверки
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        if (!checking && userCode.trim()) {
+          handleCheck();
+        }
+      }
+      
+      // Escape для сброса
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        handleReset();
+      }
     };
-  }, [isStarted, startTime]);
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [isStarted, checking, userCode]);
 
   // Функция для генерации списка ошибок с подсветкой отличий
   function getLineErrorList(expected: string, actual: string) {
@@ -331,17 +377,64 @@ const ExerciseCard: React.FC = () => {
     return errors;
   }
 
-  const cpm = elapsedTime > 0 ? Math.round((userCode.length / elapsedTime) * 60) : 0;
-  function getSpeedColor(cpm: number) {
-    if (cpm < 100) return '#e57373'; // красный
-    if (cpm < 250) return '#ffd54f'; // жёлтый
-    return '#64b5f6'; // синий
+  // Функция для генерации построчного diff с подсветкой символов
+  function generateDetailedDiff(expected: string, actual: string) {
+    const expectedLines = expected.split('\n');
+    const actualLines = actual.split('\n');
+    const maxLen = Math.max(expectedLines.length, actualLines.length);
+    const diffLines: { lineNumber: number; expected: string; actual: string; hasDiff: boolean; diffHtml: string }[] = [];
+
+    for (let i = 0; i < maxLen; i++) {
+      const expectedLine = expectedLines[i] || '';
+      const actualLine = actualLines[i] || '';
+      const lineNumber = i + 1;
+      
+      if (expectedLine === actualLine) {
+        // Строки одинаковые
+        diffLines.push({
+          lineNumber,
+          expected: expectedLine,
+          actual: actualLine,
+          hasDiff: false,
+          diffHtml: expectedLine
+        });
+      } else {
+        // Строки отличаются - создаем детальный diff
+        const wordDiff = diffWords(expectedLine, actualLine);
+        const diffHtml = wordDiff.map(part => {
+          if (part.added) {
+            return `<span style="background:#d4fcbc; color:#2e7d32; font-weight:bold;">${part.value}</span>`;
+          } else if (part.removed) {
+            return `<span style="background:#ffebee; color:#c62828; text-decoration:line-through; font-weight:bold;">${part.value}</span>`;
+          } else {
+            return `<span style="color:#424242;">${part.value}</span>`;
+          }
+        }).join('');
+        
+        diffLines.push({
+          lineNumber,
+          expected: expectedLine,
+          actual: actualLine,
+          hasDiff: true,
+          diffHtml
+        });
+      }
+    }
+    
+    return diffLines;
   }
+
+  // Добавить функцию для сопоставления языка
+  const getMonacoLanguage = (lang: string) => {
+    if (!lang) return '';
+    if (lang.toLowerCase() === '1c') return 'bsl';
+    return lang.toLowerCase();
+  };
 
   if (loading || !exercise) {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-        <LinearProgress sx={{ width: '100%' }} />
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <CircularProgress />
       </Box>
     );
   }
@@ -376,6 +469,9 @@ const ExerciseCard: React.FC = () => {
             <VisibilityIcon color="primary" sx={{ mr: 1 }} />
             <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.15rem' }}>Код для повторения</Typography>
           </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontStyle: 'italic' }}>
+            Внимательно изучите код, затем нажмите "Начать выполнение" для его воспроизведения
+          </Typography>
           <Box sx={{ position: 'relative', mb: 2 }}>
             <Paper
               variant="outlined"
@@ -387,7 +483,7 @@ const ExerciseCard: React.FC = () => {
             >
               <MonacoEditor
                 height="180px"
-                defaultLanguage={exercise.programming_language.toLowerCase()}
+                defaultLanguage={getMonacoLanguage(exercise.programming_language)}
                 value={exercise.code_to_remember}
                 options={{ readOnly: true, fontSize: 16, minimap: { enabled: false }, scrollBeyondLastLine: false }}
               />
@@ -417,18 +513,6 @@ const ExerciseCard: React.FC = () => {
               <ThumbUpIcon color="secondary" sx={{ mr: 1 }} />
               <Typography variant="body2">Успешных: <b>{exerciseStat ? (exerciseStat.successful_attempts ?? 0) : 0}</b></Typography>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 180 }}>
-              <SpeedIcon color="secondary" sx={{ mr: 1 }} />
-              <Typography variant="body2">
-                Скорость набора: <b>{
-                  exerciseStat && exerciseStat.total_typing_time > 0
-                    ? Math.round(
-                        exerciseStat.total_typed_chars / (exerciseStat.total_typing_time / 60)
-                      )
-                    : 0
-                } символов/мин</b>
-              </Typography>
-            </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
             <Button
@@ -457,10 +541,16 @@ const ExerciseCard: React.FC = () => {
                 setUserCode('');
                 setIsCorrect(null);
                 setResultMsg('');
-                setStartTime(Date.now());
+                setDetailedDiff([]);
+                setShowDiff(false);
+                setShowSolution(false);
+                setShowDiffButton(false);
+                setErrorCount(0);
+                setOpenDiffModal(false);
+                setOpenSolutionModal(false);
               }}
             >
-              Начать выполнение
+                            Начать выполнение
             </Button>
             <Button
               variant="outlined"
@@ -480,29 +570,80 @@ const ExerciseCard: React.FC = () => {
               }}
               disabled={!hasExercises}
             >
-              Перейти к следующей задаче
+              Перейти к следующему упражнению
             </Button>
           </Box>
           {isCorrect !== null && isCorrect && (
-            <Alert severity="success" sx={{ mt: 2, fontWeight: 'bold' }}>
-              {resultMsg}
+            <Box sx={{ mt: 2 }}>
+              <Alert severity="success" sx={{ mb: 2, fontWeight: 'bold' }}>
+                {resultMsg}
+              </Alert>
+            </Box>
+          )}
+          {checkError && (
+            <Alert severity="error" sx={{ mt: 2, fontWeight: 'bold' }}>
+              {checkError}
             </Alert>
           )}
-          {isCorrect === false && lastCheckedUserCode !== null && (
-            <Box sx={{ my: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>Ошибки:</Typography>
-              <ul style={{ paddingLeft: 20 }}>
-                {getLineErrorList(exercise.code_to_remember, lastCheckedUserCode).map(err => (
-                  <li key={err.line} style={{ marginBottom: 8 }}>
-                    <b>Строка {err.line}:</b> {err.type === 'missing' && <>Ожидалось: <code>{err.expected}</code> (строка пропущена)</>}
-                    {err.type === 'extra' && <>Лишняя строка: <code>{err.actual}</code></>}
-                    {err.type === 'mismatch' && (
-                      err.diffHtml ? <span dangerouslySetInnerHTML={{ __html: err.diffHtml }} /> : null
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </Box>
+          {isCorrect === false && (
+            <Alert 
+              severity="warning" 
+              sx={{ 
+                mt: 2, 
+                fontWeight: 'bold',
+                '& .MuiAlert-message': {
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1
+                }
+              }}
+            >
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  ❌ Код содержит {errorCount} ошибок. Исправьте их и попробуйте снова.
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  💡 Нажмите кнопку ниже, чтобы увидеть точные отличия от эталона
+                </Typography>
+                {detailedDiff.length > 0 && showDiffButton && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<CompareIcon />}
+                    onClick={() => setOpenDiffModal(true)}
+                    sx={{
+                      borderRadius: 1,
+                      fontWeight: 'bold',
+                      px: 2,
+                      py: 0.5,
+                      fontSize: '0.8rem',
+                      background: 'linear-gradient(90deg, #1976d2 0%, #42a5f5 100%)',
+                      animation: 'pulse 2s infinite',
+                      '@keyframes pulse': {
+                        '0%': {
+                          transform: 'scale(1)',
+                          boxShadow: '0 0 0 0 rgba(25, 118, 210, 0.7)',
+                        },
+                        '70%': {
+                          transform: 'scale(1.05)',
+                          boxShadow: '0 0 0 10px rgba(25, 118, 210, 0)',
+                        },
+                        '100%': {
+                          transform: 'scale(1)',
+                          boxShadow: '0 0 0 0 rgba(25, 118, 210, 0)',
+                        },
+                      },
+                      '&:hover': {
+                        background: 'linear-gradient(90deg, #1565c0 0%, #1976d2 100%)',
+                        animation: 'none',
+                      },
+                    }}
+                  >
+                    Показать отличия от эталона
+                  </Button>
+                )}
+              </Box>
+            </Alert>
           )}
           {showConfetti && (
             <Confetti
@@ -523,78 +664,307 @@ const ExerciseCard: React.FC = () => {
             <EditIcon color="primary" sx={{ mr: 1 }} />
             <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.15rem' }}>Введите код</Typography>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4, ml: 2 }}>
-            <Box sx={{ textAlign: 'center', minWidth: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-              <SpeedIcon color="secondary" sx={{ fontSize: 24 }} />
-              <Typography variant="body2" sx={{ color: getSpeedColor(cpm), fontWeight: 500 }}>{cpm}</Typography>
-              <span style={{ fontSize: 15, color: getSpeedColor(cpm), fontWeight: 500, marginLeft: 4 }}>симв/мин</span>
-            </Box>
-          </Box>
+
           <Paper variant="outlined" sx={{ mb: 2, borderRadius: 2, overflow: 'hidden' }}>
             <MonacoEditor
               height="180px"
-              defaultLanguage={exercise.programming_language.toLowerCase()}
+              defaultLanguage={getMonacoLanguage(exercise.programming_language)}
               value={userCode}
               onChange={(v: string | undefined) => setUserCode(v || '')}
               options={{ fontSize: 16, minimap: { enabled: false }, scrollBeyondLastLine: false, readOnly: false }}
             />
           </Paper>
-          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<CheckIcon />}
-              sx={{
-                borderRadius: 3,
-                fontWeight: 'bold',
-                px: 3,
-                py: 1.2,
-                fontSize: '1rem',
-                background: 'linear-gradient(90deg, #64b5f6 0%, #1976d2 100%)',
-                color: 'white',
-                boxShadow: 2,
-                transition: 'all 0.2s',
-                '&:hover': {
-                  background: 'linear-gradient(90deg, #1976d2 0%, #64b5f6 100%)',
-                  boxShadow: 4,
-                  transform: 'scale(1.04)',
-                },
-              }}
-              onClick={handleCheck}
-              disabled={checking || !userCode.trim()}
-            >
-              {checking ? <CircularProgress size={24} color="inherit" /> : 'Проверить'}
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              startIcon={<RefreshIcon />}
-              sx={{
-                borderRadius: 3,
-                fontWeight: 'bold',
-                px: 3,
-                py: 1.2,
-                fontSize: '1rem',
-                background: 'white',
-                color: '#1da1f2',
-                border: '2px solid #bdbdbd',
-                boxShadow: 1,
-                transition: 'all 0.2s',
-                '&:hover': {
-                  background: '#f0f7fa',
-                  color: '#1976d2',
-                  border: '2px solid #1976d2',
+
+          <Box sx={{ display: 'flex', gap: 2, mb: 2, flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<CheckIcon />}
+                sx={{
+                  borderRadius: 3,
+                  fontWeight: 'bold',
+                  px: 3,
+                  py: 1.2,
+                  fontSize: '1rem',
+                  background: 'linear-gradient(90deg, #64b5f6 0%, #1976d2 100%)',
+                  color: 'white',
                   boxShadow: 2,
-                  transform: 'scale(1.04)',
-                },
-              }}
-              onClick={handleReset}
-            >
-              Сбросить
-            </Button>
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, #1976d2 0%, #64b5f6 100%)',
+                    boxShadow: 4,
+                    transform: 'scale(1.04)',
+                  },
+                }}
+                onClick={handleCheck}
+                disabled={checking || !userCode.trim()}
+              >
+                {checking ? <CircularProgress size={24} color="inherit" /> : 'Проверить'}
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<RefreshIcon />}
+                sx={{
+                  borderRadius: 3,
+                  fontWeight: 'bold',
+                  px: 3,
+                  py: 1.2,
+                  fontSize: '1rem',
+                  background: 'white',
+                  color: '#1da1f2',
+                  border: '2px solid #bdbdbd',
+                  boxShadow: 1,
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    background: '#f0f7fa',
+                    color: '#1976d2',
+                    border: '2px solid #1976d2',
+                    boxShadow: 2,
+                    transform: 'scale(1.04)',
+                  },
+                }}
+                onClick={handleReset}
+              >
+                Сбросить
+              </Button>
+            </Box>
+            <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+              💡 Подсказка: Ctrl+Enter для проверки, Escape для сброса
+            </Typography>
           </Box>
+          
+          {/* Кнопки для работы с ошибками */}
+          {isCorrect === false && (
+            <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              {detailedDiff.length > 0 && (
+                <Button
+                  variant="outlined"
+                  startIcon={<CompareIcon />}
+                  onClick={() => setOpenDiffModal(true)}
+                  sx={{
+                    borderRadius: 2,
+                    fontWeight: 'bold',
+                    px: 3,
+                    py: 1,
+                    fontSize: '0.9rem',
+                    color: '#1976d2',
+                    border: '2px solid #1976d2',
+                    '&:hover': {
+                      background: '#f0f7fa',
+                      border: '2px solid #1565c0',
+                    },
+                  }}
+                >
+                  Показать отличия от эталона
+                </Button>
+              )}
+              
+              <Button
+                variant="outlined"
+                startIcon={<VisibilityIcon />}
+                onClick={() => setOpenSolutionModal(true)}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 'bold',
+                  px: 3,
+                  py: 1,
+                  fontSize: '0.9rem',
+                  color: '#ff9800',
+                  border: '2px solid #ff9800',
+                  '&:hover': {
+                    background: '#fff3e0',
+                    border: '2px solid #f57c00',
+                  },
+                }}
+              >
+                Показать эталон
+              </Button>
+              
+              <Button
+                variant="outlined"
+                startIcon={<RefreshIcon />}
+                onClick={handleReset}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 'bold',
+                  px: 3,
+                  py: 1,
+                  fontSize: '0.9rem',
+                  color: '#f44336',
+                  border: '2px solid #f44336',
+                  '&:hover': {
+                    background: '#ffebee',
+                    border: '2px solid #d32f2f',
+                  },
+                }}
+              >
+                Начать заново
+              </Button>
+            </Box>
+          )}
+          
+
         </>
       )}
+
+      {/* Модальное окно для отличий */}
+      <Dialog
+        open={openDiffModal}
+        onClose={() => setOpenDiffModal(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            maxHeight: '80vh'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          backgroundColor: '#f5f5f5',
+          borderBottom: '2px solid #e0e0e0'
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>
+            📊 Построчные отличия от эталона
+          </Typography>
+          <IconButton
+            onClick={() => setOpenDiffModal(false)}
+            sx={{ color: '#666' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          {detailedDiff.length > 0 && (
+            <Box sx={{ fontFamily: 'monospace', fontSize: '0.9rem', lineHeight: 1.6 }}>
+              {detailedDiff.map((line, index) => (
+                <Box 
+                  key={index} 
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'flex-start',
+                    mb: line.hasDiff ? 1 : 0.5,
+                    p: line.hasDiff ? 1 : 0.5,
+                    borderRadius: line.hasDiff ? 1 : 0,
+                    backgroundColor: line.hasDiff ? '#fff3e0' : 'transparent',
+                    border: line.hasDiff ? '1px solid #ffcc02' : 'none'
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      minWidth: 40, 
+                      textAlign: 'right', 
+                      mr: 2, 
+                      color: line.hasDiff ? '#d32f2f' : '#666',
+                      fontWeight: line.hasDiff ? 'bold' : 'normal',
+                      fontSize: '0.8rem'
+                    }}
+                  >
+                    {line.lineNumber}
+                  </Box>
+                  <Box 
+                    sx={{ 
+                      flex: 1,
+                      wordBreak: 'break-all',
+                      whiteSpace: 'pre-wrap'
+                    }}
+                    dangerouslySetInnerHTML={{ __html: line.diffHtml }}
+                  />
+                  {line.hasDiff && (
+                    <Box sx={{ ml: 1, fontSize: '0.7rem', color: '#d32f2f' }}>
+                      ⚠️
+                    </Box>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          )}
+          <Typography variant="caption" sx={{ mt: 2, display: 'block', color: '#666', fontStyle: 'italic' }}>
+            💡 Зеленым выделены правильные символы, красным - ошибочные или отсутствующие
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
+          <Button 
+            onClick={() => setOpenDiffModal(false)}
+            variant="contained"
+            sx={{ borderRadius: 2, fontWeight: 'bold' }}
+          >
+            Закрыть
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Модальное окно для эталона */}
+      <Dialog
+        open={openSolutionModal}
+        onClose={() => setOpenSolutionModal(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            maxHeight: '80vh'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          backgroundColor: '#f5f5f5',
+          borderBottom: '2px solid #e0e0e0'
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+            📋 Эталонный код
+          </Typography>
+          <IconButton
+            onClick={() => setOpenSolutionModal(false)}
+            sx={{ color: '#666' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Paper
+            variant="outlined"
+            sx={{ 
+              borderRadius: 2, 
+              overflow: 'hidden', 
+              background: '#fafafa',
+              border: '1px solid #e0e0e0'
+            }}
+          >
+            <MonacoEditor
+              height="400px"
+              defaultLanguage={getMonacoLanguage(exercise?.programming_language)}
+              value={exercise?.code_to_remember || ''}
+              options={{ 
+                readOnly: true, 
+                fontSize: 16, 
+                minimap: { enabled: false }, 
+                scrollBeyondLastLine: false,
+                lineNumbers: 'on',
+                theme: 'vs-light',
+                wordWrap: 'on'
+              }}
+            />
+          </Paper>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
+          <Button 
+            onClick={() => setOpenSolutionModal(false)}
+            variant="contained"
+            sx={{ borderRadius: 2, fontWeight: 'bold' }}
+          >
+            Закрыть
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

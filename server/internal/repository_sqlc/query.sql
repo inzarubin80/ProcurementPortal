@@ -160,8 +160,7 @@ SELECT
     CASE WHEN SUM(es.total_attempts) > 0
          THEN ROUND(SUM(es.successful_attempts)::numeric / NULLIF(SUM(es.total_attempts),0) * 100)::int
          ELSE 0
-    END as average_score,
-    (COALESCE(SUM(es.total_typing_time),0)::bigint / 60)::int as total_time
+    END as average_score
 FROM exercises e
 LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND es.user_id = $1
 WHERE e.is_active = TRUE AND e.user_id = $1;

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Container, Paper, Typography, Box, Avatar, Stack } from '@mui/material';
-import { AccountCircle, TrendingUp, ThumbUp, Speed, CheckCircle } from '@mui/icons-material';
+import { AccountCircle, TrendingUp, ThumbUp, CheckCircle } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { fetchExercises } from '../store/slices/exerciseSlice';
@@ -39,10 +39,7 @@ const Profile: React.FC = () => {
             <ThumbUp color="secondary" sx={{ mr: 1 }} />
             <Typography>Выполнено упражнений: <b>{userStats ? userStats.completed_exercises : 0}</b></Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Speed color="secondary" sx={{ mr: 1 }} />
-            <Typography>Общее время: <b>{userStats ? userStats.total_time : 0} мин</b></Typography>
-          </Box>
+
         </Stack>
       </Paper>
     </Container>

@@ -11,7 +11,7 @@ import (
 )
 
 type UpdateExerciseStatService interface {
-	UpsertExerciseStat(userID model.UserID, exerciseID model.ExerciseID, attempts int, successAttempts int, typingTime int64, typedChars int) (*model.ExerciseStat, error)
+	UpsertExerciseStat(userID model.UserID, exerciseID model.ExerciseID, attempts int, successAttempts int) (*model.ExerciseStat, error)
 }
 
 type UpdateExerciseStatHandler struct {
@@ -26,8 +26,6 @@ type updateExerciseStatRequest struct {
 	ExerciseID      string `json:"exercise_id"`
 	Attempts        int    `json:"attempts"`
 	SuccessAttempts int    `json:"success_attempts"`
-	TypingTime      int64  `json:"typing_time"`
-	TypedChars      int    `json:"typed_chars"`
 }
 
 func (h *UpdateExerciseStatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +50,7 @@ func (h *UpdateExerciseStatHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	}
 	exID = model.ExerciseID(uuidVal)
 
-	stat, err := h.service.UpsertExerciseStat(userID, exID, req.Attempts, req.SuccessAttempts, req.TypingTime, req.TypedChars)
+	stat, err := h.service.UpsertExerciseStat(userID, exID, req.Attempts, req.SuccessAttempts)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
