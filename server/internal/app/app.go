@@ -59,6 +59,12 @@ type (
 		// Добавлено для соответствия GetExerciseStatService
 		GetExerciseStat(userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error)
 		GetUserStats(ctx context.Context, userID model.UserID) (*model.UserStats, error)
+
+		// User Exercises methods
+		GetUserExercises(ctx context.Context, userID model.UserID, page, pageSize int) (*model.UserExerciseListResponse, error)
+		GetUserExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) (*model.UserExerciseListResponse, error)
+		AddUserExercise(ctx context.Context, userID model.UserID, exerciseID string) error
+		RemoveUserExercise(ctx context.Context, userID model.UserID, exerciseID string) error
 	}
 
 	TokenService interface {
@@ -101,6 +107,11 @@ func (a *App) ListenAndServe() error {
 
 		// New handler for getUserStats
 		a.config.path.getUserStats: appHttp.NewGetUserStatsHandler(a.pokerService),
+
+		// User Exercises handler
+		a.config.path.getUserExercises:   appHttp.NewGetUserExercisesHandler(a.pokerService, "get_user_exercises"),
+		a.config.path.addUserExercise:    appHttp.NewAddUserExerciseHandler(a.pokerService, "add_user_exercise"),
+		a.config.path.removeUserExercise: appHttp.NewRemoveUserExerciseHandler(a.pokerService, "remove_user_exercise"),
 	}
 
 	for path, handler := range handlers {
@@ -158,7 +169,6 @@ func NewApp(ctx context.Context, config config, dbConn *pgxpool.Pool) (*App, err
 			"https://codekata.ru",
 			"https://api.codekata.ru",
 			"http://localhost:3000",
-			"http://localhost:3001",
 		},
 		// Добавляем все необходимые методы
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"},

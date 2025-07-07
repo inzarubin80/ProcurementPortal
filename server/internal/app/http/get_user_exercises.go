@@ -11,30 +11,31 @@ import (
 )
 
 type (
-	GetExercisesService interface {
-		GetExercises(ctx context.Context, userID model.UserID, page, pageSize int) (*model.ExerciseListResponse, error)
-		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) (*model.ExerciseListResponse, error)
+	GetUserExercisesService interface {
+		GetUserExercises(ctx context.Context, userID model.UserID, page, pageSize int) (*model.UserExerciseListResponse, error)
+		GetUserExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) (*model.UserExerciseListResponse, error)
 	}
 
-	GetExercisesHandler struct {
+	GetUserExercisesHandler struct {
 		name    string
-		service GetExercisesService
+		service GetUserExercisesService
 	}
 )
 
-func NewGetExercisesHandler(service GetExercisesService, name string) *GetExercisesHandler {
-	return &GetExercisesHandler{
+func NewGetUserExercisesHandler(service GetUserExercisesService, name string) *GetUserExercisesHandler {
+	return &GetUserExercisesHandler{
 		name:    name,
 		service: service,
 	}
 }
 
-func (h *GetExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *GetUserExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
 	if !ok {
-		userID = 0 // Для неавторизованных пользователей
+		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
+		return
 	}
 
 	// Получаем параметры пагинации
@@ -70,19 +71,19 @@ func (h *GetExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		diffPtr = &difficulty
 	}
 
-	var exercises *model.ExerciseListResponse
+	var userExercises *model.UserExerciseListResponse
 	var err error
 	if langPtr != nil || catPtr != nil || diffPtr != nil {
-		exercises, err = h.service.GetExercisesFiltered(ctx, userID, langPtr, catPtr, diffPtr, page, pageSize)
+		userExercises, err = h.service.GetUserExercisesFiltered(ctx, userID, langPtr, catPtr, diffPtr, page, pageSize)
 	} else {
-		exercises, err = h.service.GetExercises(ctx, userID, page, pageSize)
+		userExercises, err = h.service.GetUserExercises(ctx, userID, page, pageSize)
 	}
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	jsonData, err := json.Marshal(exercises)
+	jsonData, err := json.Marshal(userExercises)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

@@ -12,11 +12,14 @@ import (
 
 type Querier interface {
 	AddUserAuthProviders(ctx context.Context, arg *AddUserAuthProvidersParams) (*UserAuthProvider, error)
+	AddUserExercise(ctx context.Context, arg *AddUserExerciseParams) error
 	CountCategories(ctx context.Context, userID int64) (int64, error)
 	CountCategoriesByLanguage(ctx context.Context, arg *CountCategoriesByLanguageParams) (int64, error)
 	CountExercises(ctx context.Context, userID int64) (int64, error)
 	CountExercisesByCategory(ctx context.Context, categoryID pgtype.UUID) (int64, error)
 	CountExercisesFiltered(ctx context.Context, arg *CountExercisesFilteredParams) (int64, error)
+	CountUserExercises(ctx context.Context, userID int64) (int64, error)
+	CountUserExercisesFiltered(ctx context.Context, arg *CountUserExercisesFilteredParams) (int64, error)
 	CreateCategory(ctx context.Context, arg *CreateCategoryParams) (*Category, error)
 	CreateExercise(ctx context.Context, arg *CreateExerciseParams) (*Exercise, error)
 	CreateUser(ctx context.Context, name string) (int64, error)
@@ -31,8 +34,11 @@ type Querier interface {
 	GetExercisesFiltered(ctx context.Context, arg *GetExercisesFilteredParams) ([]*GetExercisesFilteredRow, error)
 	GetUserAuthProvidersByProviderUid(ctx context.Context, arg *GetUserAuthProvidersByProviderUidParams) (*UserAuthProvider, error)
 	GetUserByID(ctx context.Context, userID int64) (*User, error)
+	GetUserExercises(ctx context.Context, arg *GetUserExercisesParams) ([]*GetUserExercisesRow, error)
+	GetUserExercisesFiltered(ctx context.Context, arg *GetUserExercisesFilteredParams) ([]*GetUserExercisesFilteredRow, error)
 	GetUserStats(ctx context.Context, dollar_1 int64) (*GetUserStatsRow, error)
 	GetUsersByIDs(ctx context.Context, dollar_1 []int64) ([]*User, error)
+	RemoveUserExercise(ctx context.Context, arg *RemoveUserExerciseParams) error
 	UpdateCategory(ctx context.Context, arg *UpdateCategoryParams) (*Category, error)
 	UpdateExercise(ctx context.Context, arg *UpdateExerciseParams) (*Exercise, error)
 	UpdateExerciseStat(ctx context.Context, arg *UpdateExerciseStatParams) (*ExerciseStat, error)

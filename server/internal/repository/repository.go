@@ -104,3 +104,23 @@ func (r *Repository) UpsertExerciseStat(ctx context.Context, userID model.UserID
 func (r *Repository) GetExerciseStat(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error) {
 	return r.exerciseRepo.GetExerciseStat(ctx, userID, exerciseID)
 }
+
+func (r *Repository) GetUserStats(ctx context.Context, userID model.UserID) (*model.UserStats, error) {
+	return r.exerciseRepo.GetUserStats(ctx, userID)
+}
+
+func (r *Repository) GetUserExercises(ctx context.Context, userID model.UserID, page, pageSize int) ([]*model.UserExerciseWithDetails, int, error) {
+	return r.exerciseRepo.GetUserExercises(ctx, userID, page, pageSize)
+}
+
+func (r *Repository) GetUserExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) ([]*model.UserExerciseWithDetails, int, error) {
+	return r.exerciseRepo.GetUserExercisesFiltered(ctx, userID, language, categoryID, difficulty, page, pageSize)
+}
+
+func (r *Repository) AddUserExercise(ctx context.Context, userID model.UserID, exerciseID string) error {
+	return r.exerciseRepo.AddUserExercise(ctx, userID, exerciseID)
+}
+
+func (r *Repository) RemoveUserExercise(ctx context.Context, userID model.UserID, exerciseID string) error {
+	return r.exerciseRepo.RemoveUserExercise(ctx, userID, exerciseID)
+}

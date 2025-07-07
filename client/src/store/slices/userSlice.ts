@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { authAxios } from '../../service/http-common';
+import { authAxios, publicAxios } from '../../service/http-common';
 import { getStoredToken, getStoredUserID, clearStoredAuth, setStoredAuth, isTokenValid } from '../../utils/authUtils';
 
 // Типы для пользователя
@@ -45,25 +45,12 @@ export const loginUser = createAsyncThunk(
   'user/login',
   async (loginData: any, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8090'}/api/user/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(loginData),
+      const response = await publicAxios.post('/user/login', loginData, {
+        withCredentials: true,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Login failed');
-      }
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Login failed');
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Login failed');
     }
   }
 );
@@ -134,19 +121,12 @@ export const refreshAccessToken = createAsyncThunk(
   'user/refreshAccessToken',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8090'}/api/user/refresh`, {
-        method: 'POST',
-        credentials: 'include',
+      const response = await publicAxios.post('/user/refresh', {}, {
+        withCredentials: true,
       });
-
-      if (!response.ok) {
-        throw new Error('Token refresh failed');
-      }
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Token refresh failed');
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Token refresh failed');
     }
   }
 );

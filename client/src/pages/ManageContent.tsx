@@ -40,6 +40,7 @@ import { fetchExercises, createExercise, updateExercise, deleteExercise } from '
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from '../store/slices/categorySlice';
 import { fetchLanguages } from '../store/slices/languageSlice';
 import { ProgrammingLanguage, Category, Exercise } from '../types/api';
+import UserExerciseButton from '../components/UserExerciseButton';
 
 const ManageContent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -198,9 +199,6 @@ const ManageContent: React.FC = () => {
         if (errorMessage.includes('category contains exercises')) {
           errorMessage = 'Нельзя удалить категорию, в которой есть упражнения';
         }
-        if (errorMessage.includes('category not found')) {
-          errorMessage = 'Упражнение не найдено или не принадлежит вам';
-        }
       }
       setSnackbar({open: true, message: errorMessage, severity: 'error'});
     }
@@ -257,12 +255,14 @@ const ManageContent: React.FC = () => {
                       <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
                         <Chip size="small" label={categories.find(c => c.id === ex.category_id)?.name || '—'} />
                         <Chip size="small" label={ex.difficulty} color="info" />
-                        <Chip size="small" label={ex.programming_language} color="default" />
                       </Stack>
                     </CardContent>
-                    <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
-                      <IconButton onClick={() => openEditDialog('exercise', ex)}><EditIcon /></IconButton>
-                      <IconButton color="error" onClick={() => handleDelete('exercise', ex.id)}><DeleteIcon /></IconButton>
+                    <CardActions sx={{ justifyContent: 'space-between', pt: 0 }}>
+                      <UserExerciseButton exerciseId={ex.id} isUserExercise={ex.is_user_exercise} />
+                      <Box>
+                        <IconButton onClick={() => openEditDialog('exercise', ex)}><EditIcon /></IconButton>
+                        <IconButton color="error" onClick={() => handleDelete('exercise', ex.id)}><DeleteIcon /></IconButton>
+                      </Box>
                     </CardActions>
                   </Card>
                 </Grid>

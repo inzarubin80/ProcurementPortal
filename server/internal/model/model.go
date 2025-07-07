@@ -92,6 +92,7 @@ type (
 		UpdatedAt           time.Time           `json:"updated_at"`
 		IsActive            bool                `json:"is_active"`
 		IsSolved            bool                `json:"is_solved"`
+		IsUserExercise      bool                `json:"is_user_exercise"`
 	}
 
 	Category struct {
@@ -139,8 +140,12 @@ type (
 
 	// UserStats хранит агрегированную статистику пользователя
 	UserStats struct {
-		TotalExercises     int `json:"total_exercises"`
-		CompletedExercises int `json:"completed_exercises"`
+		UserID             UserID `json:"user_id"`
+		TotalExercises     int    `json:"total_exercises"`
+		CompletedExercises int    `json:"completed_exercises"`
+		AverageScore       int    `json:"average_score"`
+		TotalTime          int64  `json:"total_time"`
+		TotalAttempts      int    `json:"total_attempts"`
 	}
 
 	ExerciseStatUpdate struct {
@@ -150,6 +155,33 @@ type (
 		SuccessAttempts int    `json:"success_attempts"` // 1 если успешно, 0 если нет
 		TypingTime      int64  `json:"typing_time"`      // в секундах
 		TypedChars      int    `json:"typed_chars"`
+	}
+
+	// UserExercise представляет связь пользователя с упражнением
+	UserExercise struct {
+		UserID        UserID     `json:"user_id"`
+		ExerciseID    string     `json:"exercise_id"`
+		CompletedAt   *time.Time `json:"completed_at"`
+		Score         *int       `json:"score"`
+		AttemptsCount int        `json:"attempts_count"`
+		CreatedAt     time.Time  `json:"created_at"`
+		UpdatedAt     time.Time  `json:"updated_at"`
+	}
+
+	// UserExerciseWithDetails содержит информацию об упражнении с деталями
+	UserExerciseWithDetails struct {
+		UserExercise
+		Exercise *Exercise `json:"exercise"`
+	}
+
+	// UserExerciseListResponse для API ответов
+	UserExerciseListResponse struct {
+		UserExercises []*UserExerciseWithDetails `json:"user_exercises"`
+		Total         int                        `json:"total"`
+		Page          int                        `json:"page"`
+		PageSize      int                        `json:"page_size"`
+		HasNext       bool                       `json:"has_next"`
+		HasPrev       bool                       `json:"has_prev"`
 	}
 )
 

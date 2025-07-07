@@ -29,6 +29,9 @@ type (
 
 		// Exercise stat route
 		updateExerciseStat, getExerciseStat, getUserStats string
+
+		// User Exercises route
+		getUserExercises, addUserExercise, removeUserExercise string
 	}
 
 	sectrets struct {
@@ -44,8 +47,6 @@ type (
 		provadersConf authinterface.MapProviderOauthConf
 	}
 )
-
-
 
 func NewConfig(opts Options) config {
 
@@ -129,6 +130,11 @@ func NewConfig(opts Options) config {
 			updateExerciseStat: "POST   /api/exercise_stat/update",
 			getExerciseStat:    "GET 	/api/exercise_stat",
 			getUserStats:       "GET    /api/user/stats",
+
+			// User Exercises route
+			getUserExercises:   "GET    /api/user/exercises",
+			addUserExercise:    "POST   /api/user/exercises/add",
+			removeUserExercise: "DELETE /api/user/exercises/remove",
 		},
 
 		sectrets: sectrets{

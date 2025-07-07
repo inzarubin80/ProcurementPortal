@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppBar, Toolbar, Button, Box, Typography, Avatar, Menu, MenuItem, IconButton } from '@mui/material';
-import { School as SchoolIcon, Settings as SettingsIcon, AccountCircle as AccountCircleIcon, Logout as LogoutIcon } from '@mui/icons-material';
+import { School as SchoolIcon, Settings as SettingsIcon, AccountCircle as AccountCircleIcon, Logout as LogoutIcon, Assignment as AssignmentIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
@@ -49,6 +49,13 @@ const Header: React.FC = () => {
         {isAuthenticated && (
           <>
             <Button
+              onClick={() => navigate('/exercises')}
+              sx={{ color: 'white', fontWeight: 'bold', textTransform: 'none', mr: 2 }}
+              startIcon={<AssignmentIcon />}
+            >
+              Упражнения
+            </Button>
+            <Button
               onClick={() => navigate('/manage')}
               sx={{ color: 'white', fontWeight: 'bold', textTransform: 'none', mr: 2 }}
               startIcon={<SettingsIcon />}
@@ -89,13 +96,7 @@ const Header: React.FC = () => {
             </Menu>
           </Box>
         ) : (
-          <Button
-            onClick={() => navigate('/login')}
-            sx={{ color: 'white', fontWeight: 'bold', textTransform: 'none' }}
-            startIcon={<AccountCircleIcon />}
-          >
-            Войти
-          </Button>
+         <> </>
         )}
       </Toolbar>
     </AppBar>

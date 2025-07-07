@@ -1,11 +1,13 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import TaskList from './pages/TaskList';
+import UserTaskList from './pages/UserTaskList';
 import ExerciseCard from './pages/ExerciseCard';
 import ManageContent from './pages/ManageContent';
 import Profile from './pages/Profile';
 import Login from './pages/Login/Login';
 import AuthCallback from './pages/AuthCallback/AuthCallback';
+import Landing from './pages/Landing';
 import Header from './components/Header';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
@@ -31,8 +33,10 @@ const App: React.FC = () => {
         
         {/* Защищенные маршруты */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<TaskList />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/exercises" element={<TaskList />} />
           <Route path="/tasks" element={<TaskList />} />
+          <Route path="/my-exercises" element={<UserTaskList />} />
           <Route path="/exercise/:id" element={<ExerciseCard />} />
           <Route path="/manage" element={<ManageContent />} />
           <Route path="/profile" element={<Profile />} />

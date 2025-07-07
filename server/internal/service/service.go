@@ -47,6 +47,12 @@ type (
 
 		// User Stats
 		GetUserStats(ctx context.Context, userID model.UserID) (*model.UserStats, error)
+
+		// User Exercises
+		GetUserExercises(ctx context.Context, userID model.UserID, page, pageSize int) ([]*model.UserExerciseWithDetails, int, error)
+		GetUserExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) ([]*model.UserExerciseWithDetails, int, error)
+		AddUserExercise(ctx context.Context, userID model.UserID, exerciseID string) error
+		RemoveUserExercise(ctx context.Context, userID model.UserID, exerciseID string) error
 	}
 
 	TokenService interface {
@@ -218,10 +224,56 @@ func (s *PokerService) GetUserStats(ctx context.Context, userID model.UserID) (*
 	return s.repository.GetUserStats(ctx, userID)
 }
 
+func (s *PokerService) GetUserExercises(ctx context.Context, userID model.UserID, page, pageSize int) (*model.UserExerciseListResponse, error) {
+	userExercises, total, err := s.repository.GetUserExercises(ctx, userID, page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+
+	hasNext := (page * pageSize) < total
+	hasPrev := page > 1
+
+	return &model.UserExerciseListResponse{
+		UserExercises: userExercises,
+		Total:         total,
+		Page:          page,
+		PageSize:      pageSize,
+		HasNext:       hasNext,
+		HasPrev:       hasPrev,
+	}, nil
+}
+
+func (s *PokerService) GetUserExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) (*model.UserExerciseListResponse, error) {
+	userExercises, total, err := s.repository.GetUserExercisesFiltered(ctx, userID, language, categoryID, difficulty, page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+
+	hasNext := (page * pageSize) < total
+	hasPrev := page > 1
+
+	return &model.UserExerciseListResponse{
+		UserExercises: userExercises,
+		Total:         total,
+		Page:          page,
+		PageSize:      pageSize,
+		HasNext:       hasNext,
+		HasPrev:       hasPrev,
+	}, nil
+}
+
+func (s *PokerService) AddUserExercise(ctx context.Context, userID model.UserID, exerciseID string) error {
+	return s.repository.AddUserExercise(ctx, userID, exerciseID)
+}
+
 func (s *PokerService) GetUser(ctx context.Context, userID model.UserID) (*model.User, error) {
 	return s.repository.GetUser(ctx, userID)
 }
 
 func (s *PokerService) SetUserName(ctx context.Context, userID model.UserID, name string) error {
 	return s.repository.SetUserName(ctx, userID, name)
+}
+
+func (s *PokerService) RemoveUserExercise(ctx context.Context, userID model.UserID, exerciseID string) error {
+	return s.repository.RemoveUserExercise(ctx, userID, exerciseID)
 }

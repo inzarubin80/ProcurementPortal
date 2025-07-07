@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import { Box, CircularProgress, Typography, Container } from '@mui/material';
 import { setLoginData } from '../../store/slices/userSlice';
 import { AppDispatch } from '../../store';
+import { publicAxios } from '../../service/http-common';
 
 const AuthCallback: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,6 +25,7 @@ const AuthCallback: React.FC = () => {
 
       if (code && intervalRef.current !== code) {
         intervalRef.current = code;
+        
 
         if (code && provider) {
           const data: PostData = {
@@ -32,22 +34,11 @@ const AuthCallback: React.FC = () => {
           };
 
           try {
-            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8090'}/api/user/login`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-              },
-              credentials: 'include', // Отправляем куки
-              body: JSON.stringify(data),
+            const response = await publicAxios.post('/user/login', data, {
+              withCredentials: true, // Отправляем куки
             });
 
-            if (!response.ok) {
-              throw new Error('Login failed');
-            }
-
-            const result = await response.json();
-            dispatch(setLoginData(result));
+            dispatch(setLoginData(response.data));
            
             const fromLocal = localStorage.getItem('redirectUrl');
             localStorage.removeItem('redirectUrl');

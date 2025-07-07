@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Exercise, ExerciseListResponse } from '../../types/api';
 import { authAxios } from '../../service/http-common';
+import { addUserExercise, removeUserExercise } from './userExerciseSlice';
 
 interface ExerciseState {
   exercises: Exercise[];
@@ -238,6 +239,24 @@ const exerciseSlice = createSlice({
       .addCase(deleteExercise.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to delete exercise';
+      })
+      .addCase(addUserExercise.fulfilled, (state, action) => {
+        const exercise = state.exercises.find(e => e.id === action.payload);
+        if (exercise) {
+          exercise.is_user_exercise = true;
+        }
+        if (state.currentExercise?.id === action.payload) {
+          state.currentExercise.is_user_exercise = true;
+        }
+      })
+      .addCase(removeUserExercise.fulfilled, (state, action) => {
+        const exercise = state.exercises.find(e => e.id === action.payload);
+        if (exercise) {
+          exercise.is_user_exercise = false;
+        }
+        if (state.currentExercise?.id === action.payload) {
+          state.currentExercise.is_user_exercise = false;
+        }
       })
       .addCase(fetchExercisesWithFilters.pending, (state) => {
         state.loading = true;

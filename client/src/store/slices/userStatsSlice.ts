@@ -7,6 +7,7 @@ export interface UserStats {
   completed_exercises: number;
   average_score: number;
   total_time: number;
+  total_attempts: number;
 }
 
 interface UserStatsState {

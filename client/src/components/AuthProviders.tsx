@@ -160,12 +160,7 @@ const AuthProviders: React.FC = () => {
       )}
 
       <Box sx={{ mt: 3, textAlign: 'center' }}>
-        <Divider sx={{ mb: 2 }}>
-          <Typography variant="caption" color="text.secondary">
-            или
-          </Typography>
-        </Divider>
-        <Typography variant="body2" color="text.secondary">
+           <Typography variant="body2" color="text.secondary">
           Выберите один из способов входа выше
         </Typography>
       </Box>

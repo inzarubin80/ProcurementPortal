@@ -1,7 +1,9 @@
 import axios, { AxiosInstance } from 'axios';
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
 
-export const baseURL = (process.env.REACT_APP_API_BASE_URL || 'http://localhost:8090') + '/api';
+export const baseURL = process.env.REACT_APP_API_BASE_URL + '/api';
+
+console.log(baseURL);
 
 const authAxios: AxiosInstance = axios.create({ baseURL: baseURL, timeout: 30000 });
 const publicAxios: AxiosInstance = axios.create({ baseURL: baseURL, timeout: 30000 });

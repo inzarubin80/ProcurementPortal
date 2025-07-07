@@ -34,9 +34,8 @@ export interface Exercise {
   updated_at: string;
   is_active: boolean;
   is_solved: boolean;
+  is_user_exercise: boolean;
 }
-
-
 
 export interface UserStats {
   total_exercises: number;
@@ -64,6 +63,36 @@ export type UUID = string;
 
 export interface ExerciseListResponse {
   exercises: Exercise[];
+  total: number;
+  page: number;
+  page_size: number;
+  has_next: boolean;
+  has_prev: boolean;
+}
+
+export interface UserExercise {
+  user_id: number;
+  exercise_id: UUID;
+  completed_at?: string;
+  score?: number;
+  attempts_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserExerciseWithDetails {
+  user_id: number;
+  exercise_id: UUID;
+  completed_at?: string;
+  score?: number;
+  attempts_count: number;
+  created_at: string;
+  updated_at: string;
+  exercise: Exercise;
+}
+
+export interface UserExerciseListResponse {
+  user_exercises: UserExerciseWithDetails[];
   total: number;
   page: number;
   page_size: number;
