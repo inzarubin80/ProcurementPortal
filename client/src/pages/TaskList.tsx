@@ -200,7 +200,7 @@ const TaskList: React.FC = () => {
                 : 'Добавьте упражнения в свой список через меню управления'
               }
             </Typography>
-            <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap">
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
               {hasActiveFilters && (
                 <Button
                   variant="outlined"
@@ -209,7 +209,11 @@ const TaskList: React.FC = () => {
                   sx={{ 
                     borderRadius: 2,
                     px: 3,
-                    py: 1
+                    py: 1.5,
+                    width: 220,
+                    height: 48,
+                    whiteSpace: 'nowrap',
+                    fontSize: '0.875rem'
                   }}
                 >
                   Сбросить фильтры
@@ -222,7 +226,11 @@ const TaskList: React.FC = () => {
                 sx={{ 
                   borderRadius: 2,
                   px: 3,
-                  py: 1,
+                  py: 1.5,
+                  width: 220,
+                  height: 48,
+                  whiteSpace: 'nowrap',
+                  fontSize: '0.875rem',
                   borderColor: '#1da1f2',
                   color: '#1da1f2',
                   '&:hover': {
@@ -233,7 +241,7 @@ const TaskList: React.FC = () => {
               >
                 Перейти к управлению
               </Button>
-            </Stack>
+            </Box>
           </CardContent>
         </Card>
       </Box>
