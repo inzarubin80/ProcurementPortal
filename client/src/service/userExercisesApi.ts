@@ -3,7 +3,7 @@ import { ExerciseListWithUserResponse } from '../types/api';
 
 export interface UserExercisesFilters {
   programming_language?: string;
-  category_id?: string;
+  category_id?: number;
   page?: number;
   page_size?: number;
 }
@@ -16,8 +16,8 @@ export const userExercisesApi = {
     if (filters.programming_language) {
       params.append('programming_language', filters.programming_language);
     }
-    if (filters.category_id) {
-      params.append('category_id', filters.category_id);
+    if (filters.category_id !== undefined) {
+      params.append('category_id', filters.category_id.toString());
     }
     if (filters.page) {
       params.append('page', filters.page.toString());
@@ -36,12 +36,12 @@ export const userExercisesApi = {
   },
 
   // Добавить упражнение пользователю
-  addUserExercise: async (exerciseId: string): Promise<void> => {
-    await authAxios.post(`/user/exercises/add?exercise_id=${exerciseId}`);
+  addUserExercise: async (exerciseId: number): Promise<void> => {
+    await authAxios.post(`/user/exercises/add?exercise_id=${exerciseId.toString()}`);
   },
 
   // Удалить упражнение из списка пользователя
-  removeUserExercise: async (exerciseId: string): Promise<void> => {
-    await authAxios.delete(`/user/exercises/remove?exercise_id=${exerciseId}`);
+  removeUserExercise: async (exerciseId: number): Promise<void> => {
+    await authAxios.delete(`/user/exercises/remove?exercise_id=${exerciseId.toString()}`);
   }
 }; 

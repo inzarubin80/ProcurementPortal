@@ -147,7 +147,7 @@ const ManageContent: React.FC = () => {
     }
   };
   
-  const handleDelete = async (type: 'exercise' | 'category', id: string) => {
+  const handleDelete = async (type: 'exercise' | 'category', id: number) => {
     try {
       if (type === 'exercise') {
         await dispatch(deleteExercise(id)).unwrap();

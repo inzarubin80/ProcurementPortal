@@ -36,6 +36,7 @@ import { useTheme } from '@mui/material/styles';
 
 const ExerciseCard: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const numericId = Number(id);
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   
@@ -72,7 +73,7 @@ const ExerciseCard: React.FC = () => {
   const theme = useTheme();
 
   // Индекс текущей задачи и id следующей - мемоизируем для оптимизации
-  const currentIndex = React.useMemo(() => exercises.findIndex(e => e.exercise.id === id), [exercises, id]);
+  const currentIndex = React.useMemo(() => exercises.findIndex(e => e.exercise.id === numericId), [exercises, numericId]);
   const hasExercises = exercises.length > 0;
   const nextExerciseId = React.useMemo(() => {
     if (!hasExercises || currentIndex === -1) return undefined;
@@ -84,13 +85,13 @@ const ExerciseCard: React.FC = () => {
   }, [hasExercises, currentIndex, exercises]);
 
   useEffect(() => {
-    if (id) {
-      dispatch(fetchExerciseById(id));
+    if (numericId) {
+      dispatch(fetchExerciseById(numericId));
     }
     if (languages.length === 0) {
       dispatch(fetchLanguages());
     }
-  }, [id, dispatch, languages.length]);
+  }, [numericId, dispatch, languages.length]);
 
   const handleStart = () => {
     setIsStarted(true);

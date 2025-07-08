@@ -47,7 +47,7 @@ export const fetchCategories = createAsyncThunk(
 
 export const fetchCategoryById = createAsyncThunk(
   'categories/fetchCategoryById',
-  async (id: string, { rejectWithValue }) => {
+  async (id: number, { rejectWithValue }) => {
     try {
       const response = await authAxios.get(`/categories/get?id=${id}`);
       return response.data;
@@ -71,7 +71,7 @@ export const createCategory = createAsyncThunk(
 
 export const updateCategory = createAsyncThunk(
   'categories/updateCategory',
-  async ({ id, updates }: { id: string; updates: Partial<Category> }, { rejectWithValue }) => {
+  async ({ id, updates }: { id: number; updates: Partial<Category> }, { rejectWithValue }) => {
     try {
       const response = await authAxios.put(`/categories/update?category_id=${id}`, updates);
       return response.data;
@@ -83,7 +83,7 @@ export const updateCategory = createAsyncThunk(
 
 export const deleteCategory = createAsyncThunk(
   'categories/deleteCategory',
-  async (id: string, { rejectWithValue }) => {
+  async (id: number, { rejectWithValue }) => {
     try {
       await authAxios.delete(`/categories/delete?id=${id}`);
       return id;
@@ -189,7 +189,7 @@ const categorySlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteCategory.fulfilled, (state, action: PayloadAction<string>) => {
+      .addCase(deleteCategory.fulfilled, (state, action: PayloadAction<number>) => {
         state.loading = false;
         state.categories = state.categories.filter(cat => cat.id !== action.payload);
         if (state.currentCategory?.id === action.payload) {

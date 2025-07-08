@@ -53,7 +53,7 @@ export const fetchExercises = createAsyncThunk(
 
 export const fetchExerciseById = createAsyncThunk(
   'exercises/fetchExerciseById',
-  async (id: string, { rejectWithValue }) => {
+  async (id: number, { rejectWithValue }) => {
     try {
       const response = await authAxios.get(`/exercises/get?id=${id}`);
       return response.data;
@@ -77,7 +77,7 @@ export const createExercise = createAsyncThunk(
 
 export const updateExercise = createAsyncThunk(
   'exercises/updateExercise',
-  async ({ id, updates }: { id: string; updates: Partial<Exercise> }, { rejectWithValue }) => {
+  async ({ id, updates }: { id: number; updates: Partial<Exercise> }, { rejectWithValue }) => {
     try {
       const response = await authAxios.put(`/exercises/update?id=${id}`, updates);
       return response.data;
@@ -89,7 +89,7 @@ export const updateExercise = createAsyncThunk(
 
 export const deleteExercise = createAsyncThunk(
   'exercises/deleteExercise',
-  async (id: string, { rejectWithValue }) => {
+  async (id: number, { rejectWithValue }) => {
     try {
       await authAxios.delete(`/exercises/delete?id=${id}`);
       return id;
@@ -197,7 +197,7 @@ const exerciseSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteExercise.fulfilled, (state, action: PayloadAction<string>) => {
+      .addCase(deleteExercise.fulfilled, (state, action: PayloadAction<number>) => {
         state.loading = false;
         state.exercises = state.exercises.filter(ex => ex.exercise.id !== action.payload);
         if (state.currentExercise?.exercise.id === action.payload) {

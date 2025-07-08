@@ -114,7 +114,7 @@ const TaskList: React.FC = () => {
     return () => container.removeEventListener('scroll', handleScroll);
   }, [loading, pagination.hasNext, currentPage, dispatch]);
 
-  const handleExerciseClick = (exerciseId: string) => {
+  const handleExerciseClick = (exerciseId: number) => {
     navigate(`/exercise/${exerciseId}`);
   };
 

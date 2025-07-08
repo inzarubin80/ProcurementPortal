@@ -16,7 +16,7 @@ interface CategoryTableProps {
   categories: Category[];
   languages: ProgrammingLanguage[];
   onEdit: (category: Category) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
 }
 
 const CategoryTable: React.FC<CategoryTableProps> = ({

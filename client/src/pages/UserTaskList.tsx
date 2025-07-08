@@ -113,7 +113,7 @@ const UserTaskList: React.FC = () => {
     return () => container.removeEventListener('scroll', handleScroll);
   }, [loading, pagination.hasNext, currentPage, dispatch]);
 
-  const handleExerciseClick = (exerciseId: string) => {
+  const handleExerciseClick = (exerciseId: number) => {
     navigate(`/exercise/${exerciseId}`);
   };
 
@@ -133,9 +133,9 @@ const UserTaskList: React.FC = () => {
     return language ? language.name : value;
   };
 
-  const getCategoryLabel = (id: string) => {
+  const getCategoryLabel = (id: number) => {
     const category = categories.find(cat => cat.id === id);
-    return category ? category.name : id;
+    return category ? category.name : String(id);
   };
 
   const formatDate = (dateString: string) => {

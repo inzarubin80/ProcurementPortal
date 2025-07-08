@@ -6,7 +6,7 @@ import { AppDispatch, RootState } from '../store';
 import { addUserExercise, removeUserExercise } from '../store/slices/userExerciseSlice';
 
 interface UserExerciseButtonProps {
-  exerciseId: string;
+  exerciseId: number;
   isUserExercise: boolean;
   size?: 'small' | 'medium' | 'large';
   variant?: 'text' | 'outlined' | 'contained';

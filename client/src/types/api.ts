@@ -8,7 +8,7 @@ export interface Language {
 }
 
 export interface Category {
-  id: UUID;
+  id: number;
   user_id: number;
   name: string;
   description: string;
@@ -27,11 +27,11 @@ export interface UserIfo {
 }
 
 export interface Exercise {
-  id: string;
+  id: number;
   user_id: number;
   title: string;
   description: string;
-  category_id: string;
+  category_id: number;
   programming_language: string;
   code_to_remember: string;
   created_at: string;
@@ -79,7 +79,7 @@ export type UUID = string;
 
 export interface UserExercise {
   user_id: number;
-  exercise_id: UUID;
+  exercise_id: number;
   completed_at?: string;
   score?: number;
   attempts_count: number;
@@ -89,7 +89,7 @@ export interface UserExercise {
 
 export interface UserExerciseWithDetails {
   user_id: number;
-  exercise_id: UUID;
+  exercise_id: number;
   completed_at?: string;
   score?: number;
   attempts_count: number;

@@ -16,7 +16,7 @@ interface UserExerciseState {
   currentPage: number;
   selectedLanguage: string;
   selectedCategory: string;
-  userExerciseIds: string[];
+  userExerciseIds: number[];
 }
 
 const initialState: UserExerciseState = {
@@ -57,7 +57,7 @@ export const fetchUserExercisesWithFilters = createAsyncThunk(
     try {
       const filters: UserExercisesFilters = { page, page_size: pageSize };
       if (language && language !== 'all') filters.programming_language = language;
-      if (category && category !== 'all') filters.category_id = category;
+      if (category && category !== 'all') filters.category_id = Number(category);
       
       const response = await userExercisesApi.getUserExercisesFiltered(filters);
       return response;
@@ -69,7 +69,7 @@ export const fetchUserExercisesWithFilters = createAsyncThunk(
 
 export const addUserExercise = createAsyncThunk(
   'userExercises/addUserExercise',
-  async (exerciseId: string, { rejectWithValue }) => {
+  async (exerciseId: number, { rejectWithValue }) => {
     try {
       await userExercisesApi.addUserExercise(exerciseId);
       return exerciseId;
@@ -81,7 +81,7 @@ export const addUserExercise = createAsyncThunk(
 
 export const removeUserExercise = createAsyncThunk(
   'userExercises/removeUserExercise',
-  async (exerciseId: string, { rejectWithValue }) => {
+  async (exerciseId: number, { rejectWithValue }) => {
     try {
       await userExercisesApi.removeUserExercise(exerciseId);
       return exerciseId;

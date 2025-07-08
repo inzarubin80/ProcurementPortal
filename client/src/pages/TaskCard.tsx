@@ -3,14 +3,14 @@ import { Card, CardContent, Typography, Chip, Button, Box } from '@mui/material'
 import { PlayArrow as PlayIcon } from '@mui/icons-material';
 
 interface TaskCardProps {
-  id: string;
+  id: number;
   title: string;
   description: string;
   languageIcon?: string;
   languageName: string;
   categoryName?: string;
   isSolved: boolean;
-  onStart: (id: string) => void;
+  onStart: (id: number) => void;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({

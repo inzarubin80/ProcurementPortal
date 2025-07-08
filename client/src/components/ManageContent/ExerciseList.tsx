@@ -15,7 +15,7 @@ interface ExerciseListProps {
   exercisesPerPage: number;
   onPageChange: (page: number) => void;
   onEdit: (exercise: ExerciseDetailse) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
 }
 
 const ExerciseList: React.FC<ExerciseListProps> = ({
