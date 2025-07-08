@@ -9,6 +9,16 @@ import (
 	"net/http"
 )
 
+// GetUserStats godoc
+// @Summary      Получить статистику пользователя
+// @Description  Возвращает агрегированную статистику пользователя
+// @Tags         user_stats
+// @Accept       json
+// @Produce      json
+// @Success      200      {object}  model.UserStats
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /user_stats [get]
+
 type GetUserStatsService interface {
 	GetUserStats(ctx context.Context, userID model.UserID) (*model.UserStats, error)
 }

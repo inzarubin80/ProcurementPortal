@@ -21,20 +21,36 @@ export interface Category {
   is_active: boolean;
 }
 
+export interface UserIfo {
+  is_solved: boolean;
+  is_user_exercise: boolean;
+}
+
 export interface Exercise {
-  id: UUID;
+  id: string;
   user_id: number;
   title: string;
   description: string;
-  category_id: UUID;
-  difficulty: string;
+  category_id: string;
   programming_language: string;
   code_to_remember: string;
   created_at: string;
   updated_at: string;
   is_active: boolean;
-  is_solved: boolean;
-  is_user_exercise: boolean;
+}
+
+export interface ExerciseDetailse {
+  user_info: UserIfo;
+  exercise: Exercise;
+}
+
+export interface ExerciseListWithUserResponse {
+  exercise_detailse: ExerciseDetailse[];
+  total: number;
+  page: number;
+  page_size: number;
+  has_next: boolean;
+  has_prev: boolean;
 }
 
 export interface UserStats {
@@ -61,15 +77,6 @@ export interface PaginatedResponse<T> {
 
 export type UUID = string;
 
-export interface ExerciseListResponse {
-  exercises: Exercise[];
-  total: number;
-  page: number;
-  page_size: number;
-  has_next: boolean;
-  has_prev: boolean;
-}
-
 export interface UserExercise {
   user_id: number;
   exercise_id: UUID;
@@ -89,15 +96,6 @@ export interface UserExerciseWithDetails {
   created_at: string;
   updated_at: string;
   exercise: Exercise;
-}
-
-export interface UserExerciseListResponse {
-  user_exercises: UserExerciseWithDetails[];
-  total: number;
-  page: number;
-  page_size: number;
-  has_next: boolean;
-  has_prev: boolean;
 }
 
 export interface CategoryListResponse {

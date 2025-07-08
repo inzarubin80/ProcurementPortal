@@ -42,11 +42,9 @@ import {
   setCurrentPage,
   setSelectedLanguage,
   setSelectedCategory,
-  setSelectedDifficulty
 } from '../store/slices/userExerciseSlice';
 import { fetchLanguages } from '../store/slices/languageSlice';
 import { fetchCategories } from '../store/slices/categorySlice';
-import { fetchDifficulties } from '../store/slices/difficultySlice';
 import { getUser } from '../store/slices/userSlice';
 import { UserExerciseWithDetails } from '../types/api';
 
@@ -62,15 +60,13 @@ const UserTaskList: React.FC = () => {
     currentPage,
     selectedLanguage,
     selectedCategory,
-    selectedDifficulty
   } = useSelector((state: RootState) => state.userExercises);
 
   const { languages, loading: languagesLoading } = useSelector((state: RootState) => state.languages);
   const { categories, loading: categoriesLoading } = useSelector((state: RootState) => state.categories);
-  const { difficulties, loading: difficultiesLoading } = useSelector((state: RootState) => state.difficulties);
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const loading = userExercisesLoading || languagesLoading || categoriesLoading || difficultiesLoading;
+  const loading = userExercisesLoading || languagesLoading || categoriesLoading;
   const loadingInitial = loading && currentPage === 1;
 
   const [viewMode, setViewMode] = React.useState<'table' | 'cards'>('cards');
@@ -78,26 +74,24 @@ const UserTaskList: React.FC = () => {
     if (nextView !== null) setViewMode(nextView);
   };
 
-  // useEffect для загрузки справочников (языки, категории, сложности)
+  // useEffect для загрузки справочников (языки, категории)
   useEffect(() => {
     if (languages.length === 0) dispatch(fetchLanguages());
     if (categories.length === 0) dispatch(fetchCategories({ page: 1, pageSize: 30 }));
-    if (difficulties.length === 0) dispatch(fetchDifficulties());
-  }, [dispatch, languages.length, categories.length, difficulties.length]);
+  }, [dispatch, languages.length, categories.length]);
 
   // useEffect для загрузки задач пользователя только после загрузки справочников
-  const filtersLoaded = !languagesLoading && !categoriesLoading && !difficultiesLoading;
+  const filtersLoaded = !languagesLoading && !categoriesLoading;
 
   useEffect(() => {
     if (!filtersLoaded) return;
     dispatch(fetchUserExercisesWithFilters({
       language: selectedLanguage,
       category: selectedCategory,
-      difficulty: selectedDifficulty,
       page: currentPage,
       pageSize: 30
     }));
-  }, [selectedLanguage, selectedCategory, selectedDifficulty, currentPage, dispatch, filtersLoaded]);
+  }, [selectedLanguage, selectedCategory, currentPage, dispatch, filtersLoaded]);
 
   useEffect(() => {
     dispatch(getUser());
@@ -132,28 +126,6 @@ const UserTaskList: React.FC = () => {
   const handleCategoryChange = (category: string) => {
     dispatch(setCurrentPage(1));
     dispatch(setSelectedCategory(category));
-  };
-
-  const handleDifficultyChange = (difficulty: string) => {
-    dispatch(setCurrentPage(1));
-    dispatch(setSelectedDifficulty(difficulty));
-  };
-
-  const getDifficultyProps = (difficulty: string) => {
-    const labels: Record<string, string> = {
-      beginner: 'Начинающий',
-      intermediate: 'Средний',
-      hard: 'Сложный'
-    };
-    const colors: Record<string, 'success' | 'warning' | 'error'> = {
-      beginner: 'success',
-      intermediate: 'warning',
-      hard: 'error'
-    };
-    return {
-      label: labels[difficulty] || difficulty,
-      color: colors[difficulty] || 'default'
-    };
   };
 
   const getLanguageLabel = (value: string) => {
@@ -252,23 +224,6 @@ const UserTaskList: React.FC = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel>Сложность</InputLabel>
-                <Select
-                  value={selectedDifficulty}
-                  label="Сложность"
-                  onChange={(e) => handleDifficultyChange(e.target.value)}
-                >
-                  <MenuItem value="all">Все сложности</MenuItem>
-                  {difficulties.map((difficulty) => (
-                    <MenuItem key={difficulty.value} value={difficulty.value}>
-                      {difficulty.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
           </Grid>
         </Box>
 
@@ -282,151 +237,111 @@ const UserTaskList: React.FC = () => {
                     <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Название</TableCell>
                     <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Язык</TableCell>
                     <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Категория</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Сложность</TableCell>
                     <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Статус</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Попытки</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Оценка</TableCell>
                     <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Действия</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {userExercises.map((userExercise) => (
-                    <TableRow key={userExercise.exercise_id} hover>
-                      <TableCell>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                          {userExercise.exercise.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {userExercise.exercise.description}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={getLanguageLabel(userExercise.exercise.programming_language)}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {getCategoryLabel(userExercise.exercise.category_id)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={getDifficultyProps(userExercise.exercise.difficulty).label}
-                          color={getDifficultyProps(userExercise.exercise.difficulty).color}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {userExercise.completed_at ? (
-                          <Chip
-                            icon={<CheckCircleIcon />}
-                            label="Завершено"
-                            color="success"
-                            size="small"
-                          />
-                        ) : (
-                          <Chip
-                            icon={<ScheduleIcon />}
-                            label="В процессе"
-                            color="warning"
-                            size="small"
-                          />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {userExercise.attempts_count}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        {userExercise.score ? (
-                          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                            {userExercise.score}%
+                  {userExercises.map((exerciseDetailse) => {
+                    const { exercise, user_info } = exerciseDetailse;
+                    return (
+                      <TableRow key={exercise.id} hover>
+                        <TableCell>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                            {exercise.title}
                           </Typography>
-                        ) : (
                           <Typography variant="body2" color="text.secondary">
-                            -
+                            {exercise.description}
                           </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          startIcon={<PlayIcon />}
-                          onClick={() => handleExerciseClick(userExercise.exercise_id)}
-                        >
-                          Начать
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={getLanguageLabel(exercise.programming_language)}
+                            size="small"
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {getCategoryLabel(exercise.category_id)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {user_info.is_solved ? (
+                            <Chip
+                              icon={<CheckCircleIcon />}
+                              label="Завершено"
+                              color="success"
+                              size="small"
+                            />
+                          ) : (
+                            <Chip
+                              icon={<ScheduleIcon />}
+                              label="В процессе"
+                              color="warning"
+                              size="small"
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<PlayIcon />}
+                            onClick={() => handleExerciseClick(exercise.id)}
+                          >
+                            Начать
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
           ) : (
             <Grid container spacing={3}>
-              {userExercises.map((userExercise) => (
-                <Grid item xs={12} sm={6} md={4} key={userExercise.exercise_id}>
-                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                        <Typography variant="h6" component="h2" sx={{ fontWeight: 'bold', flex: 1 }}>
-                          {userExercise.exercise.title}
-                        </Typography>
-                        {userExercise.completed_at ? (
-                          <CheckCircleIcon color="success" />
-                        ) : (
-                          <ScheduleIcon color="warning" />
-                        )}
-                      </Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        {userExercise.exercise.description}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-                        <Chip 
-                          label={getLanguageLabel(userExercise.exercise.programming_language)}
-                          size="small"
-                          variant="outlined"
-                        />
-                        <Chip
-                          label={getDifficultyProps(userExercise.exercise.difficulty).label}
-                          color={getDifficultyProps(userExercise.exercise.difficulty).color}
-                          size="small"
-                        />
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Попытки: {userExercise.attempts_count}
-                        </Typography>
-                        {userExercise.score && (
-                          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                            Оценка: {userExercise.score}%
+              {userExercises.map((exerciseDetailse) => {
+                const { exercise, user_info } = exerciseDetailse;
+                return (
+                  <Grid item xs={12} sm={6} md={4} key={exercise.id}>
+                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Typography variant="h6" component="h2" sx={{ fontWeight: 'bold', flex: 1 }}>
+                            {exercise.title}
                           </Typography>
-                        )}
-                      </Box>
-                      {userExercise.completed_at && (
-                        <Typography variant="caption" color="text.secondary">
-                          Завершено: {formatDate(userExercise.completed_at)}
+                          {user_info.is_solved ? (
+                            <CheckCircleIcon color="success" />
+                          ) : (
+                            <ScheduleIcon color="warning" />
+                          )}
+                        </Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          {exercise.description}
                         </Typography>
-                      )}
-                    </CardContent>
-                    <CardActions>
-                      <Button
-                        variant="contained"
-                        fullWidth
-                        startIcon={<PlayIcon />}
-                        onClick={() => handleExerciseClick(userExercise.exercise_id)}
-                      >
-                        {userExercise.completed_at ? 'Повторить' : 'Начать'}
-                      </Button>
-                    </CardActions>
-                  </Card>
-                </Grid>
-              ))}
+                        <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                          <Chip 
+                            label={getLanguageLabel(exercise.programming_language)}
+                            size="small"
+                            variant="outlined"
+                          />
+                        </Box>
+                      </CardContent>
+                      <CardActions>
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          startIcon={<PlayIcon />}
+                          onClick={() => handleExerciseClick(exercise.id)}
+                        >
+                          {user_info.is_solved ? 'Повторить' : 'Начать'}
+                        </Button>
+                      </CardActions>
+                    </Card>
+                  </Grid>
+                );
+              })}
             </Grid>
           )}
 

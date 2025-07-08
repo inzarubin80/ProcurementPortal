@@ -4,9 +4,9 @@ import languageReducer from './slices/languageSlice';
 import categoryReducer from './slices/categorySlice';
 import userReducer from './slices/userSlice';
 import authProviderReducer from './slices/authProviderSlice';
-import difficultyReducer from './slices/difficultySlice';
 import userStatsReducer from './slices/userStatsSlice';
 import userExerciseReducer from './slices/userExerciseSlice';
+import difficultyReducer from './slices/difficultySlice';
 
 export const store = configureStore({
   reducer: {
@@ -15,9 +15,9 @@ export const store = configureStore({
     categories: categoryReducer,
     user: userReducer,
     authProviders: authProviderReducer,
-    difficulties: difficultyReducer,
     userStats: userStatsReducer,
     userExercises: userExerciseReducer,
+    difficulty: difficultyReducer,
   },
 });
 

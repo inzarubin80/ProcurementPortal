@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
+import { getStoredToken } from '../utils/authUtils';
 
 export const baseURL = process.env.REACT_APP_API_BASE_URL + '/api';
 
@@ -28,8 +29,8 @@ export const initializeAxiosInterceptors = (
 
   authAxios.interceptors.request.use(
     (config) => {
-      const accessToken = store.getState().user.accessToken;
-      if (accessToken && !config.headers.Authorization) {
+      const accessToken = getStoredToken();
+      if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
       return config;

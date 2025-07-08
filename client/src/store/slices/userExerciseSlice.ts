@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { UserExerciseWithDetails, UserExerciseListResponse } from '../../types/api';
+import { Exercise, ExerciseDetailse, ExerciseListWithUserResponse } from '../../types/api';
 import { userExercisesApi, UserExercisesFilters } from '../../service/userExercisesApi';
 
 interface UserExerciseState {
-  userExercises: UserExerciseWithDetails[];
+  userExercises: ExerciseDetailse[];
   loading: boolean;
   error: string | null;
   pagination: {
@@ -16,7 +16,7 @@ interface UserExerciseState {
   currentPage: number;
   selectedLanguage: string;
   selectedCategory: string;
-  selectedDifficulty: string;
+  userExerciseIds: string[];
 }
 
 const initialState: UserExerciseState = {
@@ -33,7 +33,7 @@ const initialState: UserExerciseState = {
   currentPage: 1,
   selectedLanguage: 'all',
   selectedCategory: 'all',
-  selectedDifficulty: 'all',
+  userExerciseIds: []
 };
 
 export const fetchUserExercises = createAsyncThunk(
@@ -51,14 +51,13 @@ export const fetchUserExercises = createAsyncThunk(
 export const fetchUserExercisesWithFilters = createAsyncThunk(
   'userExercises/fetchUserExercisesWithFilters',
   async (
-    { language, category, difficulty, page = 1, pageSize = 10 }: { language?: string; category?: string; difficulty?: string; page?: number; pageSize?: number },
+    { language, category, page = 1, pageSize = 10 }: { language?: string; category?: string; page?: number; pageSize?: number },
     { rejectWithValue }
   ) => {
     try {
       const filters: UserExercisesFilters = { page, page_size: pageSize };
       if (language && language !== 'all') filters.programming_language = language;
       if (category && category !== 'all') filters.category_id = category;
-      if (difficulty && difficulty !== 'all') filters.difficulty = difficulty;
       
       const response = await userExercisesApi.getUserExercisesFiltered(filters);
       return response;
@@ -108,13 +107,9 @@ const userExerciseSlice = createSlice({
     setSelectedCategory: (state, action: PayloadAction<string>) => {
       state.selectedCategory = action.payload;
     },
-    setSelectedDifficulty: (state, action: PayloadAction<string>) => {
-      state.selectedDifficulty = action.payload;
-    },
     clearFilters: (state) => {
       state.selectedLanguage = 'all';
       state.selectedCategory = 'all';
-      state.selectedDifficulty = 'all';
     },
   },
   extraReducers: (builder) => {
@@ -123,12 +118,12 @@ const userExerciseSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchUserExercises.fulfilled, (state, action: PayloadAction<UserExerciseListResponse>) => {
+      .addCase(fetchUserExercises.fulfilled, (state, action: PayloadAction<ExerciseListWithUserResponse>) => {
         state.loading = false;
         if (action.payload.page > 1) {
-          state.userExercises = [...state.userExercises, ...action.payload.user_exercises];
+          state.userExercises = [...state.userExercises, ...action.payload.exercise_detailse];
         } else {
-          state.userExercises = action.payload.user_exercises;
+          state.userExercises = action.payload.exercise_detailse;
         }
         state.pagination = {
           page: action.payload.page,
@@ -146,9 +141,9 @@ const userExerciseSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchUserExercisesWithFilters.fulfilled, (state, action: PayloadAction<UserExerciseListResponse>) => {
+      .addCase(fetchUserExercisesWithFilters.fulfilled, (state, action: PayloadAction<ExerciseListWithUserResponse>) => {
         state.loading = false;
-        state.userExercises = action.payload.user_exercises;
+        state.userExercises = action.payload.exercise_detailse;
         state.pagination = {
           page: action.payload.page,
           pageSize: action.payload.page_size,
@@ -191,7 +186,6 @@ export const {
   setCurrentPage,
   setSelectedLanguage,
   setSelectedCategory,
-  setSelectedDifficulty,
   clearFilters,
 } = userExerciseSlice.actions;
 

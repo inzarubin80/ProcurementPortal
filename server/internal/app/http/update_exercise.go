@@ -7,14 +7,24 @@ import (
 	"inzarubin80/MemCode/internal/app/uhttp"
 	"inzarubin80/MemCode/internal/model"
 	"net/http"
-
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
+	"strconv"
 )
+
+// UpdateExercise godoc
+// @Summary      Обновить упражнение
+// @Description  Обновляет существующее упражнение по ID
+// @Tags         exercises
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "ID упражнения"
+// @Param        exercise body model.Exercise true "Данные упражнения"
+// @Success      200      {object}  model.Exercise
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /exercises/{id} [put]
 
 type (
 	UpdateExerciseService interface {
-		UpdateExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, exercise *model.Exercise) (*model.Exercise, error)
+		UpdateExercise(ctx context.Context, userID model.UserID, exerciseID int64, exercise *model.Exercise) (*model.Exercise, error)
 	}
 
 	UpdateExerciseHandler struct {
@@ -33,7 +43,7 @@ func NewUpdateExerciseHandler(service UpdateExerciseService, name string) *Updat
 func (h *UpdateExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
+	userID, ok := ctx.Value(defenitions.UserID).(int64)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 		return
@@ -46,16 +56,10 @@ func (h *UpdateExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Парсим UUID
-	parsedUUID, err := uuid.Parse(exerciseIDStr)
+	exerciseID, err := strconv.ParseInt(exerciseIDStr, 10, 64)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid id")
 		return
-	}
-
-	exerciseID := pgtype.UUID{
-		Bytes: parsedUUID,
-		Valid: true,
 	}
 
 	var exercise model.Exercise
@@ -65,8 +69,8 @@ func (h *UpdateExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 
 	// Устанавливаем ID из URL
-	exercise.ID = exerciseID.String()
-	exercise.UserID = userID
+	exercise.ID = exerciseID
+	exercise.UserID = model.UserID(userID)
 
 	// Валидация поддерживаемого языка программирования
 	if exercise.ProgrammingLanguage != "" && !model.IsSupportedLanguage(exercise.ProgrammingLanguage) {
@@ -74,7 +78,7 @@ func (h *UpdateExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	updatedExercise, err := h.service.UpdateExercise(ctx, userID, model.ExerciseID(exerciseID), &exercise)
+	updatedExercise, err := h.service.UpdateExercise(ctx, model.UserID(userID), exerciseID, &exercise)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

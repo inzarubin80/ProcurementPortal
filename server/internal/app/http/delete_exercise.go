@@ -6,14 +6,23 @@ import (
 	"inzarubin80/MemCode/internal/app/uhttp"
 	"inzarubin80/MemCode/internal/model"
 	"net/http"
-
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
+	"strconv"
 )
+
+// DeleteExercise godoc
+// @Summary      Удалить упражнение
+// @Description  Удаляет упражнение по ID
+// @Tags         exercises
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "ID упражнения"
+// @Success      200      {object}  uhttp.SuccessResponse
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /exercises/{id} [delete]
 
 type (
 	DeleteExerciseService interface {
-		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) error
+		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID int64) error
 	}
 
 	DeleteExerciseHandler struct {
@@ -32,7 +41,7 @@ func NewDeleteExerciseHandler(service DeleteExerciseService, name string) *Delet
 func (h *DeleteExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
+	userID, ok := ctx.Value(defenitions.UserID).(int64)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 		return
@@ -45,19 +54,13 @@ func (h *DeleteExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Парсим UUID
-	parsedUUID, err := uuid.Parse(exerciseIDStr)
+	exerciseID, err := strconv.ParseInt(exerciseIDStr, 10, 64)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid id")
 		return
 	}
 
-	exerciseID := pgtype.UUID{
-		Bytes: parsedUUID,
-		Valid: true,
-	}
-
-	err = h.service.DeleteExercise(ctx, userID, model.ExerciseID(exerciseID))
+	err = h.service.DeleteExercise(ctx, model.UserID(userID), exerciseID)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

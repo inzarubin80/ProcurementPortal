@@ -11,6 +11,8 @@ interface UserExerciseButtonProps {
   size?: 'small' | 'medium' | 'large';
   variant?: 'text' | 'outlined' | 'contained';
   color?: 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
+  fullWidth?: boolean;
+  sx?: object;
 }
 
 const UserExerciseButton: React.FC<UserExerciseButtonProps> = ({
@@ -18,7 +20,9 @@ const UserExerciseButton: React.FC<UserExerciseButtonProps> = ({
   isUserExercise,
   size = 'medium',
   variant = 'outlined',
-  color = 'primary'
+  color = 'primary',
+  fullWidth,
+  sx
 }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((state: RootState) => state.userExercises);
@@ -39,8 +43,8 @@ const UserExerciseButton: React.FC<UserExerciseButtonProps> = ({
   return (
     <Tooltip title={tooltipText} arrow>
       <Button
-        variant={variant}
-        color={color}
+        variant={isUserExercise ? 'outlined' : 'contained'}
+        color={isUserExercise ? 'secondary' : 'primary'}
         size={size}
         startIcon={
           loading ? (
@@ -53,6 +57,7 @@ const UserExerciseButton: React.FC<UserExerciseButtonProps> = ({
         }
         onClick={handleClick}
         disabled={loading}
+        fullWidth={fullWidth}
         sx={{
           minWidth: 'auto',
           px: 2,
@@ -73,12 +78,14 @@ const UserExerciseButton: React.FC<UserExerciseButtonProps> = ({
             },
           }),
           ...(!isUserExercise && {
-            backgroundColor: 'success.main',
-            color: 'success.contrastText',
+            background: '#1da1f2',
+            color: '#fff',
             '&:hover': {
-              backgroundColor: 'success.dark',
+              background: '#0d8bd9',
+              color: '#fff',
             },
           }),
+          ...sx
         }}
       >
         {buttonText}

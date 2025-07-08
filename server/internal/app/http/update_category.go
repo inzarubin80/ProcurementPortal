@@ -7,13 +7,24 @@ import (
 	"inzarubin80/MemCode/internal/app/uhttp"
 	"inzarubin80/MemCode/internal/model"
 	"net/http"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"strconv"
 )
+
+// UpdateCategory godoc
+// @Summary      Обновить категорию
+// @Description  Обновляет существующую категорию по ID
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "ID категории"
+// @Param        category body model.Category true "Данные категории"
+// @Success      200      {object}  model.Category
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /categories/{id} [put]
 
 type (
 	UpdateCategoryService interface {
-		UpdateCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID, category *model.Category) (*model.Category, error)
+		UpdateCategory(ctx context.Context, userID model.UserID, categoryID int64, category *model.Category) (*model.Category, error)
 	}
 
 	UpdateCategoryHandler struct {
@@ -32,7 +43,7 @@ func NewUpdateCategoryHandler(service UpdateCategoryService, name string) *Updat
 func (h *UpdateCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
+	userID, ok := ctx.Value(defenitions.UserID).(int64)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 		return
@@ -45,8 +56,8 @@ func (h *UpdateCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var categoryID pgtype.UUID
-	if err := categoryID.Scan(categoryIDStr); err != nil {
+	categoryID, err := strconv.ParseInt(categoryIDStr, 10, 64)
+	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid category_id")
 		return
 	}
@@ -58,8 +69,8 @@ func (h *UpdateCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 
 	// Устанавливаем ID из URL
-	category.ID = categoryID.String()
-	category.UserID = userID
+	category.ID = categoryID
+	category.UserID = model.UserID(userID)
 
 	// Валидация поддерживаемого языка программирования
 	if category.ProgrammingLanguage != "" && !model.IsSupportedLanguage(category.ProgrammingLanguage) {
@@ -67,7 +78,7 @@ func (h *UpdateCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	updatedCategory, err := h.service.UpdateCategory(ctx, userID, model.CategoryID(categoryID), &category)
+	updatedCategory, err := h.service.UpdateCategory(ctx, model.UserID(userID), categoryID, &category)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

@@ -1,46 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
   Container,
   Typography,
   Tabs,
   Tab,
   Paper,
-  Button,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Stack,
   Snackbar,
   Alert,
-  Card,
-  CardContent,
-  CardActions,
-  Grid,
-  Pagination,
-  Chip,
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { fetchExercises, createExercise, updateExercise, deleteExercise } from '../store/slices/exerciseSlice';
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from '../store/slices/categorySlice';
 import { fetchLanguages } from '../store/slices/languageSlice';
-import { ProgrammingLanguage, Category, Exercise } from '../types/api';
-import UserExerciseButton from '../components/UserExerciseButton';
+import { 
+  ExerciseList, 
+  CategoryTable, 
+  EntityDialog, 
+  FilterBar 
+} from '../components/ManageContent';
+import { useEntityDialog, useSnackbar, useFormValidation } from '../hooks';
 
 const ManageContent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -53,18 +32,27 @@ const ManageContent: React.FC = () => {
   // Local state
   const [tab, setTab] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
-  // Dialog state
-  const [openDialog, setOpenDialog] = useState(false);
-  const [dialogType, setDialogType] = useState<'add' | 'edit'>('add');
-  const [editItem, setEditItem] = useState<any>(null);
-  const [entityType, setEntityType] = useState<'exercise' | 'category'>('exercise');
-  // Form state
-  const [form, setForm] = useState<any>({});
-  const [triedSave, setTriedSave] = useState(false);
-  // Snackbar
-  const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success'|'error'}>({open: false, message: '', severity: 'success'});
   const [exercisePage, setExercisePage] = useState(1);
   const exercisesPerPage = 12;
+
+  // Custom hooks
+  const {
+    openDialog,
+    dialogType,
+    entityType,
+    editItem,
+    form,
+    triedSave,
+    openAddDialog,
+    openEditDialog,
+    closeDialog,
+    setForm,
+    setTriedSave,
+    handleFormChange,
+  } = useEntityDialog();
+
+  const { snackbar, showSuccess, showError, closeSnackbar } = useSnackbar();
+  const { validateExerciseForm, validateCategoryForm } = useFormValidation();
 
   const loading = exercisesLoading || categoriesLoading || languagesLoading;
 
@@ -87,99 +75,75 @@ const ManageContent: React.FC = () => {
   // Обработка ошибок из Redux store
   useEffect(() => {
     if (exercisesError) {
-      setSnackbar({open: true, message: exercisesError, severity: 'error'});
+      showError(exercisesError);
     }
-  }, [exercisesError]);
+  }, [exercisesError, showError]);
 
   useEffect(() => {
     if (categoriesError) {
-      setSnackbar({open: true, message: categoriesError, severity: 'error'});
+      showError(categoriesError);
     }
-  }, [categoriesError]);
+  }, [categoriesError, showError]);
 
   useEffect(() => {
     if (languagesError) {
-      setSnackbar({open: true, message: languagesError, severity: 'error'});
+      showError(languagesError);
     }
-  }, [languagesError]);
+  }, [languagesError, showError]);
 
   // --- Handlers ---
   const handleTabChange = (_: any, newValue: number) => setTab(newValue);
-  const handleLanguageChange = (e: any) => setSelectedLanguage(e.target.value);
-
-  // --- CRUD Dialogs ---
-  const openAddDialog = (type: 'exercise' | 'category') => {
-    setEntityType(type);
-    setDialogType('add');
-    setForm({});
-    setEditItem(null);
-    setOpenDialog(true);
-  };
-  const openEditDialog = (type: 'exercise' | 'category', item: any) => {
-    setEntityType(type);
-    setDialogType('edit');
-    if (type === 'category') {
-      setForm({ ...item, category_id: item.id });
-    } else {
-      setForm(item);
-    }
-    setEditItem(item);
-    setOpenDialog(true);
-  };
-  const closeDialog = () => {
-    setOpenDialog(false);
-    setTriedSave(false);
-  };
-
-  // --- CRUD Logic ---
-  const handleFormChange = (e: any) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleLanguageChange = (language: string) => setSelectedLanguage(language);
+  const handleAddClick = () => openAddDialog(tab === 0 ? 'exercise' : 'category');
   
   const handleSave = async () => {
     setTriedSave(true);
+    
+    let validation;
     if (entityType === 'exercise') {
-      const required = ['title', 'description', 'programming_language', 'category_id', 'difficulty', 'code_to_remember'];
-      const empty = required.filter(f => !form[f] || String(form[f]).trim() === '');
-      if (empty.length > 0) {
-        setSnackbar({open: true, message: 'Заполните все поля упражнения', severity: 'error'});
-        return;
-      }
+      validation = validateExerciseForm(form);
     } else {
-      const required = ['name', 'description', 'programming_language'];
-      const empty = required.filter(f => !form[f] || String(form[f]).trim() === '');
-      if (empty.length > 0) {
-        setSnackbar({open: true, message: 'Заполните все поля категории', severity: 'error'});
-        return;
-      }
+      validation = validateCategoryForm(form);
     }
+    
+    if (!validation.isValid) {
+      showError(validation.errors[0]);
+      return;
+    }
+    
     try {
       if (entityType === 'exercise') {
         if (dialogType === 'add') {
-          await dispatch(createExercise(form)).unwrap();
-          setSnackbar({open: true, message: 'Упражнение создано', severity: 'success'});
+          const { title, description, category_id, programming_language, code_to_remember } = form;
+          await dispatch(createExercise({
+            title,
+            description,
+            category_id,
+            programming_language,
+            code_to_remember,
+            is_active: true,
+          })).unwrap();
+          showSuccess('Упражнение создано');
         } else {
           await dispatch(updateExercise({ id: editItem.id, updates: form })).unwrap();
-          setSnackbar({open: true, message: 'Упражнение обновлено', severity: 'success'});
+          showSuccess('Упражнение обновлено');
         }
       } else {
         if (dialogType === 'add') {
           await dispatch(createCategory(form)).unwrap();
-          setSnackbar({open: true, message: 'Категория создана', severity: 'success'});
-          // Обновляем список категорий после создания
+          showSuccess('Категория создана');
           dispatch(fetchCategories({ page: 1, pageSize: 100 }));
         } else {
           const { name, description, programming_language } = form;
           await dispatch(updateCategory({ id: editItem.id, updates: { name, description, programming_language } })).unwrap();
-          setSnackbar({open: true, message: 'Категория обновлена', severity: 'success'});
-          // Обновляем список категорий после редактирования
+          showSuccess('Категория обновлена');
           dispatch(fetchCategories({ page: 1, pageSize: 100 }));
         }
       }
-      setOpenDialog(false);
+      closeDialog();
     } catch (error: any) {
       const errorMessage = error?.message || error?.toString() || 'Ошибка при сохранении';
-      setSnackbar({open: true, message: errorMessage, severity: 'error'});
+      showError(errorMessage);
     }
   };
   
@@ -187,26 +151,25 @@ const ManageContent: React.FC = () => {
     try {
       if (type === 'exercise') {
         await dispatch(deleteExercise(id)).unwrap();
-        setSnackbar({open: true, message: 'Упражнение удалено', severity: 'success'});
+        showSuccess('Упражнение удалено');
       } else {
         await dispatch(deleteCategory(id)).unwrap();
-        setSnackbar({open: true, message: 'Категория удалена', severity: 'success'});
+        showSuccess('Категория удалена');
       }
     } catch (error: any) {
       let errorMessage = error?.message || error?.toString() || 'Ошибка при удалении';
-      // Дружелюбные сообщения для удаления категории
-      if (type === 'category') {
-        if (errorMessage.includes('category contains exercises')) {
-          errorMessage = 'Нельзя удалить категорию, в которой есть упражнения';
-        }
+      if (type === 'category' && errorMessage.includes('category contains exercises')) {
+        errorMessage = 'Нельзя удалить категорию, в которой есть упражнения';
       }
-      setSnackbar({open: true, message: errorMessage, severity: 'error'});
+      showError(errorMessage);
     }
   };
 
   // --- Filtered lists ---
   const filteredCategories = selectedLanguage === 'all' ? categories : categories.filter(c => c.programming_language && c.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
-  const filteredExercises = selectedLanguage === 'all' ? exercises : exercises.filter(e => e.programming_language && e.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
+  const filteredExercises = selectedLanguage === 'all'
+    ? exercises
+    : exercises.filter(e => e.exercise.programming_language && e.exercise.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
   const paginatedExercises = filteredExercises.slice((exercisePage - 1) * exercisesPerPage, exercisePage * exercisesPerPage);
 
   if (loading) {
@@ -225,220 +188,62 @@ const ManageContent: React.FC = () => {
           <Tab label="Упражнения" />
           <Tab label="Категории" />
         </Tabs>
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Язык</InputLabel>
-            <Select value={selectedLanguage} label="Язык" onChange={handleLanguageChange}>
-              <MenuItem value="all">Все языки</MenuItem>
-              {languages.map(l => <MenuItem key={l.value} value={l.value}>
-                <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: l.icon_svg}} />
-                {l.name}
-              </MenuItem>)}
-            </Select>
-          </FormControl>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => openAddDialog(tab === 0 ? 'exercise' : 'category')}>
-            {tab === 0 ? 'Добавить упражнение' : 'Добавить категорию'}
-          </Button>
-        </Stack>
+        
+        <FilterBar
+          selectedLanguage={selectedLanguage}
+          onLanguageChange={handleLanguageChange}
+          onAddClick={handleAddClick}
+          languages={languages}
+          tab={tab}
+        />
+        
         {tab === 0 ? (
-          <>
-            <Grid container spacing={2}>
-              {paginatedExercises.map(ex => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={ex.id}>
-                  <Card variant="outlined" sx={{ borderRadius: 3, boxShadow: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <CardContent sx={{ pb: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: languages.find(l => l.value === ex.programming_language)?.icon_svg || ''}} />
-                        <Typography variant="subtitle1" fontWeight={700} sx={{ flexGrow: 1 }}>{ex.title}</Typography>
-                      </Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1, minHeight: 36, maxHeight: 48, overflow: 'hidden', textOverflow: 'ellipsis' }}>{ex.description}</Typography>
-                      <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-                        <Chip size="small" label={categories.find(c => c.id === ex.category_id)?.name || '—'} />
-                        <Chip size="small" label={ex.difficulty} color="info" />
-                      </Stack>
-                    </CardContent>
-                    <CardActions sx={{ justifyContent: 'space-between', pt: 0 }}>
-                      <UserExerciseButton exerciseId={ex.id} isUserExercise={ex.is_user_exercise} />
-                      <Box>
-                        <IconButton onClick={() => openEditDialog('exercise', ex)}><EditIcon /></IconButton>
-                        <IconButton color="error" onClick={() => handleDelete('exercise', ex.id)}><DeleteIcon /></IconButton>
-                      </Box>
-                    </CardActions>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-              <Pagination
-                count={Math.ceil(filteredExercises.length / exercisesPerPage)}
-                page={exercisePage}
-                onChange={(_, value) => setExercisePage(value)}
-                color="primary"
-                shape="rounded"
-              />
-            </Box>
-          </>
+          <ExerciseList
+            exercises={filteredExercises}
+            languages={languages}
+            categories={categories}
+            currentPage={exercisePage}
+            exercisesPerPage={exercisesPerPage}
+            onPageChange={setExercisePage}
+            onEdit={(exercise) => openEditDialog('exercise', exercise)}
+            onDelete={(id) => handleDelete('exercise', id)}
+          />
         ) : (
-          <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Название</TableCell>
-                  <TableCell>Язык</TableCell>
-                  <TableCell>Действия</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredCategories.map(cat => (
-                  <TableRow key={cat.id}>
-                    <TableCell>{cat.name}</TableCell>
-                    <TableCell>
-                      <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: languages.find(l => l.value === cat.programming_language)?.icon_svg || ''}} />
-                      {cat.programming_language}
-                    </TableCell>
-                    <TableCell>
-                      <IconButton onClick={() => openEditDialog('category', cat)}><EditIcon /></IconButton>
-                      <IconButton color="error" onClick={() => handleDelete('category', cat.id)}><DeleteIcon /></IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <CategoryTable
+            categories={filteredCategories}
+            languages={languages}
+            onEdit={(category) => openEditDialog('category', category)}
+            onDelete={(id) => handleDelete('category', id)}
+          />
         )}
       </Paper>
-      {/* Диалог добавления/редактирования */}
-      <Dialog open={openDialog} onClose={closeDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{dialogType === 'add' ? 'Добавить' : 'Редактировать'} {entityType === 'exercise' ? 'упражнение' : 'категорию'}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            {entityType === 'exercise' ? (
-              <>
-                <TextField
-                  name="title"
-                  label="Название"
-                  value={form.title || ''}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={triedSave && (!form.title || String(form.title).trim() === '')}
-                  helperText={triedSave && (!form.title || String(form.title).trim() === '') ? 'Обязательное поле' : ''}
-                />
-                <TextField
-                  name="description"
-                  label="Описание"
-                  value={form.description || ''}
-                  onChange={handleFormChange}
-                  multiline
-                  rows={3}
-                  fullWidth
-                  error={triedSave && (!form.description || String(form.description).trim() === '')}
-                  helperText={triedSave && (!form.description || String(form.description).trim() === '') ? 'Обязательное поле' : ''}
-                />
-                <FormControl fullWidth error={triedSave && (!form.programming_language || String(form.programming_language).trim() === '')}>
-                  <InputLabel>Язык программирования</InputLabel>
-                  <Select
-                    name="programming_language"
-                    value={form.programming_language || ''}
-                    label="Язык программирования"
-                    onChange={handleFormChange}
-                  >
-                    {languages.map(l => <MenuItem key={l.value} value={l.value}>
-                      <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: l.icon_svg}} />
-                      {l.name}
-                    </MenuItem>)}
-                  </Select>
-                </FormControl>
-                <FormControl fullWidth error={triedSave && (!form.category_id || String(form.category_id).trim() === '')}>
-                  <InputLabel>Категория</InputLabel>
-                  <Select
-                    name="category_id"
-                    value={form.category_id || ''}
-                    label="Категория"
-                    onChange={handleFormChange}
-                  >
-                    {categories
-                      .filter(c => c.programming_language === form.programming_language)
-                      .map(c => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
-                  </Select>
-                </FormControl>
-                <FormControl fullWidth error={triedSave && (!form.difficulty || String(form.difficulty).trim() === '')}>
-                  <InputLabel>Сложность</InputLabel>
-                  <Select
-                    name="difficulty"
-                    value={form.difficulty || ''}
-                    label="Сложность"
-                    onChange={handleFormChange}
-                  >
-                    <MenuItem value="easy">Легко</MenuItem>
-                    <MenuItem value="medium">Средне</MenuItem>
-                    <MenuItem value="hard">Сложно</MenuItem>
-                  </Select>
-                </FormControl>
-                <TextField
-                  name="code_to_remember"
-                  label="Код для запоминания"
-                  value={form.code_to_remember || ''}
-                  onChange={handleFormChange}
-                  multiline
-                  rows={6}
-                  fullWidth
-                  error={triedSave && (!form.code_to_remember || String(form.code_to_remember).trim() === '')}
-                  helperText={triedSave && (!form.code_to_remember || String(form.code_to_remember).trim() === '') ? 'Обязательное поле' : ''}
-                />
-              </>
-            ) : (
-              <>
-                <TextField
-                  name="name"
-                  label="Название"
-                  value={form.name || ''}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={triedSave && (!form.name || String(form.name).trim() === '')}
-                  helperText={triedSave && (!form.name || String(form.name).trim() === '') ? 'Обязательное поле' : ''}
-                />
-                <TextField
-                  name="description"
-                  label="Описание"
-                  value={form.description || ''}
-                  onChange={handleFormChange}
-                  multiline
-                  rows={3}
-                  fullWidth
-                  error={triedSave && (!form.description || String(form.description).trim() === '')}
-                  helperText={triedSave && (!form.description || String(form.description).trim() === '') ? 'Обязательное поле' : ''}
-                />
-                <FormControl fullWidth error={triedSave && (!form.programming_language || String(form.programming_language).trim() === '')}>
-                  <InputLabel>Язык программирования</InputLabel>
-                  <Select
-                    name="programming_language"
-                    value={form.programming_language || ''}
-                    label="Язык программирования"
-                    onChange={handleFormChange}
-                  >
-                    {languages.map(l => <MenuItem key={l.value} value={l.value}>
-                      <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: l.icon_svg}} />
-                      {l.name}
-                    </MenuItem>)}
-                  </Select>
-                </FormControl>
-              </>
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog}>Отмена</Button>
-          <Button onClick={handleSave} variant="contained">Сохранить</Button>
-        </DialogActions>
-      </Dialog>
+      
+      <EntityDialog
+        open={openDialog}
+        onClose={closeDialog}
+        onSave={handleSave}
+        entityType={entityType}
+        dialogType={dialogType}
+        form={form}
+        onFormChange={handleFormChange}
+        languages={languages}
+        categories={categories}
+        triedSave={triedSave}
+        onDelete={
+          dialogType === 'edit' && entityType === 'exercise'
+            ? () => handleDelete('exercise', form.id)
+            : undefined
+        }
+      />
+      
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
-        onClose={() => setSnackbar({...snackbar, open: false})}
+        onClose={closeSnackbar}
       >
         <Alert 
           severity={snackbar.severity} 
-          onClose={() => setSnackbar({...snackbar, open: false})}
+          onClose={closeSnackbar}
         >
           {snackbar.message}
         </Alert>

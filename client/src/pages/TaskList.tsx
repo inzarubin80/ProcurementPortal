@@ -43,12 +43,9 @@ import {
   setCurrentPage,
   setSelectedLanguage,
   setSelectedCategory,
-  setSelectedDifficulty
 } from '../store/slices/userExerciseSlice';
 import { fetchLanguages } from '../store/slices/languageSlice';
 import { fetchCategories } from '../store/slices/categorySlice';
-import { fetchDifficulties } from '../store/slices/difficultySlice';
-import { getUser } from '../store/slices/userSlice';
 import TaskCard from './TaskCard';
 
 
@@ -64,15 +61,13 @@ const TaskList: React.FC = () => {
     currentPage,
     selectedLanguage,
     selectedCategory,
-    selectedDifficulty
   } = useSelector((state: RootState) => state.userExercises);
 
   const { languages, loading: languagesLoading } = useSelector((state: RootState) => state.languages);
   const { categories, loading: categoriesLoading } = useSelector((state: RootState) => state.categories);
-  const { difficulties, loading: difficultiesLoading } = useSelector((state: RootState) => state.difficulties);
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const loading = exercisesLoading || languagesLoading || categoriesLoading || difficultiesLoading;
+  const loading = exercisesLoading || languagesLoading || categoriesLoading;
   const loadingInitial = loading && currentPage === 1;
 
   const [viewMode, setViewMode] = React.useState<'table' | 'cards'>('cards');
@@ -80,32 +75,28 @@ const TaskList: React.FC = () => {
     if (nextView !== null) setViewMode(nextView);
   };
 
-  // useEffect для загрузки справочников (языки, категории, сложности)
+  // useEffect для загрузки справочников (языки, категории)
   useEffect(() => {
     if (languages.length === 0) dispatch(fetchLanguages());
     if (categories.length === 0) dispatch(fetchCategories({ page: 1, pageSize: 30 }));
-    if (difficulties.length === 0) dispatch(fetchDifficulties());
-  }, [dispatch, languages.length, categories.length, difficulties.length]);
+  }, [dispatch, languages.length, categories.length]);
 
 
   // useEffect для загрузки задач только после загрузки справочников
-  const filtersLoaded = !languagesLoading && !categoriesLoading && !difficultiesLoading;
+  const filtersLoaded = !languagesLoading && !categoriesLoading;
 
   useEffect(() => {
     if (!filtersLoaded) return;
     dispatch(fetchUserExercisesWithFilters({
       language: selectedLanguage,
       category: selectedCategory,
-      difficulty: selectedDifficulty,
       page: currentPage,
       pageSize: 30
     }));
-  }, [selectedLanguage, selectedCategory, selectedDifficulty, currentPage, dispatch, filtersLoaded]);
+  }, [selectedLanguage, selectedCategory, currentPage, dispatch, filtersLoaded]);
 
 
-  useEffect(() => {
-    dispatch(getUser());
-  }, [dispatch]); 
+
 
   // Обработка бесконечного скролла
   useEffect(() => {
@@ -138,42 +129,19 @@ const TaskList: React.FC = () => {
     dispatch(setSelectedCategory(category));
   };
 
-  const handleDifficultyChange = (difficulty: string) => {
-    dispatch(setCurrentPage(1));
-    dispatch(setSelectedDifficulty(difficulty));
-  };
-
   const handleResetFilters = () => {
     dispatch(setCurrentPage(1));
     dispatch(setSelectedLanguage('all'));
     dispatch(setSelectedCategory('all'));
-    dispatch(setSelectedDifficulty('all'));
   };
 
   const handleGoToManagement = () => {
     navigate('/manage');
   };
 
-  const getDifficultyProps = (difficulty: string) => {
-    const labels: Record<string, string> = {
-      easy: 'Легко',
-      medium: 'Средне',
-      hard: 'Сложно'
-    };
-    const colors: Record<string, 'success' | 'warning' | 'error'> = {
-      easy: 'success',
-      medium: 'warning',
-      hard: 'error'
-    };
-    return {
-      label: labels[difficulty] || difficulty,
-      color: colors[difficulty] || 'default'
-    };
-  };
-
   // Компонент для пустого состояния
   const EmptyState = () => {
-    const hasActiveFilters = selectedLanguage !== 'all' || selectedCategory !== 'all' || selectedDifficulty !== 'all';
+    const hasActiveFilters = selectedLanguage !== 'all' || selectedCategory !== 'all';
     
     return (
       <Box sx={{ 
@@ -334,23 +302,6 @@ const TaskList: React.FC = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel>Сложность</InputLabel>
-                <Select
-                  value={selectedDifficulty}
-                  label="Сложность"
-                  onChange={(e) => handleDifficultyChange(e.target.value)}
-                >
-                  <MenuItem value="all">Все уровни</MenuItem>
-                  {difficulties.map(diff => (
-                    <MenuItem key={diff.value} value={diff.value}>
-                      {diff.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
           </Grid>
         </Box>
         {/* Результаты */}
@@ -370,23 +321,22 @@ const TaskList: React.FC = () => {
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Название</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Категория</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Сложность</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Язык</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Решено</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Действия</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {userExercises.map((userExercise) => {
-                        const category = categories.find(c => c.id === userExercise.exercise.category_id);
-                        const language = languages.find(l => l.value === userExercise.exercise.programming_language);
-                        const difficultyProps = getDifficultyProps(userExercise.exercise.difficulty);
-                        const isCompleted = userExercise.completed_at !== undefined;
+                      {userExercises.map((exerciseDetailse) => {
+                        const { exercise, user_info } = exerciseDetailse;
+                        const category = categories.find(c => c.id === exercise.category_id);
+                        const language = languages.find(l => l.value === exercise.programming_language);
+                        const isCompleted = user_info.is_solved;
                         return (
                           <TableRow
-                            key={userExercise.exercise_id}
+                            key={exercise.id}
                             hover
-                            onClick={() => handleExerciseClick(userExercise.exercise_id)}
+                            onClick={() => handleExerciseClick(exercise.id)}
                             sx={{ cursor: 'pointer' }}
                           >
                             <TableCell>
@@ -399,10 +349,10 @@ const TaskList: React.FC = () => {
                                 )}
                                 <Box>
                                   <Typography variant="subtitle1" fontWeight="bold">
-                                    {userExercise.exercise.title}
+                                    {exercise.title}
                                   </Typography>
                                   <Typography variant="body2" color="text.secondary">
-                                    {userExercise.exercise.description}
+                                    {exercise.description}
                                   </Typography>
                                 </Box>
                               </Box>
@@ -413,20 +363,13 @@ const TaskList: React.FC = () => {
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Chip
-                                label={difficultyProps.label}
-                                color={difficultyProps.color}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>
                               {language?.icon_svg ? (
                                 <span
                                   dangerouslySetInnerHTML={{__html: language.icon_svg}}
                                 />
                               ) : (
                                 <Typography variant="body2">
-                                  {userExercise.exercise.programming_language}
+                                  {exercise.programming_language}
                                 </Typography>
                               )}
                             </TableCell>
@@ -443,7 +386,7 @@ const TaskList: React.FC = () => {
                                 startIcon={<PlayIcon />}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleExerciseClick(userExercise.exercise_id);
+                                  handleExerciseClick(exercise.id);
                                 }}
                                 sx={{
                                   background: 'linear-gradient(90deg, #1da1f2 0%, #21cbf3 100%)',
@@ -481,25 +424,22 @@ const TaskList: React.FC = () => {
                   }}
                 >
                   <Grid container spacing={2}>
-                    {userExercises.map((userExercise) => {
-                      const category = categories.find(c => c.id === userExercise.exercise.category_id);
-                      const language = languages.find(l => l.value === userExercise.exercise.programming_language);
-                      const difficultyProps = getDifficultyProps(userExercise.exercise.difficulty);
-                      const isCompleted = userExercise.completed_at !== undefined;
+                    {userExercises.map((exerciseDetailse) => {
+                      const { exercise, user_info } = exerciseDetailse;
+                      const category = categories.find(c => c.id === exercise.category_id);
+                      const language = languages.find(l => l.value === exercise.programming_language);
+                      const isCompleted = user_info.is_solved;
                       return (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={userExercise.exercise_id}>
+                        <Grid item xs={12} sm={6} md={4} lg={3} key={exercise.id}>
                           <TaskCard
-                            id={userExercise.exercise_id}
-                            title={userExercise.exercise.title}
-                            description={userExercise.exercise.description}
+                            id={exercise.id}
+                            title={exercise.title}
+                            description={exercise.description}
                             languageIcon={language?.icon_svg}
-                            languageName={language?.name || userExercise.exercise.programming_language}
+                            languageName={language?.name || exercise.programming_language}
                             categoryName={category?.name}
-                            difficulty={userExercise.exercise.difficulty}
-                            isSolved={isCompleted}
+                            isSolved={user_info.is_solved}
                             onStart={handleExerciseClick}
-                            difficultyLabel={difficultyProps.label}
-                            difficultyColor={difficultyProps.color}
                           />
                         </Grid>
                       );

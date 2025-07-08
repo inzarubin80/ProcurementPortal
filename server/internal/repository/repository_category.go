@@ -4,8 +4,6 @@ import (
 	"context"
 	"inzarubin80/MemCode/internal/model"
 	sqlc_repository "inzarubin80/MemCode/internal/repository_sqlc"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type CategoryRepository struct {
@@ -80,9 +78,9 @@ func (r *CategoryRepository) GetCategoriesByLanguage(ctx context.Context, userID
 	return categories, int(total), nil
 }
 
-func (r *CategoryRepository) GetCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID) (*model.Category, error) {
+func (r *CategoryRepository) GetCategory(ctx context.Context, userID model.UserID, categoryID int64) (*model.Category, error) {
 	dbCategory, err := r.queries.GetCategory(ctx, &sqlc_repository.GetCategoryParams{
-		ID:     pgtype.UUID(categoryID),
+		ID:     int64(categoryID),
 		UserID: int64(userID),
 	})
 	if err != nil {
@@ -92,11 +90,6 @@ func (r *CategoryRepository) GetCategory(ctx context.Context, userID model.UserI
 }
 
 func (r *CategoryRepository) UpdateCategory(ctx context.Context, category *model.Category) (*model.Category, error) {
-	var categoryUUID pgtype.UUID
-	if err := categoryUUID.Scan(category.ID); err != nil {
-		return nil, err
-	}
-
 	dbCategory, err := r.queries.UpdateCategory(ctx, &sqlc_repository.UpdateCategoryParams{
 		Name:                category.Name,
 		Description:         &category.Description,
@@ -104,7 +97,7 @@ func (r *CategoryRepository) UpdateCategory(ctx context.Context, category *model
 		Color:               &category.Color,
 		Icon:                &category.Icon,
 		Status:              &category.Status,
-		ID:                  categoryUUID,
+		ID:                  int64(category.ID),
 		UserID:              int64(category.UserID),
 	})
 	if err != nil {
@@ -113,15 +106,15 @@ func (r *CategoryRepository) UpdateCategory(ctx context.Context, category *model
 	return convertDBCategoryToModel(dbCategory), nil
 }
 
-func (r *CategoryRepository) DeleteCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID) error {
+func (r *CategoryRepository) DeleteCategory(ctx context.Context, userID model.UserID, categoryID int64) error {
 	return r.queries.DeleteCategory(ctx, &sqlc_repository.DeleteCategoryParams{
-		ID:     pgtype.UUID(categoryID),
+		ID:     int64(categoryID),
 		UserID: int64(userID),
 	})
 }
 
-func (r *CategoryRepository) CountExercisesByCategory(ctx context.Context, categoryID model.CategoryID) (int64, error) {
-	return r.queries.CountExercisesByCategory(ctx, pgtype.UUID(categoryID))
+func (r *CategoryRepository) CountExercisesByCategory(ctx context.Context, categoryID int64) (int64, error) {
+	return r.queries.CountExercisesByCategory(ctx, categoryID)
 }
 
 func convertDBCategoryToModel(dbCategory *sqlc_repository.Category) *model.Category {
@@ -129,7 +122,7 @@ func convertDBCategoryToModel(dbCategory *sqlc_repository.Category) *model.Categ
 		return nil
 	}
 	return &model.Category{
-		ID:                  dbCategory.ID.String(),
+		ID:                  dbCategory.ID,
 		UserID:              model.UserID(dbCategory.UserID),
 		Name:                dbCategory.Name,
 		Description:         derefString(dbCategory.Description),

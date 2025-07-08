@@ -25,7 +25,7 @@ type (
 		getCategories, createCategory, getCategory, updateCategory, deleteCategory string
 
 		// Languages route
-		getLanguages, getDifficulties string
+		getLanguages string
 
 		// Exercise stat route
 		updateExerciseStat, getExerciseStat, getUserStats string
@@ -123,8 +123,7 @@ func NewConfig(opts Options) config {
 			deleteCategory: "DELETE /api/categories/delete",
 
 			// Languages route
-			getLanguages:    "GET    /api/languages",
-			getDifficulties: "GET    /api/difficulties",
+			getLanguages: "GET    /api/languages",
 
 			// Exercise stat route
 			updateExerciseStat: "POST   /api/exercise_stat/update",

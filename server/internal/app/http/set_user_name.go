@@ -9,6 +9,17 @@ import (
 	"net/http"
 )
 
+// SetUserName godoc
+// @Summary      Установить имя пользователя
+// @Description  Устанавливает новое имя пользователя
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        name body string true "Новое имя"
+// @Success      200      {object}  uhttp.SuccessResponse
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /user/name [post]
+
 type (
 	serviceSetUserName interface {
 		SetUserName(ctx context.Context, userID model.UserID, name string) error
@@ -30,7 +41,7 @@ func (h *SetUserNameHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
+	userID, ok := ctx.Value(defenitions.UserID).(int64)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 	}

@@ -10,10 +10,23 @@ import (
 	"strconv"
 )
 
+// GetUserExercises godoc
+// @Summary      Получить упражнения пользователя
+// @Description  Возвращает список упражнений, добавленных пользователем
+// @Tags         user_exercises
+// @Accept       json
+// @Produce      json
+// @Param        page     query     int     false  "Номер страницы"
+// @Param        page_size query     int     false  "Размер страницы"
+// @Param        programming_language query string false "Язык программирования"
+// @Param        category_id query int false "ID категории"
+// @Success      200      {object}  model.ExerciseListWithUserResponse
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /user_exercises [get]
+
 type (
 	GetUserExercisesService interface {
-		GetUserExercises(ctx context.Context, userID model.UserID, page, pageSize int) (*model.UserExerciseListResponse, error)
-		GetUserExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) (*model.UserExerciseListResponse, error)
+		GetUserExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID int64, page int, pageSize int) (*model.ExerciseListWithUserResponse, error)
 	}
 
 	GetUserExercisesHandler struct {
@@ -42,8 +55,7 @@ func (h *GetUserExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	pageStr := r.URL.Query().Get("page")
 	pageSizeStr := r.URL.Query().Get("page_size")
 	language := r.URL.Query().Get("programming_language")
-	categoryID := r.URL.Query().Get("category_id")
-	difficulty := r.URL.Query().Get("difficulty")
+	strCategoryID := r.URL.Query().Get("category_id")
 
 	page := 1
 	pageSize := 10
@@ -60,24 +72,22 @@ func (h *GetUserExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	var langPtr, catPtr, diffPtr *string
+	var langPtr *string
 	if language != "" {
 		langPtr = &language
 	}
-	if categoryID != "" {
-		catPtr = &categoryID
-	}
-	if difficulty != "" {
-		diffPtr = &difficulty
+
+	var categoryID int64 = 0
+	if strCategoryID != "" {
+		if cid, err := strconv.ParseInt(strCategoryID, 10, 64); err == nil {
+			categoryID = cid
+		} else {
+			uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid category_id")
+			return
+		}
 	}
 
-	var userExercises *model.UserExerciseListResponse
-	var err error
-	if langPtr != nil || catPtr != nil || diffPtr != nil {
-		userExercises, err = h.service.GetUserExercisesFiltered(ctx, userID, langPtr, catPtr, diffPtr, page, pageSize)
-	} else {
-		userExercises, err = h.service.GetUserExercises(ctx, userID, page, pageSize)
-	}
+	userExercises, err := h.service.GetUserExercisesFiltered(ctx, userID, langPtr, categoryID, page, pageSize)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

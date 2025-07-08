@@ -9,7 +9,7 @@ import (
 )
 
 type Category struct {
-	ID                  pgtype.UUID
+	ID                  int64
 	UserID              int64
 	Name                string
 	Description         *string
@@ -22,24 +22,10 @@ type Category struct {
 	IsActive            *bool
 }
 
-type Exercise struct {
-	ID                  pgtype.UUID
-	UserID              int64
-	Title               string
-	Description         *string
-	CategoryID          pgtype.UUID
-	Difficulty          string
-	ProgrammingLanguage string
-	CodeToRemember      string
-	CreatedAt           pgtype.Timestamptz
-	UpdatedAt           pgtype.Timestamptz
-	IsActive            *bool
-}
-
 type ExerciseStat struct {
 	ID                 int32
 	UserID             int64
-	ExerciseID         pgtype.UUID
+	ExerciseID         int64
 	TotalAttempts      int32
 	SuccessfulAttempts int32
 	TotalTypingTime    int64

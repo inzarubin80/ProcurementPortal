@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/cors"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"golang.org/x/oauth2"
 )
 
@@ -42,29 +43,27 @@ type (
 
 		// Exercise methods
 		CreateExercise(ctx context.Context, userID model.UserID, exercise *model.Exercise) (*model.Exercise, error)
-		GetExercises(ctx context.Context, userID model.UserID, page, pageSize int) (*model.ExerciseListResponse, error)
-		GetExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.Exercise, error)
-		UpdateExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID, exercise *model.Exercise) (*model.Exercise, error)
-		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) error
-		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) (*model.ExerciseListResponse, error)
-		UpsertExerciseStat(userID model.UserID, exerciseID model.ExerciseID, attempts int, successAttempts int) (*model.ExerciseStat, error)
+		GetExercise(ctx context.Context, userID model.UserID, exerciseID int64) (*model.ExerciseDetailse, error)
+		UpdateExercise(ctx context.Context, userID model.UserID, exerciseID int64, exercise *model.Exercise) (*model.Exercise, error)
+		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID int64) error
+		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) (*model.ExerciseListWithUserResponse, error)
+		UpsertExerciseStat(userID model.UserID, exerciseID int64, attempts int, successAttempts int) (*model.ExerciseStat, error)
 
 		// Category methods
 		CreateCategory(ctx context.Context, userID model.UserID, category *model.Category) (*model.Category, error)
-		GetCategories(ctx context.Context, userID model.UserID, page, pageSize int) (*model.CategoryListResponse, error)
-		GetCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID) (*model.Category, error)
-		UpdateCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID, category *model.Category) (*model.Category, error)
-		DeleteCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID) error
+		GetCategories(ctx context.Context, userID model.UserID, page, pageSize int) (model.CategoryListResponse, error)
+		GetCategory(ctx context.Context, userID model.UserID, categoryID int64) (*model.Category, error)
+		UpdateCategory(ctx context.Context, userID model.UserID, categoryID int64, category *model.Category) (*model.Category, error)
+		DeleteCategory(ctx context.Context, userID model.UserID, categoryID int64) error
 
 		// Добавлено для соответствия GetExerciseStatService
-		GetExerciseStat(userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error)
+		GetExerciseStat(userID model.UserID, exerciseID int64) (*model.ExerciseStat, error)
 		GetUserStats(ctx context.Context, userID model.UserID) (*model.UserStats, error)
 
 		// User Exercises methods
-		GetUserExercises(ctx context.Context, userID model.UserID, page, pageSize int) (*model.UserExerciseListResponse, error)
-		GetUserExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, difficulty *string, page, pageSize int) (*model.UserExerciseListResponse, error)
-		AddUserExercise(ctx context.Context, userID model.UserID, exerciseID string) error
-		RemoveUserExercise(ctx context.Context, userID model.UserID, exerciseID string) error
+		GetUserExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID int64, page int, pageSize int) (*model.ExerciseListWithUserResponse, error)
+		AddUserExercise(ctx context.Context, userID model.UserID, exerciseID int64) error
+		RemoveUserExercise(ctx context.Context, userID model.UserID, exerciseID int64) error
 	}
 
 	TokenService interface {
@@ -90,7 +89,7 @@ func (a *App) ListenAndServe() error {
 		a.config.path.setUserName: appHttp.NewSetUserNameHandler(a.pokerService, a.config.path.setUserName),
 
 		// Exercise handlers
-		a.config.path.getExercises:       appHttp.NewGetExercisesHandler(a.pokerService, "get_exercises"),
+		a.config.path.getExercises:       appHttp.NewGetExercisesHandler(a.pokerService, "getExercises"),
 		a.config.path.createExercise:     appHttp.NewCreateExerciseHandler(a.pokerService, "create_exercise"),
 		a.config.path.getExercise:        appHttp.NewGetExerciseHandler(a.pokerService, "get_exercise"),
 		a.config.path.updateExercise:     appHttp.NewUpdateExerciseHandler(a.pokerService, "update_exercise"),
@@ -124,7 +123,6 @@ func (a *App) ListenAndServe() error {
 
 	// Languages handler (без авторизации)
 	a.mux.Handle(a.config.path.getLanguages, appHttp.NewGetLanguagesHandler("get_languages"))
-	a.mux.Handle(a.config.path.getDifficulties, appHttp.NewGetDifficultiesHandler("get_difficulties"))
 
 	fmt.Println("start server")
 	return a.server.ListenAndServe()
@@ -137,6 +135,9 @@ func NewApp(ctx context.Context, config config, dbConn *pgxpool.Pool) (*App, err
 		pokerRepository = repository.NewPokerRepository(100, dbConn)
 		store           = sessions.NewCookieStore([]byte(config.sectrets.storeSecret))
 	)
+
+	// Swagger UI
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	accessTokenService := tokenservice.NewtokenService([]byte(config.sectrets.accessTokenSecret), 2*time.Hour, model.Access_Token_Type)
 	refreshTokenService := tokenservice.NewtokenService([]byte(config.sectrets.refreshTokenSecret), 24*time.Hour, model.Refresh_Token_Type)

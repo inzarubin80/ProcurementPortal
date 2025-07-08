@@ -6,12 +6,11 @@ import (
 	"inzarubin80/MemCode/internal/app/uhttp"
 	"inzarubin80/MemCode/internal/model"
 	"net/http"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"strconv"
 )
 
 type UpdateExerciseStatService interface {
-	UpsertExerciseStat(userID model.UserID, exerciseID model.ExerciseID, attempts int, successAttempts int) (*model.ExerciseStat, error)
+	UpsertExerciseStat(userID model.UserID, exerciseID int64, attempts int, successAttempts int) (*model.ExerciseStat, error)
 }
 
 type UpdateExerciseStatHandler struct {
@@ -42,13 +41,11 @@ func (h *UpdateExerciseStatHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	var exID model.ExerciseID
-	uuidVal := pgtype.UUID{}
-	if err := uuidVal.Scan(req.ExerciseID); err != nil {
+	exID, err := strconv.ParseInt(req.ExerciseID, 10, 64)
+	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid exercise_id")
 		return
 	}
-	exID = model.ExerciseID(uuidVal)
 
 	stat, err := h.service.UpsertExerciseStat(userID, exID, req.Attempts, req.SuccessAttempts)
 	if err != nil {

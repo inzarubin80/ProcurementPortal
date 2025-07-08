@@ -12,6 +12,17 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+// Login godoc
+// @Summary      Вход пользователя
+// @Description  Аутентификация пользователя через провайдера
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        login body model.AuthData true "Данные для входа"
+// @Success      200      {object}  model.AuthData
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /login [post]
+
 type (
 	serviceLogin interface {
 		Login(ctx context.Context, providerKey string, authorizationCode string) (*model.AuthData, error)

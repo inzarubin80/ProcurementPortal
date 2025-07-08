@@ -9,6 +9,17 @@ import (
 	"net/http"
 )
 
+// CreateExercise godoc
+// @Summary      Создать упражнение
+// @Description  Создаёт новое упражнение
+// @Tags         exercises
+// @Accept       json
+// @Produce      json
+// @Param        exercise body model.Exercise true "Данные упражнения"
+// @Success      200      {object}  model.Exercise
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /exercises [post]
+
 type (
 	CreateExerciseService interface {
 		CreateExercise(ctx context.Context, userID model.UserID, exercise *model.Exercise) (*model.Exercise, error)

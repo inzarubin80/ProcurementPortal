@@ -6,8 +6,6 @@ package sqlc_repository
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
@@ -16,31 +14,35 @@ type Querier interface {
 	CountCategories(ctx context.Context, userID int64) (int64, error)
 	CountCategoriesByLanguage(ctx context.Context, arg *CountCategoriesByLanguageParams) (int64, error)
 	CountExercises(ctx context.Context, userID int64) (int64, error)
-	CountExercisesByCategory(ctx context.Context, categoryID pgtype.UUID) (int64, error)
+	CountExercisesByCategory(ctx context.Context, categoryID int64) (int64, error)
+	// $1: user_id, $2: programming_language, $3: category_id
 	CountExercisesFiltered(ctx context.Context, arg *CountExercisesFilteredParams) (int64, error)
 	CountUserExercises(ctx context.Context, userID int64) (int64, error)
+	// $1: user_id, $2: programming_language, $3: category_id
 	CountUserExercisesFiltered(ctx context.Context, arg *CountUserExercisesFilteredParams) (int64, error)
 	CreateCategory(ctx context.Context, arg *CreateCategoryParams) (*Category, error)
-	CreateExercise(ctx context.Context, arg *CreateExerciseParams) (*Exercise, error)
+	CreateExercise(ctx context.Context, arg *CreateExerciseParams) (*CreateExerciseRow, error)
 	CreateUser(ctx context.Context, name string) (int64, error)
 	DeleteCategory(ctx context.Context, arg *DeleteCategoryParams) error
 	DeleteExercise(ctx context.Context, arg *DeleteExerciseParams) error
 	GetCategories(ctx context.Context, arg *GetCategoriesParams) ([]*Category, error)
 	GetCategoriesByLanguage(ctx context.Context, arg *GetCategoriesByLanguageParams) ([]*Category, error)
 	GetCategory(ctx context.Context, arg *GetCategoryParams) (*Category, error)
-	GetExercise(ctx context.Context, arg *GetExerciseParams) (*Exercise, error)
+	GetExercise(ctx context.Context, id int64) (*GetExerciseRow, error)
 	GetExerciseStat(ctx context.Context, arg *GetExerciseStatParams) (*ExerciseStat, error)
 	GetExercises(ctx context.Context, arg *GetExercisesParams) ([]*GetExercisesRow, error)
+	// $1: user_id, $2: programming_language, $3: category_id, $4: limit, $5: offset
 	GetExercisesFiltered(ctx context.Context, arg *GetExercisesFilteredParams) ([]*GetExercisesFilteredRow, error)
 	GetUserAuthProvidersByProviderUid(ctx context.Context, arg *GetUserAuthProvidersByProviderUidParams) (*UserAuthProvider, error)
 	GetUserByID(ctx context.Context, userID int64) (*User, error)
-	GetUserExercises(ctx context.Context, arg *GetUserExercisesParams) ([]*GetUserExercisesRow, error)
+	GetUserExerciseIDs(ctx context.Context, userID int64) ([]int64, error)
+	// $1: user_id, $2: programming_language, $3: category_id, $4: limit, $5: offset
 	GetUserExercisesFiltered(ctx context.Context, arg *GetUserExercisesFilteredParams) ([]*GetUserExercisesFilteredRow, error)
 	GetUserStats(ctx context.Context, dollar_1 int64) (*GetUserStatsRow, error)
 	GetUsersByIDs(ctx context.Context, dollar_1 []int64) ([]*User, error)
 	RemoveUserExercise(ctx context.Context, arg *RemoveUserExerciseParams) error
 	UpdateCategory(ctx context.Context, arg *UpdateCategoryParams) (*Category, error)
-	UpdateExercise(ctx context.Context, arg *UpdateExerciseParams) (*Exercise, error)
+	UpdateExercise(ctx context.Context, arg *UpdateExerciseParams) (*UpdateExerciseRow, error)
 	UpdateExerciseStat(ctx context.Context, arg *UpdateExerciseStatParams) (*ExerciseStat, error)
 	UpdateUserName(ctx context.Context, arg *UpdateUserNameParams) (*User, error)
 	UpsertExerciseStat(ctx context.Context, arg *UpsertExerciseStatParams) (*ExerciseStat, error)

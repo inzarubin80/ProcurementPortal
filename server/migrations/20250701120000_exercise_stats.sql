@@ -2,7 +2,7 @@
 CREATE TABLE exercise_stats (
     id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    exercise_id UUID NOT NULL,
+    exercise_id BIGINT NOT NULL,
     total_attempts INT NOT NULL DEFAULT 0,
     successful_attempts INT NOT NULL DEFAULT 0,
     total_typing_time BIGINT NOT NULL DEFAULT 0, -- в секундах

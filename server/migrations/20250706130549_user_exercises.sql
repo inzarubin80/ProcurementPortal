@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE user_exercises (
     user_id BIGINT NOT NULL,
-    exercise_id UUID NOT NULL,
+    exercise_id BIGINT NOT NULL,
     completed_at TIMESTAMP WITH TIME ZONE,
     score INT,
     attempts_count INT DEFAULT 0,

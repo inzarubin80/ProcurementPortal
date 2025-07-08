@@ -9,6 +9,17 @@ import (
 	"net/http"
 )
 
+// CreateCategory godoc
+// @Summary      Создать категорию
+// @Description  Создаёт новую категорию
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Param        category body model.Category true "Данные категории"
+// @Success      200      {object}  model.Category
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /categories [post]
+
 type (
 	CreateCategoryService interface {
 		CreateCategory(ctx context.Context, userID model.UserID, category *model.Category) (*model.Category, error)
@@ -18,6 +29,7 @@ type (
 		name    string
 		service CreateCategoryService
 	}
+
 )
 
 func NewCreateCategoryHandler(service CreateCategoryService, name string) *CreateCategoryHandler {

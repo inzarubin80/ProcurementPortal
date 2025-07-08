@@ -33,15 +33,7 @@ func (s *PokerService) Login(ctx context.Context, providerKey string, authorizat
 			return nil, err
 		}
 
-		// Загружаем начальные данные для нового пользователя
-		if err := s.SeedUserData(ctx, user.ID); err != nil {
-			// Логируем ошибку, но не прерываем процесс логина
-			fmt.Printf("[WARNING] Failed to seed initial data for user %d: %v\n", user.ID, err)
-			fmt.Printf("[INFO] User registration will continue without initial data\n")
-		} else {
-			fmt.Printf("[INFO] Successfully seeded initial data for user %d\n", user.ID)
-		}
-
+	
 		userAuthProviders, err = s.repository.AddUserAuthProviders(ctx, userProfileFromProvider, user.ID)
 		if err != nil {
 			return nil, err

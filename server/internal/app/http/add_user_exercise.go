@@ -7,11 +7,23 @@ import (
 	"inzarubin80/MemCode/internal/app/uhttp"
 	"inzarubin80/MemCode/internal/model"
 	"net/http"
+	"strconv"
 )
+
+// AddUserExercise godoc
+// @Summary      Добавить упражнение пользователю
+// @Description  Добавляет упражнение в список пользователя
+// @Tags         user_exercises
+// @Accept       json
+// @Produce      json
+// @Param        exercise_id body string true "ID упражнения"
+// @Success      200      {object}  uhttp.SuccessResponse
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /user_exercises [post]
 
 type (
 	AddUserExerciseService interface {
-		AddUserExercise(ctx context.Context, userID model.UserID, exerciseID string) error
+		AddUserExercise(ctx context.Context, userID model.UserID, exerciseID int64) error
 	}
 
 	AddUserExerciseHandler struct {
@@ -37,13 +49,19 @@ func (h *AddUserExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Получаем exercise_id из query параметров
-	exerciseID := r.URL.Query().Get("exercise_id")
-	if exerciseID == "" {
+	exerciseIDStr := r.URL.Query().Get("exercise_id")
+	if exerciseIDStr == "" {
 		uhttp.SendErrorResponse(w, http.StatusBadRequest, "exercise_id is required")
 		return
 	}
 
-	err := h.service.AddUserExercise(ctx, userID, exerciseID)
+	exerciseID, err := strconv.ParseInt(exerciseIDStr, 10, 64)
+	if err != nil {
+		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid exercise_id")
+		return
+	}
+
+	err = h.service.AddUserExercise(ctx, userID, exerciseID)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

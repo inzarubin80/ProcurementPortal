@@ -8,6 +8,16 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+// Logout godoc
+// @Summary      Выход пользователя
+// @Description  Завершает сессию пользователя
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Success      200      {object}  uhttp.SuccessResponse
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /logout [post]
+
 type (
 	LogOutHandler struct {
 		name  string

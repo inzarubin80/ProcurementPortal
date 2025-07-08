@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const (
@@ -38,11 +37,9 @@ const (
 
 type (
 	UserID                  int64
-	ExerciseID              pgtype.UUID
-	Difficulty              string
 	ProgrammingLanguage     string
 	ExerciseStatus          string
-	CategoryID              pgtype.UUID
+	CategoryID              int64
 	UserProfileFromProvider struct {
 		ProviderID   string `json:"provider_id"`   // Идентификатор пользователя у провайдера
 		Email        string `json:"email"`         // Email пользователя
@@ -80,23 +77,21 @@ type (
 	}
 
 	Exercise struct {
-		ID                  string              `json:"id"`
+		ID                  int64               `json:"id"`
 		UserID              UserID              `json:"user_id"` // кто создал
 		Title               string              `json:"title"`
 		Description         string              `json:"description"`
-		CategoryID          string              `json:"category_id"`
-		Difficulty          Difficulty          `json:"difficulty"`
+		CategoryID          int64               `json:"category_id"`
 		ProgrammingLanguage ProgrammingLanguage `json:"programming_language"`
 		CodeToRemember      string              `json:"code_to_remember"` // код для запоминания
 		CreatedAt           time.Time           `json:"created_at"`
 		UpdatedAt           time.Time           `json:"updated_at"`
 		IsActive            bool                `json:"is_active"`
-		IsSolved            bool                `json:"is_solved"`
-		IsUserExercise      bool                `json:"is_user_exercise"`
+		SuccessfulAttempts  *int                `json:"successful_attempts,omitempty"`
 	}
 
 	Category struct {
-		ID                  string              `json:"id"`
+		ID                  int64               `json:"id"`
 		UserID              UserID              `json:"user_id"` // кто создал
 		Name                string              `json:"name"`
 		Description         string              `json:"description"`
@@ -107,16 +102,6 @@ type (
 		CreatedAt           time.Time           `json:"created_at"`
 		UpdatedAt           time.Time           `json:"updated_at"`
 		IsActive            bool                `json:"is_active"`
-	}
-
-	// Модели для API ответов
-	ExerciseListResponse struct {
-		Exercises []*Exercise `json:"exercises"`
-		Total     int         `json:"total"`
-		Page      int         `json:"page"`
-		PageSize  int         `json:"page_size"`
-		HasNext   bool        `json:"has_next"`
-		HasPrev   bool        `json:"has_prev"`
 	}
 
 	CategoryListResponse struct {
@@ -131,7 +116,7 @@ type (
 	// ExerciseStat хранит статистику пользователя по задаче
 	ExerciseStat struct {
 		UserID             UserID `json:"user_id"`
-		ExerciseID         string `json:"exercise_id"`
+		ExerciseID         int64  `json:"exercise_id"`
 		TotalAttempts      int    `json:"total_attempts"`
 		SuccessfulAttempts int    `json:"successful_attempts"`
 		TotalTypingTime    int64  `json:"total_typing_time"` // в секундах
@@ -150,7 +135,7 @@ type (
 
 	ExerciseStatUpdate struct {
 		UserID          UserID `json:"user_id"`
-		ExerciseID      string `json:"exercise_id"`
+		ExerciseID      int64  `json:"exercise_id"`
 		Attempts        int    `json:"attempts"`         // всегда 1
 		SuccessAttempts int    `json:"success_attempts"` // 1 если успешно, 0 если нет
 		TypingTime      int64  `json:"typing_time"`      // в секундах
@@ -160,7 +145,7 @@ type (
 	// UserExercise представляет связь пользователя с упражнением
 	UserExercise struct {
 		UserID        UserID     `json:"user_id"`
-		ExerciseID    string     `json:"exercise_id"`
+		ExerciseID    int64      `json:"exercise_id"`
 		CompletedAt   *time.Time `json:"completed_at"`
 		Score         *int       `json:"score"`
 		AttemptsCount int        `json:"attempts_count"`
@@ -168,20 +153,23 @@ type (
 		UpdatedAt     time.Time  `json:"updated_at"`
 	}
 
-	// UserExerciseWithDetails содержит информацию об упражнении с деталями
-	UserExerciseWithDetails struct {
-		UserExercise
-		Exercise *Exercise `json:"exercise"`
+	UserInfo struct {
+		IsSolved       bool `json:"is_solved"`
+		IsUserExercise bool `json:"is_user_exercise"`
 	}
 
-	// UserExerciseListResponse для API ответов
-	UserExerciseListResponse struct {
-		UserExercises []*UserExerciseWithDetails `json:"user_exercises"`
-		Total         int                        `json:"total"`
-		Page          int                        `json:"page"`
-		PageSize      int                        `json:"page_size"`
-		HasNext       bool                       `json:"has_next"`
-		HasPrev       bool                       `json:"has_prev"`
+	ExerciseDetailse struct {
+		UserIfo  UserInfo `json:"user_info"`
+		Exercise Exercise `json:"exercise"`
+	}
+
+	ExerciseListWithUserResponse struct {
+		ExeExerciseDetailse []*ExerciseDetailse `json:"exercise_detailse"`
+		Total               int                 `json:"total"`
+		Page                int                 `json:"page"`
+		PageSize            int                 `json:"page_size"`
+		HasNext             bool                `json:"has_next"`
+		HasPrev             bool                `json:"has_prev"`
 	}
 )
 
@@ -211,13 +199,4 @@ func IsSupportedLanguage(language ProgrammingLanguage) bool {
 		}
 	}
 	return false
-}
-
-// GetSupportedDifficulties возвращает список поддерживаемых уровней сложности
-func GetSupportedDifficulties() []Difficulty {
-	return []Difficulty{
-		"beginner",
-		"intermediate",
-		"hard",
-	}
 }

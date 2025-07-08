@@ -1,11 +1,11 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE exercises (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    category_id UUID NOT NULL,
+    category_id BIGINT NOT NULL,
     difficulty VARCHAR(50) NOT NULL,
     programming_language VARCHAR(50) NOT NULL,
     code_to_remember TEXT NOT NULL,

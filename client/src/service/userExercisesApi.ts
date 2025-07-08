@@ -1,17 +1,16 @@
 import { authAxios } from './http-common';
-import { UserExerciseListResponse } from '../types/api';
+import { ExerciseListWithUserResponse } from '../types/api';
 
 export interface UserExercisesFilters {
   programming_language?: string;
   category_id?: string;
-  difficulty?: string;
   page?: number;
   page_size?: number;
 }
 
 export const userExercisesApi = {
   // Получить список задач пользователя
-  getUserExercises: async (filters: UserExercisesFilters = {}): Promise<UserExerciseListResponse> => {
+  getUserExercises: async (filters: UserExercisesFilters = {}): Promise<ExerciseListWithUserResponse> => {
     const params = new URLSearchParams();
     
     if (filters.programming_language) {
@@ -19,9 +18,6 @@ export const userExercisesApi = {
     }
     if (filters.category_id) {
       params.append('category_id', filters.category_id);
-    }
-    if (filters.difficulty) {
-      params.append('difficulty', filters.difficulty);
     }
     if (filters.page) {
       params.append('page', filters.page.toString());
@@ -35,7 +31,7 @@ export const userExercisesApi = {
   },
 
   // Получить список задач пользователя с фильтрацией
-  getUserExercisesFiltered: async (filters: UserExercisesFilters): Promise<UserExerciseListResponse> => {
+  getUserExercisesFiltered: async (filters: UserExercisesFilters): Promise<ExerciseListWithUserResponse> => {
     return userExercisesApi.getUserExercises(filters);
   },
 

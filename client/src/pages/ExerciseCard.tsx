@@ -22,7 +22,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import MonacoEditor from '@monaco-editor/react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
-import { fetchExerciseById, setExerciseSolved } from '../store/slices/exerciseSlice';
+import { fetchExerciseById } from '../store/slices/exerciseSlice';
 import { fetchLanguages } from '../store/slices/languageSlice';
 import { Exercise } from '../types/api';
 import axios from 'axios';
@@ -72,14 +72,14 @@ const ExerciseCard: React.FC = () => {
   const theme = useTheme();
 
   // Индекс текущей задачи и id следующей - мемоизируем для оптимизации
-  const currentIndex = React.useMemo(() => exercises.findIndex(e => e.id === id), [exercises, id]);
+  const currentIndex = React.useMemo(() => exercises.findIndex(e => e.exercise.id === id), [exercises, id]);
   const hasExercises = exercises.length > 0;
   const nextExerciseId = React.useMemo(() => {
     if (!hasExercises || currentIndex === -1) return undefined;
     if (currentIndex === exercises.length - 1) {
-      return exercises[0].id;
+      return exercises[0].exercise.id;
     } else {
-      return exercises[currentIndex + 1]?.id;
+      return exercises[currentIndex + 1]?.exercise.id;
     }
   }, [hasExercises, currentIndex, exercises]);
 
@@ -108,7 +108,7 @@ const ExerciseCard: React.FC = () => {
   const fetchStat = async () => {
     if (!exercise) return;
     try {
-      const res = await authAxios.get(`/exercise_stat?exercise_id=${exercise.id}`);
+      const res = await authAxios.get(`/exercise_stat?exercise_id=${exercise.exercise.id}`);
       setExerciseStat(res.data);
       setStatError(null);
     } catch (e: any) {
@@ -240,14 +240,14 @@ const ExerciseCard: React.FC = () => {
     
     setLastCheckedUserCode(userCode);
 
-    const result = smartCompare(userCode, exercise.code_to_remember, exercise.programming_language);
+    const result = smartCompare(userCode, exercise.exercise.code_to_remember, exercise.exercise.programming_language);
     
     setIsCorrect(result.correct);
     setResultMsg(result.correct ? 'Поздравляем! Ваш код правильный!' : '');
     
     // Diff для визуализации различий (построчно)
     if (!result.correct) {
-      const diff = diffLinesFn(exercise.code_to_remember, userCode);
+      const diff = diffLinesFn(exercise.exercise.code_to_remember, userCode);
       const diffHtmlResult = diff.map((part, idx) => {
         if (part.added) return `<div style='background:#d4fcbc'>+ ${part.value.replace(/\n/g, '<br/>')}</div>`;
         if (part.removed) return `<div style='background:#ffeef0;text-decoration:line-through;'>- ${part.value.replace(/\n/g, '<br/>')}</div>`;
@@ -255,11 +255,11 @@ const ExerciseCard: React.FC = () => {
       }).join('');
       
       // Генерируем детальный построчный diff
-      const detailedDiffResult = generateDetailedDiff(exercise.code_to_remember, userCode);
+      const detailedDiffResult = generateDetailedDiff(exercise.exercise.code_to_remember, userCode);
       setDetailedDiff(detailedDiffResult);
       
       // Подсчитываем количество ошибок
-      const errors = getLineErrorList(exercise.code_to_remember, userCode);
+      const errors = getLineErrorList(exercise.exercise.code_to_remember, userCode);
       setErrorCount(errors.length);
       
       setDiffHtml(diffHtmlResult);
@@ -271,7 +271,6 @@ const ExerciseCard: React.FC = () => {
       setDetailedDiff([]);
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2500);
-      dispatch(setExerciseSolved(exercise.id));
       // Возвращаемся к отображению исходного кода при успешном выполнении
       setIsStarted(false);
       setUserCode('');
@@ -281,7 +280,7 @@ const ExerciseCard: React.FC = () => {
     // Отправляем статистику
     try {
       await authAxios.post('/exercise_stat/update', {
-        exercise_id: exercise.id,
+        exercise_id: exercise.exercise.id,
         attempts: 1,
         success_attempts: result.correct ? 1 : 0,
       });
@@ -311,7 +310,7 @@ const ExerciseCard: React.FC = () => {
   };
 
   const handleBackToList = () => {
-    navigate('/');
+    navigate('/exercises');
   };
 
   useEffect(() => {
@@ -451,15 +450,15 @@ const ExerciseCard: React.FC = () => {
         </Button>
         <Card className={showShake ? 'shake' : ''} sx={{ mb: 3, p: 2, borderRadius: 3, boxShadow: 1 }}>
           <Box>
-            {languages.find(l => l.value === exercise.programming_language)?.icon_svg && (
+            {languages.find(l => l.value === exercise.exercise.programming_language)?.icon_svg && (
               <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
                 <span
                   style={{ verticalAlign: 'middle', width: 32, height: 32, display: 'inline-block' }}
-                  dangerouslySetInnerHTML={{ __html: languages.find(l => l.value === exercise.programming_language)?.icon_svg || '' }}
+                  dangerouslySetInnerHTML={{ __html: languages.find(l => l.value === exercise.exercise.programming_language)?.icon_svg || '' }}
                 />
               </Box>
             )}
-            <Typography variant="body1">{exercise.description}</Typography>
+            <Typography variant="body1">{exercise.exercise.description}</Typography>
           </Box>
         </Card>
       </Box>
@@ -483,8 +482,8 @@ const ExerciseCard: React.FC = () => {
             >
               <MonacoEditor
                 height="180px"
-                defaultLanguage={getMonacoLanguage(exercise.programming_language)}
-                value={exercise.code_to_remember}
+                defaultLanguage={getMonacoLanguage(exercise.exercise.programming_language)}
+                value={exercise.exercise.code_to_remember}
                 options={{ readOnly: true, fontSize: 16, minimap: { enabled: false }, scrollBeyondLastLine: false }}
               />
             </Paper>
@@ -600,7 +599,7 @@ const ExerciseCard: React.FC = () => {
             >
               <Box>
                 <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
-                  ❌ Код содержит {errorCount} ошибок. Исправьте их и попробуйте снова.
+                  ❌ Код содержит {errorCount} ошибок. Исправьте и попробуйте снова.
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
                   💡 Нажмите кнопку ниже, чтобы увидеть точные отличия от эталона
@@ -668,7 +667,7 @@ const ExerciseCard: React.FC = () => {
           <Paper variant="outlined" sx={{ mb: 2, borderRadius: 2, overflow: 'hidden' }}>
             <MonacoEditor
               height="180px"
-              defaultLanguage={getMonacoLanguage(exercise.programming_language)}
+              defaultLanguage={getMonacoLanguage(exercise.exercise.programming_language)}
               value={userCode}
               onChange={(v: string | undefined) => setUserCode(v || '')}
               options={{ fontSize: 16, minimap: { enabled: false }, scrollBeyondLastLine: false, readOnly: false }}
@@ -941,8 +940,8 @@ const ExerciseCard: React.FC = () => {
           >
             <MonacoEditor
               height="400px"
-              defaultLanguage={getMonacoLanguage(exercise?.programming_language)}
-              value={exercise?.code_to_remember || ''}
+              defaultLanguage={getMonacoLanguage(exercise?.exercise.programming_language)}
+              value={exercise?.exercise.code_to_remember || ''}
               options={{ 
                 readOnly: true, 
                 fontSize: 16, 

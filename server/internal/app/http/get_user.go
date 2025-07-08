@@ -11,6 +11,16 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+// GetUser godoc
+// @Summary      Получить пользователя
+// @Description  Возвращает информацию о текущем пользователе
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Success      200      {object}  model.User
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /user [get]
+
 type (
 	GetUserService interface {
 		GetUser(ctx context.Context, userID model.UserID) (*model.User, error)
@@ -35,7 +45,7 @@ func (h *GetUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
+	userID, ok := ctx.Value(defenitions.UserID).(int64)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 	}

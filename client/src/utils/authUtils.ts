@@ -1,26 +1,28 @@
 // Утилиты для работы с авторизацией
 
-export const getStoredToken = (): string | null => {
-  return localStorage.getItem('accessToken');
-};
+const TOKEN_KEY = 'accessToken';
+const USER_ID_KEY = 'userID';
 
-export const getStoredUserID = (): number | null => {
-  const userID = localStorage.getItem('userID');
-  return userID ? Number(userID) : null;
-};
+export function setStoredAuth(token: string, userID: number) {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(USER_ID_KEY, userID.toString());
+}
 
-export const isTokenValid = (): boolean => {
-  const token = getStoredToken();
-  const userID = getStoredUserID();
-  return !!(token && userID);
-};
+export function getStoredToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
 
-export const clearStoredAuth = (): void => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('userID');
-};
+export function getStoredUserID(): number | null {
+  const id = localStorage.getItem(USER_ID_KEY);
+  return id ? Number(id) : null;
+}
 
-export const setStoredAuth = (token: string, userID: number): void => {
-  localStorage.setItem('accessToken', token);
-  localStorage.setItem('userID', String(userID));
-}; 
+export function clearStoredAuth() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_ID_KEY);
+}
+
+export function isTokenValid(): boolean {
+  // Можно добавить свою логику проверки токена (например, по exp)
+  return !!getStoredToken();
+} 

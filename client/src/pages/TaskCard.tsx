@@ -9,11 +9,8 @@ interface TaskCardProps {
   languageIcon?: string;
   languageName: string;
   categoryName?: string;
-  difficulty: string;
   isSolved: boolean;
   onStart: (id: string) => void;
-  difficultyLabel: string;
-  difficultyColor: 'success' | 'warning' | 'error' | 'default';
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({
@@ -23,11 +20,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   languageIcon,
   languageName,
   categoryName,
-  difficulty,
   isSolved,
   onStart,
-  difficultyLabel,
-  difficultyColor,
 }) => {
   return (
     <Card
@@ -60,12 +54,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
           sx={{
             flexGrow: 1,
             display: '-webkit-box',
-            WebkitLineClamp: 3,
+            WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            minHeight: '4.2em',
-            maxHeight: '4.2em',
+            minHeight: '2.8em',
+            maxHeight: '2.8em',
             lineHeight: 1.2,
           }}
         >
@@ -78,40 +72,19 @@ const TaskCard: React.FC<TaskCardProps> = ({
             mb: 2.5,
             fontWeight: 600,
             display: '-webkit-box',
-            WebkitLineClamp: 3,
+            WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            minHeight: '3.6em',
-            maxHeight: '3.6em',
+            minHeight: '2.4em',
+            maxHeight: '2.4em',
             lineHeight: 1.2,
           }}
         >
           {description}
         </Typography>
-        <Box sx={{ mb: 2 }}>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              minHeight: '2.4em',
-              maxHeight: '2.4em',
-              lineHeight: 1.2,
-            }}
-          >
-            Категория: {categoryName || '—'}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
-          <Chip label={difficultyLabel} color={difficultyColor} size="small" />
-          {isSolved && (
-            <Chip label="Решено" color="secondary" size="small" sx={{ color: 'white' }} />
-          )}
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1, flexWrap: 'wrap' }}>
+          <Chip size="small" label={categoryName || '—'} />
         </Box>
       </CardContent>
       <Box sx={{ p: 3, pt: 0, display: 'flex', justifyContent: 'flex-end' }}>

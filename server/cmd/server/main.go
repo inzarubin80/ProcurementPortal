@@ -4,10 +4,14 @@ import (
 	"context"
 	"fmt"
 	"inzarubin80/MemCode/internal/app"
+	"net/http"
 	"os"
+
+	_ "inzarubin80/MemCode/server/docs"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 // мое исправление
@@ -42,6 +46,10 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
+
 	err = server.ListenAndServe()
 	if err != nil {
 		fmt.Println(err.Error())

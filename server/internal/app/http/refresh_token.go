@@ -11,6 +11,17 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+// RefreshToken godoc
+// @Summary      Обновить токен
+// @Description  Обновляет access и refresh токены
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        refresh_token body string true "Refresh токен"
+// @Success      200      {object}  model.AuthData
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /refresh_token [post]
+
 type (
 	serviceRefreshToken interface {
 		RefreshToken(ctx context.Context, refreshToken string) (*model.AuthData, error)

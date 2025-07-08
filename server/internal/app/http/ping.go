@@ -5,6 +5,15 @@ import (
 	"net/http"
 )
 
+// Ping godoc
+// @Summary      Проверка доступности
+// @Description  Проверяет, что сервер работает
+// @Tags         health
+// @Accept       json
+// @Produce      json
+// @Success      200      {string}  string "pong"
+// @Router       /ping [get]
+
 type (
 	PingHandler struct {
 		name string

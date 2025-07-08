@@ -10,9 +10,19 @@ import (
 	"strconv"
 )
 
+// GetCategories godoc
+// @Summary      Получить категории
+// @Description  Возвращает список категорий пользователя
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Success      200      {object}  model.CategoryListResponse
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /categories [get]
+
 type (
 	GetCategoriesService interface {
-		GetCategories(ctx context.Context, userID model.UserID, page, pageSize int) (*model.CategoryListResponse, error)
+		GetCategories(ctx context.Context, userID model.UserID, page, pageSize int) (model.CategoryListResponse, error)
 	}
 
 	GetCategoriesHandler struct {

@@ -7,14 +7,23 @@ import (
 	"inzarubin80/MemCode/internal/app/uhttp"
 	"inzarubin80/MemCode/internal/model"
 	"net/http"
-
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
+	"strconv"
 )
+
+// GetExercise godoc
+// @Summary      Получить упражнение
+// @Description  Возвращает одно упражнение по ID
+// @Tags         exercises
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "ID упражнения"
+// @Success      200      {object}  model.ExerciseDetailse
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /exercises/{id} [get]
 
 type (
 	GetExerciseService interface {
-		GetExercise(ctx context.Context, userID model.UserID, exerciseID model.ExerciseID) (*model.Exercise, error)
+		GetExercise(ctx context.Context, userID model.UserID, exerciseID int64) (*model.ExerciseDetailse, error)
 	}
 
 	GetExerciseHandler struct {
@@ -33,7 +42,7 @@ func NewGetExerciseHandler(service GetExerciseService, name string) *GetExercise
 func (h *GetExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
+	userID, ok := ctx.Value(defenitions.UserID).(int64)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 		return
@@ -46,25 +55,19 @@ func (h *GetExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Парсим UUID
-	parsedUUID, err := uuid.Parse(exerciseIDStr)
+	exerciseID, err := strconv.ParseInt(exerciseIDStr, 10, 64)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid id")
 		return
 	}
 
-	exerciseID := pgtype.UUID{
-		Bytes: parsedUUID,
-		Valid: true,
-	}
-
-	exercise, err := h.service.GetExercise(ctx, userID, model.ExerciseID(exerciseID))
+	exerciseDetailse, err := h.service.GetExercise(ctx, model.UserID(userID), exerciseID)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	jsonData, err := json.Marshal(exercise)
+	jsonData, err := json.Marshal(exerciseDetailse)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

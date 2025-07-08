@@ -6,13 +6,23 @@ import (
 	"inzarubin80/MemCode/internal/app/uhttp"
 	"inzarubin80/MemCode/internal/model"
 	"net/http"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"strconv"
 )
+
+// DeleteCategory godoc
+// @Summary      Удалить категорию
+// @Description  Удаляет категорию по ID
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "ID категории"
+// @Success      200      {object}  uhttp.SuccessResponse
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /categories/{id} [delete]
 
 type (
 	DeleteCategoryService interface {
-		DeleteCategory(ctx context.Context, userID model.UserID, categoryID model.CategoryID) error
+		DeleteCategory(ctx context.Context, userID model.UserID, categoryID int64) error
 	}
 
 	DeleteCategoryHandler struct {
@@ -31,7 +41,7 @@ func NewDeleteCategoryHandler(service DeleteCategoryService, name string) *Delet
 func (h *DeleteCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
+	userID, ok := ctx.Value(defenitions.UserID).(int64)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 		return
@@ -44,13 +54,13 @@ func (h *DeleteCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var categoryID pgtype.UUID
-	if err := categoryID.Scan(categoryIDStr); err != nil {
+	categoryID, err := strconv.ParseInt(categoryIDStr, 10, 64)
+	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid category_id")
 		return
 	}
 
-	err := h.service.DeleteCategory(ctx, userID, model.CategoryID(categoryID))
+	err = h.service.DeleteCategory(ctx, model.UserID(userID), categoryID)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

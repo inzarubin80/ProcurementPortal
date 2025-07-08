@@ -7,6 +7,16 @@ import (
 	"net/http"
 )
 
+// GetProviders godoc
+// @Summary      Получить провайдеров
+// @Description  Возвращает список доступных провайдеров аутентификации
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Success      200      {array}  string
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /providers [get]
+
 type (
 	GetProvadersHandler struct {
 		name                      string

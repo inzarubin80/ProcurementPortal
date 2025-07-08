@@ -6,12 +6,22 @@ import (
 	"inzarubin80/MemCode/internal/app/uhttp"
 	"inzarubin80/MemCode/internal/model"
 	"net/http"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"strconv"
 )
 
+// GetExerciseStat godoc
+// @Summary      Получить статистику по упражнению
+// @Description  Возвращает статистику пользователя по конкретному упражнению
+// @Tags         exercise_stats
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "ID упражнения"
+// @Success      200      {object}  model.ExerciseStat
+// @Failure      400      {object}  uhttp.ErrorResponse
+// @Router       /exercise_stat/{id} [get]
+
 type GetExerciseStatService interface {
-	GetExerciseStat(userID model.UserID, exerciseID model.ExerciseID) (*model.ExerciseStat, error)
+	GetExerciseStat(userID model.UserID, exerciseID int64) (*model.ExerciseStat, error)
 }
 
 type GetExerciseStatHandler struct {
@@ -35,13 +45,12 @@ func (h *GetExerciseStatHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		uhttp.SendErrorResponse(w, http.StatusBadRequest, "exercise_id required")
 		return
 	}
-	var exID model.ExerciseID
-	uuidVal := pgtype.UUID{}
-	if err := uuidVal.Scan(exIDStr); err != nil {
+
+	exID, err := strconv.ParseInt(exIDStr, 10, 64)
+	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid exercise_id")
 		return
 	}
-	exID = model.ExerciseID(uuidVal)
 
 	stat, err := h.service.GetExerciseStat(userID, exID)
 	if err != nil {
@@ -53,13 +62,9 @@ func (h *GetExerciseStatHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	if stat == nil {
-		uuidStr := ""
-		if uuidVal, ok := any(exID).(pgtype.UUID); ok {
-			uuidStr = uuidVal.String()
-		}
 		stat = &model.ExerciseStat{
 			UserID:             userID,
-			ExerciseID:         uuidStr,
+			ExerciseID:         exID,
 			TotalAttempts:      0,
 			SuccessfulAttempts: 0,
 			TotalTypingTime:    0,
