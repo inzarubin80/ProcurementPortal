@@ -73,8 +73,8 @@ const ManageCategories: React.FC = () => {
         showSuccess('Категория создана');
         dispatch(fetchCategories());
       } else {
-        const { name, description, programming_language } = form;
-        await dispatch(updateCategory({ id: editItem.id, updates: { name, description, programming_language } })).unwrap();
+        const { name, description, programming_language, is_common } = form;
+        await dispatch(updateCategory({ id: editItem.id, updates: { name, description, programming_language, is_common } })).unwrap();
         showSuccess('Категория обновлена');
         dispatch(fetchCategories());
       }
