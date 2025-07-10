@@ -14,7 +14,7 @@ const ManageUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
-  const isAdmin = useSelector((state: RootState) => state.user.isAdmin);
+  const user = useSelector((state: RootState) => state.user.user);
 
   useEffect(() => {
     fetchUsers();
@@ -50,7 +50,7 @@ const ManageUsers: React.FC = () => {
     }
   };
 
-  if (!isAdmin) {
+      if (!user?.is_admin) {
     return (
       <Paper sx={{ p: 2, borderRadius: 3, boxShadow: 2 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>Пользователи</Typography>

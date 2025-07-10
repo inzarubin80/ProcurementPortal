@@ -41,7 +41,7 @@ func NewDeleteExerciseHandler(service DeleteExerciseService, name string) *Delet
 func (h *DeleteExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
+	userID, ok := ctx.Value(defenitions.UserIDKey).(model.UserID)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 		return

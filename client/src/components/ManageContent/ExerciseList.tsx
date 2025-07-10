@@ -34,7 +34,7 @@ const ExerciseList: React.FC<ExerciseListProps> = ({
   const startIndex = (currentPage - 1) * exercisesPerPage;
   const endIndex = startIndex + exercisesPerPage;
   const paginatedExercises = exercises.slice(startIndex, endIndex);
-  const isAdmin = useSelector((state: RootState) => state.user.isAdmin);
+  const user = useSelector((state: RootState) => state.user.user);
 
   const handleEdit = onEdit;
 

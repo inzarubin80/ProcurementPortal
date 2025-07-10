@@ -15,7 +15,7 @@ const ManageExercises: React.FC = () => {
   const { exercises, loading: exercisesLoading, error: exercisesError } = useSelector((state: RootState) => state.exercises);
   const { categories, loading: categoriesLoading } = useSelector((state: RootState) => state.categories);
   const { languages, loading: languagesLoading } = useSelector((state: RootState) => state.languages);
-  const isAdmin = useSelector((state: RootState) => state.user.isAdmin);
+  const user = useSelector((state: RootState) => state.user.user);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [exercisePage, setExercisePage] = useState(1);
@@ -83,7 +83,7 @@ const ManageExercises: React.FC = () => {
   const handleAddClick = () => {
     // Найти выбранную категорию
     const selectedCat = categories.find(c => String(c.id) === String(selectedCategory));
-    if (!isAdmin && selectedCat && selectedCat.is_common) {
+    if (!user?.is_admin && selectedCat && selectedCat.is_common) {
       showError('Вы не можете добавлять задачи в общую категорию');
       return;
     }
@@ -98,7 +98,7 @@ const ManageExercises: React.FC = () => {
       return;
     }
     // Проверка: если задача общая и не админ, запретить сохранение
-    if (!isAdmin && form.is_common) {
+    if (!user?.is_admin && form.is_common) {
       showError('Вы не можете изменять общую задачу');
       return;
     }
@@ -130,7 +130,7 @@ const ManageExercises: React.FC = () => {
   const handleDelete = async (id: number) => {
     // Найти задачу
     const ex = exercises.find(e => e.exercise.id === id);
-    if (!isAdmin && ex && ex.exercise.is_common) {
+    if (!user?.is_admin && ex && ex.exercise.is_common) {
       showError('Вы не можете удалить общую задачу');
       return;
     }
@@ -189,7 +189,7 @@ const ManageExercises: React.FC = () => {
         categories={categories}
         triedSave={triedSave}
         onDelete={dialogType === 'edit' ? () => handleDelete(form.id) : undefined}
-        isAdmin={isAdmin}
+        isAdmin={user?.is_admin}
       />
       <Snackbar
         open={snackbar.open}

@@ -30,21 +30,37 @@ func (s *PokerService) RefreshToken(ctx context.Context, refreshToken string) (*
 		return nil, err
 	}
 
-	// 3. Генерируем и сохраняем новый refresh-токен
-	newRefreshToken, err := s.refreshTokenService.GenerateToken(claims.UserID, user.IsAdmin)
-	if err != nil {
+	// 3. Генерируем и сохраняем новый refresh-токен с повторными попытками
+	var newRefreshToken string
+	for attempts := 0; attempts < 3; attempts++ {
+		newRefreshToken, err = s.refreshTokenService.GenerateToken(claims.UserID, user.IsAdmin)
+		if err != nil {
+			return nil, err
+		}
+
+		refreshTokenModel := &model.RefreshToken{
+			UserID:    claims.UserID,
+			Token:     newRefreshToken,
+			IssuedAt:  time.Now().UTC(),
+			ExpiresAt: time.Now().UTC().Add(30 * 24 * time.Hour),
+			Revoked:   false,
+			UserAgent: "",
+			IPAddress: "",
+		}
+		err = s.CreateRefreshToken(ctx, refreshTokenModel)
+		if err == nil {
+			break
+		}
+
+		// Если токен уже существует, генерируем новый
+		if err.Error() == "token already exists" {
+			continue
+		}
+
+		// Если другая ошибка, возвращаем её
 		return nil, err
 	}
-	refreshTokenModel := &model.RefreshToken{
-		UserID:    claims.UserID,
-		Token:     newRefreshToken,
-		IssuedAt:  time.Now().UTC(),
-		ExpiresAt: time.Now().UTC().Add(30 * 24 * time.Hour),
-		Revoked:   false,
-		UserAgent: "",
-		IPAddress: "",
-	}
-	err = s.CreateRefreshToken(ctx, refreshTokenModel)
+
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +70,10 @@ func (s *PokerService) RefreshToken(ctx context.Context, refreshToken string) (*
 		return nil, err
 	}
 
+
+
 	return &model.AuthData{
-		UserID:       claims.UserID,
+		User:         *user,
 		RefreshToken: newRefreshToken,
 		AccessToken:  newAccessToken,
 	}, nil

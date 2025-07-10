@@ -103,8 +103,6 @@ func (r *Repository) GetAllUsers(ctx context.Context) ([]*model.User, error) {
 		usersRes[i] = &model.User{
 			ID:                 model.UserID(value.UserID),
 			Name:               value.Name,
-			EvaluationStrategy: "", // или value.EvaluationStrategy, если нужно
-			MaximumScore:       0,  // или value.MaximumScore, если нужно
 			IsAdmin:            value.IsAdmin,
 		}
 	}

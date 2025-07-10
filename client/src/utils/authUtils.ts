@@ -25,4 +25,18 @@ export function clearStoredAuth() {
 export function isTokenValid(): boolean {
   // Можно добавить свою логику проверки токена (например, по exp)
   return !!getStoredToken();
+}
+
+// Функция для получения сохраненных данных пользователя
+export function getStoredUserData(): { token: string | null; userID: number | null } {
+  return {
+    token: getStoredToken(),
+    userID: getStoredUserID(),
+  };
+}
+
+// Функция для проверки наличия сохраненных данных пользователя
+export function hasStoredUserData(): boolean {
+  const { token, userID } = getStoredUserData();
+  return !!(token && userID);
 } 

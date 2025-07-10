@@ -4,7 +4,7 @@ type contextKey string
 
 const (
 	AuthorizationCode                    = "authorization_code"
-	UserID                               = "user_id"
+	UserIDKey                 contextKey = "user_id"
 	DisplayName                          = "display_name"
 	DefaultEmail                         = "default_email"
 	SessionAuthenticationName            = "authentication"
@@ -12,6 +12,5 @@ const (
 	ProviderKey                          = "provider_Key"
 	Page                                 = "page"
 	PageSize                             = "page_size"
-	UserIDKey                 contextKey = "userID"
 	IsAdminKey                contextKey = "isAdmin"
 )

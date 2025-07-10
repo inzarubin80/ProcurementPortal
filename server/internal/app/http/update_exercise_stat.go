@@ -21,14 +21,14 @@ func NewUpdateExerciseStatHandler(service UpdateExerciseStatService) *UpdateExer
 }
 
 type updateExerciseStatRequest struct {
-	ExerciseID      int64  `json:"exercise_id"`
-	Attempts        int    `json:"attempts"`
-	SuccessAttempts int    `json:"success_attempts"`
+	ExerciseID      int64 `json:"exercise_id"`
+	Attempts        int   `json:"attempts"`
+	SuccessAttempts int   `json:"success_attempts"`
 }
 
 func (h *UpdateExerciseStatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
+	userID, ok := ctx.Value(defenitions.UserIDKey).(model.UserID)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusUnauthorized, "user not found")
 		return
@@ -39,7 +39,6 @@ func (h *UpdateExerciseStatHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-
 
 	stat, err := h.service.UpsertExerciseStat(userID, req.ExerciseID, req.Attempts, req.SuccessAttempts)
 	if err != nil {

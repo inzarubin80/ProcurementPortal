@@ -45,7 +45,7 @@ import {
 } from '../store/slices/userExerciseSlice';
 import { fetchLanguages } from '../store/slices/languageSlice';
 import { fetchCategories } from '../store/slices/categorySlice';
-import { getUser } from '../store/slices/userSlice';
+
 import { UserExerciseWithDetails } from '../types/api';
 
 const UserTaskList: React.FC = () => {
@@ -93,9 +93,7 @@ const UserTaskList: React.FC = () => {
     }));
   }, [selectedLanguage, selectedCategory, currentPage, dispatch, filtersLoaded]);
 
-  useEffect(() => {
-    dispatch(getUser());
-  }, [dispatch]); 
+
 
   // Обработка бесконечного скролла
   useEffect(() => {

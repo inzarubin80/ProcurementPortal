@@ -1,6 +1,8 @@
 package tokenservice
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"inzarubin80/MemCode/internal/model"
 	"time"
@@ -26,6 +28,12 @@ func NewtokenService(secretKey []byte, duration time.Duration, tokenType string)
 }
 
 func (a *tokenService) GenerateToken(userID model.UserID, isAdmin bool) (string, error) {
+	// Генерируем случайные байты для уникальности токена
+	randomBytes := make([]byte, 16)
+	if _, err := rand.Read(randomBytes); err != nil {
+		return "", fmt.Errorf("failed to generate random bytes: %w", err)
+	}
+	randomHex := hex.EncodeToString(randomBytes)
 
 	claims := &model.Claims{
 		UserID:    userID,
@@ -33,6 +41,7 @@ func (a *tokenService) GenerateToken(userID model.UserID, isAdmin bool) (string,
 		TokenType: a.tokenType,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(a.duration).Unix(),
+			Id:        randomHex, // Добавляем случайный ID для уникальности
 		},
 	}
 

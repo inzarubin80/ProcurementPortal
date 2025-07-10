@@ -16,7 +16,7 @@ const ManageCategories: React.FC = () => {
   const [categoryPage, setCategoryPage] = useState(1);
   const categoriesPerPage = 12;
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
-  const isAdmin = useSelector((state: RootState) => state.user.isAdmin);
+  const user = useSelector((state: RootState) => state.user.user);
 
   const {
     openDialog,
@@ -142,7 +142,8 @@ const ManageCategories: React.FC = () => {
         languages={languages}
         onEdit={(category) => openEditDialog('category', category)}
         onDelete={handleDelete}
-        isAdmin={isAdmin}
+        isAdmin={user?.is_admin}
+        userId={user?.user_id}
       />
       <EntityDialog
         open={openDialog}
@@ -156,7 +157,7 @@ const ManageCategories: React.FC = () => {
         categories={categories}
         triedSave={triedSave}
         onDelete={dialogType === 'edit' ? () => handleDelete(form.id) : undefined}
-        isAdmin={isAdmin}
+        isAdmin={user?.is_admin}
       />
       <Snackbar
         open={snackbar.open}

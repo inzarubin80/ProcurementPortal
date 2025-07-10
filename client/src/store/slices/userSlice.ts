@@ -1,18 +1,18 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { authAxios, publicAxios } from '../../service/http-common';
-import { getStoredToken, getStoredUserID, clearStoredAuth, setStoredAuth, isTokenValid } from '../../utils/authUtils';
+import { getStoredToken, clearStoredAuth, setStoredAuth, isTokenValid, hasStoredUserData, getStoredUserData } from '../../utils/authUtils';
 
 // Типы для пользователя
 export interface User {
-  id: number;
+  user_id: number;
   name: string;
-  email?: string;
-  avatar_url?: string;
+  is_admin: boolean 
 }
 
 export interface AuthData {
-  Token: string;
-  UserID: number;
+  user: User;
+  refresh_token:string;
+  access_token:string;
 }
 
 export interface LoginRequest {
@@ -22,24 +22,21 @@ export interface LoginRequest {
 
 // Состояние пользователя
 interface UserState {
-  userID: number | null;
+  user: User| null;
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  userName: string | null;
-  isAdmin: boolean;
+
 }
 
 // Начальное состояние
 const initialState: UserState = {
-  userID: getStoredUserID(),
-  accessToken: getStoredToken(),
-  isAuthenticated: isTokenValid(),
+  user: null,
+  accessToken: null,
+  isAuthenticated: false,
   isLoading: false,
   error: null,
-  userName: null,
-  isAdmin: false,
 };
 
 // Async thunk для логина
@@ -57,18 +54,7 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Async thunk для получения пользователя
-export const getUser = createAsyncThunk(
-  'user/getUser',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await authAxios.get('/user');
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || 'User check failed');
-    }
-  }
-);
+
 
 // Async thunk для обновления имени пользователя
 export const updateUserName = createAsyncThunk(
@@ -96,27 +82,7 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
-// Async thunk для проверки токена при загрузке приложения
-export const checkAuthToken = createAsyncThunk(
-  'user/checkAuthToken',
-  async (_, { rejectWithValue }) => {
-    try {
-      const token = getStoredToken();
-      const userID = getStoredUserID();
-      
-      if (!token || !userID) {
-        throw new Error('No token found');
-      }
 
-      const response = await authAxios.get('/user');
-      return response.data;
-    } catch (error: any) {
-      // Если токен недействителен, очищаем localStorage
-      clearStoredAuth();
-      return rejectWithValue(error?.response?.data?.message || 'Token validation failed');
-    }
-  }
-);
 
 // Async thunk для обновления access token
 export const refreshAccessToken = createAsyncThunk(
@@ -133,6 +99,59 @@ export const refreshAccessToken = createAsyncThunk(
   }
 );
 
+// Async thunk для инициализации состояния пользователя
+export const initializeUserState = createAsyncThunk(
+  'user/initializeUserState',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Проверяем наличие сохраненных данных пользователя
+      if (!hasStoredUserData()) {
+        throw new Error('No stored user data found');
+      }
+      
+      const response = await authAxios.get('/user');
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'User initialization failed');
+    }
+  }
+);
+
+// Async thunk для получения пользователя
+export const getUser = createAsyncThunk(
+  'user/getUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.get('/user');
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'User check failed');
+    }
+  }
+);
+
+// Async thunk для восстановления состояния пользователя из localStorage
+export const restoreUserState = createAsyncThunk(
+  'user/restoreUserState',
+  async (_, { rejectWithValue }) => {
+    try {
+      const { token, userID } = getStoredUserData();
+      if (!token || !userID) {
+        throw new Error('No stored user data found');
+      }
+      
+      // Возвращаем базовые данные пользователя из localStorage
+      return {
+        user_id: userID,
+        name: 'Пользователь', // Временное имя, будет обновлено при загрузке с сервера
+        is_admin: false, // Временное значение, будет обновлено при загрузке с сервера
+      };
+    } catch (error: any) {
+      return rejectWithValue(error?.message || 'Failed to restore user state');
+    }
+  }
+);
+
 // Создание slice
 const userSlice = createSlice({
   name: 'user',
@@ -142,18 +161,17 @@ const userSlice = createSlice({
       state.error = null;
     },
     setLoginData: (state, action: PayloadAction<AuthData>) => {
-      state.userID = action.payload.UserID;
-      state.accessToken = action.payload.Token;
+      state.user = action.payload.user;
+      state.accessToken = action.payload.access_token;
       state.isAuthenticated = true;
       state.error = null;
-      setStoredAuth(action.payload.Token, action.payload.UserID);
+      setStoredAuth(action.payload.access_token, action.payload.user.user_id);
     },
     logout: (state) => {
-      state.userID = null;
+      state.user = null;
       state.accessToken = null;
       state.isAuthenticated = false;
       state.error = null;
-      state.userName = null;
       clearStoredAuth();
     },
   },
@@ -166,44 +184,108 @@ const userSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.userID = action.payload.UserID;
-        state.accessToken = action.payload.Token;
+        state.user = action.payload.user;
+        state.accessToken = action.payload.access_token;
         state.isAuthenticated = true;
         state.error = null;
-        setStoredAuth(action.payload.Token, action.payload.UserID);
+        // Сохраняем данные пользователя в localStorage
+        setStoredAuth(action.payload.access_token, action.payload.user.user_id);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
+      
+      // refreshAccessTokennpm
+      .addCase(refreshAccessToken.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(refreshAccessToken.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.accessToken = action.payload.access_token;
+        state.isAuthenticated = true;
+        state.error = null;
+        // Сохраняем данные пользователя в localStorage
+        setStoredAuth(action.payload.access_token, action.payload.user.user_id);
+      })
+      .addCase(refreshAccessToken.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+      // Initialize user state
+      .addCase(initializeUserState.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(initializeUserState.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+        state.isAuthenticated = true;
+        state.error = null;
+        // Сохраняем данные пользователя в localStorage
+        if (action.payload && action.payload.user.user_id) {
+          setStoredAuth(getStoredToken() || '', action.payload.user.user_id);
+        }
+      })
+      .addCase(initializeUserState.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.accessToken = null;
+        state.error = action.payload as string;
+        clearStoredAuth();
+      })
+
       // Get user
       .addCase(getUser.pending, (state) => {
         state.isLoading = true;
+        state.error = null;
       })
       .addCase(getUser.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.user = action.payload;
         state.isAuthenticated = true;
         state.error = null;
-        state.userID = action.payload.ID;
-        state.userName = action.payload.Name;
-        state.isAdmin = action.payload.IsAdmin;
+        // Сохраняем данные пользователя в localStorage
+        if (action.payload && action.payload.user_id) {
+          setStoredAuth(getStoredToken() || '', action.payload.user_id);
+        }
       })
-      .addCase(getUser.rejected, (state) => {
+      .addCase(getUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
-        state.userID = null;
+        state.user = null;
         state.accessToken = null;
-        state.userName = null;
+        state.error = action.payload as string;
         clearStoredAuth();
       })
-      // Update name
-      .addCase(updateUserName.fulfilled, (state, action) => {
-        state.userID = action.payload.ID;
-        state.userName = action.payload.Name;
+
+      // Restore user state
+      .addCase(restoreUserState.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
       })
+      .addCase(restoreUserState.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(restoreUserState.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.accessToken = null;
+        state.error = action.payload as string;
+        clearStoredAuth();
+      })
+
       // Logout
       .addCase(logoutUser.fulfilled, (state) => {
-        state.userID = null;
+        state.user = null;
         state.accessToken = null;
         state.isAuthenticated = false;
         state.error = null;
@@ -211,30 +293,15 @@ const userSlice = createSlice({
       })
       .addCase(logoutUser.rejected, (state) => {
         // Даже если logout на сервере не удался, очищаем локальное состояние
-        state.userID = null;
+        state.user = null;
         state.accessToken = null;
         state.isAuthenticated = false;
         state.error = null;
         clearStoredAuth();
       })
-      // Check auth token
-      .addCase(checkAuthToken.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(checkAuthToken.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.error = null;
-      })
-      .addCase(checkAuthToken.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = false;
-        state.userID = null;
-        state.accessToken = null;
-        state.error = action.payload as string;
-        clearStoredAuth();
-      });
+      
+      
+      ;
   },
 });
 

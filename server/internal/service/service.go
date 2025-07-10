@@ -62,6 +62,7 @@ type (
 		RevokeRefreshToken(ctx context.Context, token string) error
 		DeleteRefreshTokenByToken(ctx context.Context, token string) error
 		DeleteAllUserRefreshTokens(ctx context.Context, userID model.UserID) error
+		CleanupExpiredTokens(ctx context.Context) error
 	}
 
 	TokenService interface {
@@ -307,4 +308,8 @@ func (s *PokerService) DeleteRefreshTokenByToken(ctx context.Context, token stri
 
 func (s *PokerService) DeleteAllUserRefreshTokens(ctx context.Context, userID model.UserID) error {
 	return s.repository.DeleteAllUserRefreshTokens(ctx, userID)
+}
+
+func (s *PokerService) CleanupExpiredTokens(ctx context.Context) error {
+	return s.repository.CleanupExpiredTokens(ctx)
 }

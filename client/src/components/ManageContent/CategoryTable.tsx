@@ -18,6 +18,7 @@ interface CategoryTableProps {
   onEdit: (category: Category) => void;
   onDelete: (id: number) => void;
   isAdmin?: boolean;
+  userId?: number; // добавлено
 }
 
 const CategoryTable: React.FC<CategoryTableProps> = ({
@@ -26,6 +27,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
   onEdit,
   onDelete,
   isAdmin,
+  userId,
 }) => {
   return (
     <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
@@ -49,7 +51,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
                 {cat.programming_language}
               </TableCell>
               <TableCell>
-                {isAdmin && !cat.is_common && (
+                {(!cat.is_common && (isAdmin || cat.user_id === userId)) && (
                   <>
                     <IconButton onClick={() => onEdit(cat)}>
                       <EditIcon />

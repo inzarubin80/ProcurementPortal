@@ -51,11 +51,9 @@ type (
 	}
 
 	User struct {
-		ID                 UserID
-		Name               string
-		EvaluationStrategy string
-		MaximumScore       int
-		IsAdmin            bool
+		ID                 UserID `json:"user_id"`
+		Name               string `json:"name"`
+		IsAdmin            bool `json:"is_admin"`
 	}
 
 	UserAuthProviders struct {
@@ -66,9 +64,9 @@ type (
 	}
 
 	AuthData struct {
-		UserID       UserID
-		RefreshToken string
-		AccessToken  string
+		User   User `json:"user"`
+		RefreshToken string `json:"refresh_token"`
+		AccessToken  string	`json:"access_token"`	
 	}
 
 	Claims struct {

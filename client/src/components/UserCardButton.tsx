@@ -44,11 +44,12 @@ function stringAvatar(name?: string | null) {
 
 const UserCardButton = () => {
     const navigate = useNavigate();
-    const userName = useSelector((state: RootState) => state.user.userName);
-    console.log(userName);
+    const user = useSelector((state: RootState) => state.user.user);
+    console.log('UserCardButton - user:', user);
+    console.log('UserCardButton - user?.name:', user?.name);
     return (
         <Box>
-             <Avatar {...stringAvatar(userName)} onClick={() => navigate('/profile')}/>
+             <Avatar {...stringAvatar(user?.name)} onClick={() => navigate('/profile')}/>
         </Box>
     );
 };

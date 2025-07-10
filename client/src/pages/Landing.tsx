@@ -29,14 +29,14 @@ import { fetchUserStats } from '../store/slices/userStatsSlice';
 const Landing: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { userID, isAuthenticated, userName } = useSelector((state: RootState) => state.user);
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.user);
   const { userStats, isLoading, error } = useSelector((state: RootState) => state.userStats);
 
   useEffect(() => {
-    if (isAuthenticated && userID) {
+    if (isAuthenticated && user?.user_id) {
       dispatch(fetchUserStats());
     }
-  }, [isAuthenticated, userID, dispatch]);
+  }, [isAuthenticated, user?.user_id, dispatch]);
 
   // Отладочная информация
   useEffect(() => {
@@ -105,7 +105,7 @@ const Landing: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: '#1da1f2', mb: 2 }}>
-        Добро пожаловать, {userName || 'Пользователь'}!
+        Добро пожаловать, {user?.name || 'Пользователь'}!
       </Typography>
 
       {error ? (

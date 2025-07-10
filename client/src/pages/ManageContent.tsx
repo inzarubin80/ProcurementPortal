@@ -27,6 +27,8 @@ import ManageUsers from '../components/ManageContent/ManageUsers';
 const ManageContent: React.FC = () => {
   const [tab, setTab] = useState(0);
   const handleTabChange = (_: any, newValue: number) => setTab(newValue);
+  const user = useSelector((state: RootState) => state.user.user);
+  const isAdmin = user?.is_admin;
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Paper sx={{ p: 2, mb: 3, borderRadius: 3, boxShadow: 2 }}>
@@ -34,9 +36,9 @@ const ManageContent: React.FC = () => {
         <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 2 }}>
           <Tab label="Упражнения" />
           <Tab label="Категории" />
-          <Tab label="Пользователи" />
+          {isAdmin && <Tab label="Пользователи" />}
         </Tabs>
-        {tab === 0 ? <ManageExercises /> : tab === 1 ? <ManageCategories /> : <ManageUsers />}
+        {tab === 0 ? <ManageExercises /> : tab === 1 ? <ManageCategories /> : (isAdmin ? <ManageUsers /> : null)}
       </Paper>
     </Container>
   );

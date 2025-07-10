@@ -33,11 +33,7 @@ type (
 		store   *sessions.CookieStore
 	}
 
-	ResponseLoginData struct {
-		Token  string
-		UserID model.UserID
-	}
-
+	
 	RequestLoginData struct {
 		AuthorizationCode string
 		ProviderKey       string
@@ -92,12 +88,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responseLoginData := &ResponseLoginData{
-		Token:  authData.AccessToken,
-		UserID: authData.UserID,
-	}
-
-	jsonResponseLoginData, err := json.Marshal(responseLoginData)
+	jsonResponseLoginData, err := json.Marshal(authData)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

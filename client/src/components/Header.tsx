@@ -10,8 +10,12 @@ import UserCardButton from './UserCardButton';
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { userID, isAuthenticated } = useSelector((state: RootState) => state.user);
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.user);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+  // Отладочная информация
+  console.log('Header - isAuthenticated:', isAuthenticated);
+  console.log('Header - user:', user);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -65,7 +69,7 @@ const Header: React.FC = () => {
           </>
         )}
         <Box sx={{ flexGrow: 1 }} />
-        {isAuthenticated && userID ? (
+        {isAuthenticated && user ? (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box onClick={handleMenu} sx={{ cursor: 'pointer' }}>
               <UserCardButton />

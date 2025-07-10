@@ -7,6 +7,9 @@ import authProviderReducer from './slices/authProviderSlice';
 import userStatsReducer from './slices/userStatsSlice';
 import userExerciseReducer from './slices/userExerciseSlice';
 import difficultyReducer from './slices/difficultySlice';
+import { localStorageMiddleware, loadUserState } from './middleware/localStorageMiddleware';
+
+const preloadedUserState = loadUserState();
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +22,11 @@ export const store = configureStore({
     userExercises: userExerciseReducer,
     difficulty: difficultyReducer,
   },
+  preloadedState: {
+    user: preloadedUserState,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(localStorageMiddleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

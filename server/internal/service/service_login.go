@@ -53,7 +53,6 @@ func (s *PokerService) Login(ctx context.Context, providerKey string, authorizat
 		return nil, err
 	}
 
-	// Сохраняем refresh-токен в базу
 	refreshTokenModel := &model.RefreshToken{
 		UserID:    userID,
 		Token:     refreshToken,
@@ -72,9 +71,9 @@ func (s *PokerService) Login(ctx context.Context, providerKey string, authorizat
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return &model.AuthData{
-		UserID:       userID,
+		User:       *user,
 		RefreshToken: refreshToken,
 		AccessToken:  accessToken,
 	}, nil

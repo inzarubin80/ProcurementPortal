@@ -124,7 +124,8 @@ func (a *App) ListenAndServe() error {
 	a.mux.Handle(a.config.path.login, appHttp.NewLoginHandler(a.pokerService, a.config.path.login, a.store))
 	a.mux.Handle(a.config.path.refreshToken, appHttp.NewRefreshTokenHandler(a.pokerService, a.config.path.refreshToken, a.store))
 	a.mux.Handle(a.config.path.getProviders, appHttp.NewProvadersHandler(a.providersOauthConfFrontend, a.config.path.refreshToken))
-
+	a.mux.Handle(a.config.path.logOut, appHttp.NewLogOutHandlerHandler(a.pokerService,  a.config.path.logOut, a.store))
+	
 	// Languages handler (без авторизации)
 	a.mux.Handle(a.config.path.getLanguages, appHttp.NewGetLanguagesHandler("get_languages"))
 
@@ -143,7 +144,7 @@ func NewApp(ctx context.Context, config config, dbConn *pgxpool.Pool) (*App, err
 	// Swagger UI
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
-	accessTokenService := tokenservice.NewtokenService([]byte(config.sectrets.accessTokenSecret), 2*time.Hour, model.Access_Token_Type)
+	accessTokenService := tokenservice.NewtokenService([]byte(config.sectrets.accessTokenSecret), 30*time.Minute, model.Access_Token_Type)
 	refreshTokenService := tokenservice.NewtokenService([]byte(config.sectrets.refreshTokenSecret), 24*time.Hour, model.Refresh_Token_Type)
 
 	providerOauthConfFrontend := []authinterface.ProviderOauthConfFrontend{}
@@ -171,8 +172,6 @@ func NewApp(ctx context.Context, config config, dbConn *pgxpool.Pool) (*App, err
 		AllowedOrigins: []string{
 			"https://memo-code.ru",
 			"https://api.memo-code.ru",
-			"https://codekata.ru",
-			"https://api.codekata.ru",
 			"http://localhost:3000",
 		},
 		// Добавляем все необходимые методы

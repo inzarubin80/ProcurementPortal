@@ -31,7 +31,7 @@ func NewGetExercisesHandler(service GetExercisesService, name string) *GetExerci
 func (h *GetExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
+	userID, ok := ctx.Value(defenitions.UserIDKey).(model.UserID)
 	if !ok {
 		userID = 0 // Для неавторизованных пользователей
 	}

@@ -8,7 +8,7 @@ import { fetchUserStats } from '../store/slices/userStatsSlice';
 
 const Profile: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const userName = useSelector((state: RootState) => state.user.userName);
+  const user = useSelector((state: RootState) => state.user.user);
   const userStats = useSelector((state: RootState) => state.userStats.userStats);
 
 
@@ -25,7 +25,7 @@ const Profile: React.FC = () => {
             <AccountCircle sx={{ fontSize: 48 }} />
           </Avatar>
           <Box>
-            <Typography variant="h5" fontWeight="bold">{userName || 'Пользователь'}</Typography>
+            <Typography variant="h5" fontWeight="bold">{user?.name || 'Пользователь'}</Typography>
             <Typography color="text.secondary">Профиль пользователя</Typography>
           </Box>
         </Stack>

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"inzarubin80/MemCode/internal/model"
 	sqlc_repository "inzarubin80/MemCode/internal/repository_sqlc"
 	"sync"
@@ -133,6 +134,15 @@ func (r *Repository) IsUserExercise(ctx context.Context, userID model.UserID, ex
 func (r *Repository) CreateRefreshToken(ctx context.Context, token *model.RefreshToken) error {
 	_, err := r.conn.Exec(ctx, `INSERT INTO refresh_tokens (user_id, token, issued_at, expires_at, revoked, user_agent, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		token.UserID, token.Token, token.IssuedAt, token.ExpiresAt, token.Revoked, token.UserAgent, token.IPAddress)
+
+	// Проверяем на ошибку дублирования
+	if err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok {
+			if pgErr.Code == "23505" { // Код ошибки дублирования
+				return fmt.Errorf("token already exists")
+			}
+		}
+	}
 	return err
 }
 
@@ -158,5 +168,11 @@ func (r *Repository) DeleteRefreshTokenByToken(ctx context.Context, token string
 
 func (r *Repository) DeleteAllUserRefreshTokens(ctx context.Context, userID model.UserID) error {
 	_, err := r.conn.Exec(ctx, `DELETE FROM refresh_tokens WHERE user_id = $1`, userID)
+	return err
+}
+
+// CleanupExpiredTokens удаляет истекшие токены
+func (r *Repository) CleanupExpiredTokens(ctx context.Context) error {
+	_, err := r.conn.Exec(ctx, `DELETE FROM refresh_tokens WHERE expires_at < NOW() OR revoked = TRUE`)
 	return err
 }

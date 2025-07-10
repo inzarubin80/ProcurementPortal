@@ -44,7 +44,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
-  const isAdmin = useSelector((state: RootState) => state.user.isAdmin);
+  const user = useSelector((state: RootState) => state.user.user);
   return (
     <Card variant="outlined" sx={{ borderRadius: 3, boxShadow: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
       {exerciseDetailse.exercise.is_common && (
@@ -89,13 +89,13 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-              {(!exercise.is_common || isAdmin) && (
+              {(!exercise.is_common || user?.is_admin) && (
                 <MenuItem onClick={() => { handleMenuClose(); onEdit(exerciseDetailse); }}>
                   <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
                   <ListItemText primary="Редактировать" />
                 </MenuItem>
               )}
-              {(!exercise.is_common || isAdmin) && (
+              {(!exercise.is_common || user?.is_admin) && (
                 <MenuItem onClick={() => { handleMenuClose(); onDelete(exerciseDetailse); }}>
                   <ListItemIcon><DeleteIcon fontSize="small" /></ListItemIcon>
                   <ListItemText primary="Удалить" />

@@ -42,7 +42,7 @@ func NewGetExerciseHandler(service GetExerciseService, name string) *GetExercise
 func (h *GetExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
+	userID, ok := ctx.Value(defenitions.UserIDKey).(model.UserID)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 		return

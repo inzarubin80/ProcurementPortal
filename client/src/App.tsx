@@ -10,9 +10,6 @@ import AuthCallback from './pages/AuthCallback/AuthCallback';
 import Landing from './pages/Landing';
 import Header from './components/Header';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import { getUser } from './store/slices/userSlice';
-import { AppDispatch } from './store';
-import { useDispatch } from 'react-redux';
 
 const NoMatch: React.FC = () => {
   return (
@@ -26,11 +23,8 @@ const NoMatch: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
 
-  React.useEffect(() => {
-    dispatch(getUser());
-  }, [dispatch]); 
+
 
   return (
     <>
