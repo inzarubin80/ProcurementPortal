@@ -58,7 +58,7 @@ func (q *Queries) AddUserExercise(ctx context.Context, arg *AddUserExerciseParam
 }
 
 const countCategories = `-- name: CountCategories :one
-SELECT COUNT(*) FROM categories WHERE user_id = $1 AND is_active = TRUE
+SELECT COUNT(*) FROM categories WHERE user_id in ($1, 0)  AND is_active = TRUE
 `
 
 func (q *Queries) CountCategories(ctx context.Context, userID int64) (int64, error) {
@@ -69,7 +69,7 @@ func (q *Queries) CountCategories(ctx context.Context, userID int64) (int64, err
 }
 
 const countCategoriesByLanguage = `-- name: CountCategoriesByLanguage :one
-SELECT COUNT(*) FROM categories WHERE user_id = $1 AND programming_language = $2 AND is_active = TRUE
+SELECT COUNT(*) FROM categories WHERE user_id in ($1, 0)  AND programming_language = $2 AND is_active = TRUE
 `
 
 type CountCategoriesByLanguageParams struct {
@@ -108,7 +108,7 @@ func (q *Queries) CountExercisesByCategory(ctx context.Context, categoryID int64
 
 const countExercisesFiltered = `-- name: CountExercisesFiltered :one
 SELECT COUNT(*) FROM exercises e
-WHERE (e.user_id = $1 OR e.is_common = TRUE)
+WHERE e.user_id in ($1, 0) 
   AND e.is_active = TRUE
   AND ($2::varchar = '' OR e.programming_language = $2)
   AND ($3::bigint = 0 OR e.category_id = $3)
@@ -361,7 +361,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]*User, error) {
 const getCategories = `-- name: GetCategories :many
 SELECT c.id, c.user_id, c.name, c.description, c.programming_language, c.color, c.icon, c.status, c.created_at, c.updated_at, c.is_active, c.is_common
 FROM categories c
-WHERE c.user_id = $1 AND c.is_active = TRUE
+WHERE c.user_id in ($1, 0)  AND c.is_active = TRUE
 ORDER BY c.created_at DESC
 `
 
@@ -400,7 +400,7 @@ func (q *Queries) GetCategories(ctx context.Context, userID int64) ([]*Category,
 
 const getCategoriesByLanguage = `-- name: GetCategoriesByLanguage :many
 SELECT id, user_id, name, description, programming_language, color, icon, status, created_at, updated_at, is_active, is_common FROM categories
-WHERE user_id = $1 AND programming_language = $2 AND is_active = TRUE
+WHERE user_id in ($1, 0)  AND programming_language = $2 AND is_active = TRUE
 ORDER BY created_at DESC
 LIMIT $3 OFFSET $4
 `
@@ -613,9 +613,8 @@ LEFT JOIN user_exercises ue
 LEFT JOIN exercise_stats es
   ON es.exercise_id = e.id AND ue.user_id = $1
 
-
 WHERE
-  (e.user_id = $1 OR e.is_common = TRUE)
+  e.user_id in ($1, 0) 
   AND e.is_active = TRUE
   AND ($2::varchar  = '' OR e.programming_language = $2)
   AND ($3::bigint = 0 OR e.category_id = $3)

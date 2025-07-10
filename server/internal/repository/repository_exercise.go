@@ -20,8 +20,12 @@ func NewExerciseRepository(queries *sqlc_repository.Queries, conn DBTX) *Exercis
 
 func (r *ExerciseRepository) CreateExercise(ctx context.Context, userID model.UserID, isAdmin bool, exercise *model.Exercise) (*model.Exercise, error) {
 	// userID и isAdmin можно использовать для проверки прав, если потребуется
+	if exercise.IsCommon {
+		userID = 0
+	}
+	
 	params := &sqlc_repository.CreateExerciseParams{
-		UserID:              int64(exercise.UserID),
+		UserID:              int64(userID),
 		Title:               exercise.Title,
 		Description:         &exercise.Description,
 		CategoryID:          exercise.CategoryID,
@@ -71,13 +75,18 @@ func (r *ExerciseRepository) GetExercise(ctx context.Context, userID model.UserI
 }
 
 func (r *ExerciseRepository) UpdateExercise(ctx context.Context, userID model.UserID, isAdmin bool, exerciseID int64, exercise *model.Exercise) (*model.Exercise, error) {
+	
+	if exercise.IsCommon {
+		userID = 0
+	}
+	
 	params := &sqlc_repository.UpdateExerciseParams{
 		Title:               exercise.Title,
 		Description:         &exercise.Description,
 		CategoryID:          exercise.CategoryID,
 		CodeToRemember:      exercise.CodeToRemember,
 		ID:                  exercise.ID,
-		UserID:              int64(exercise.UserID),
+		UserID:              int64(userID),
 		ProgrammingLanguage: string(exercise.ProgrammingLanguage),
 		IsCommon:            &exercise.IsCommon,
 		Column9:             isAdmin,

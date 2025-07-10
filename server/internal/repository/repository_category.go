@@ -17,8 +17,13 @@ func NewCategoryRepository(queries *sqlc_repository.Queries) *CategoryRepository
 }
 
 func (r *CategoryRepository) CreateCategory(ctx context.Context, userID model.UserID, isAdmin bool, category *model.Category) (*model.Category, error) {
+	
+	if category.IsCommon {
+		userID = 0
+	}
+	
 	dbCategory, err := r.queries.CreateCategory(ctx, &sqlc_repository.CreateCategoryParams{
-		UserID:              int64(category.UserID),
+		UserID:              int64(userID),
 		Name:                category.Name,
 		Description:         &category.Description,
 		ProgrammingLanguage: string(category.ProgrammingLanguage),
@@ -82,6 +87,12 @@ func (r *CategoryRepository) GetCategory(ctx context.Context, userID model.UserI
 }
 
 func (r *CategoryRepository) UpdateCategory(ctx context.Context, userID model.UserID, isAdmin bool, categoryID int64, category *model.Category) (*model.Category, error) {
+	
+	if category.IsCommon {
+		userID = 0
+	}
+	
+
 	params := &sqlc_repository.UpdateCategoryParams{
 		Name:                category.Name,
 		Description:         &category.Description,
@@ -91,7 +102,7 @@ func (r *CategoryRepository) UpdateCategory(ctx context.Context, userID model.Us
 		Status:              &category.Status,
 		IsCommon:            &category.IsCommon,
 		ID:                  int64(category.ID),
-		UserID:              int64(category.UserID),
+		UserID:              int64(userID),
 		Column10:            isAdmin,
 	}
 	dbCategory, err := r.queries.UpdateCategory(ctx, params)

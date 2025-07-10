@@ -78,20 +78,20 @@ INSERT INTO categories (
 -- name: GetCategories :many
 SELECT c.id, c.user_id, c.name, c.description, c.programming_language, c.color, c.icon, c.status, c.created_at, c.updated_at, c.is_active, c.is_common
 FROM categories c
-WHERE c.user_id = $1 AND c.is_active = TRUE
+WHERE c.user_id in ($1, 0)  AND c.is_active = TRUE
 ORDER BY c.created_at DESC;
 
 -- name: GetCategoriesByLanguage :many
 SELECT * FROM categories
-WHERE user_id = $1 AND programming_language = $2 AND is_active = TRUE
+WHERE user_id in ($1, 0)  AND programming_language = $2 AND is_active = TRUE
 ORDER BY created_at DESC
 LIMIT $3 OFFSET $4;
 
 -- name: CountCategories :one
-SELECT COUNT(*) FROM categories WHERE user_id = $1 AND is_active = TRUE;
+SELECT COUNT(*) FROM categories WHERE user_id in ($1, 0)  AND is_active = TRUE;
 
 -- name: CountCategoriesByLanguage :one
-SELECT COUNT(*) FROM categories WHERE user_id = $1 AND programming_language = $2 AND is_active = TRUE;
+SELECT COUNT(*) FROM categories WHERE user_id in ($1, 0)  AND programming_language = $2 AND is_active = TRUE;
 
 -- name: GetCategory :one
 SELECT c.id, c.user_id, c.name, c.description, c.programming_language, c.color, c.icon, c.status, c.created_at, c.updated_at, c.is_active, c.is_common
@@ -156,9 +156,8 @@ LEFT JOIN user_exercises ue
 LEFT JOIN exercise_stats es
   ON es.exercise_id = e.id AND ue.user_id = $1
 
-
 WHERE
-  (e.user_id = $1 OR e.is_common = TRUE)
+  e.user_id in ($1, 0) 
   AND e.is_active = TRUE
   AND ($2::varchar  = '' OR e.programming_language = $2)
   AND ($3::bigint = 0 OR e.category_id = $3)
@@ -171,7 +170,7 @@ LIMIT $4 OFFSET $5;
 -- name: CountExercisesFiltered :one
 -- $1: user_id, $2: programming_language, $3: category_id
 SELECT COUNT(*) FROM exercises e
-WHERE (e.user_id = $1 OR e.is_common = TRUE)
+WHERE e.user_id in ($1, 0) 
   AND e.is_active = TRUE
   AND ($2::varchar = '' OR e.programming_language = $2)
   AND ($3::bigint = 0 OR e.category_id = $3);
