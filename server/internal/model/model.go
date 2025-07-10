@@ -89,6 +89,7 @@ type (
 		IsActive            bool                `json:"is_active"`
 		SuccessfulAttempts  *int                `json:"successful_attempts,omitempty"`
 		IsCommon            bool                `json:"is_common"`
+		CategoryName        string 				`json:"category_name"`
 	}
 
 	Category struct {
@@ -183,6 +184,8 @@ type (
 		UserAgent string    `json:"user_agent"`
 		IPAddress string    `json:"ip_address"`
 	}
+	
+
 )
 
 // GetSupportedLanguages возвращает список поддерживаемых языков программирования

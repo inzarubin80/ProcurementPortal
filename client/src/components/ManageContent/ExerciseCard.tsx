@@ -23,7 +23,7 @@ import { RootState } from '../../store';
 interface ExerciseCardProps {
   exerciseDetailse: ExerciseDetailse;
   languages: ProgrammingLanguage[];
-  categories: Category[];
+  //categories: Category[];
   onEdit: (exercise: ExerciseDetailse) => void;
   onDelete: (exercise: ExerciseDetailse) => void; // добавляем проп
 }
@@ -31,7 +31,7 @@ interface ExerciseCardProps {
 const ExerciseCard: React.FC<ExerciseCardProps> = ({
   exerciseDetailse,
   languages,
-  categories,
+  //categories,
   onEdit,
   onDelete,
 }) => {
@@ -122,7 +122,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
           {exercise.description}
         </Typography>
         <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: 'wrap' }}>
-          <Chip size="small" label={categories.find(c => c.id === exercise.category_id)?.name || '—'} />
+          <Chip size="small" label={exercise.category_name || '—'} />
         </Stack>
       </CardContent>
       <CardActions sx={{ mt: 'auto', p: 2, pt: 0 }}>

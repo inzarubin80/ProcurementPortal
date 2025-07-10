@@ -179,6 +179,7 @@ func (r *ExerciseRepository) GetExercisesFiltered(ctx context.Context, userID mo
 				UpdatedAt:           row.UpdatedAt.Time,
 				IsActive:            isActive,
 				IsCommon:            *row.IsCommon,
+				CategoryName:        row.CategoryName,
 			},
 			UserIfo: model.UserInfo{
 				IsSolved:       row.IsSolved,
@@ -306,6 +307,7 @@ func (r *ExerciseRepository) GetUserExercisesFiltered(ctx context.Context, userI
 				UpdatedAt:           row.UpdatedAt.Time,
 				IsActive:            isActive,
 				IsCommon:            isCommon,
+				CategoryName:        row.CategoryName,
 			},
 			UserIfo: model.UserInfo{
 				IsSolved:       row.IsSolved,

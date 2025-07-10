@@ -36,6 +36,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
           <TableRow>
             <TableCell>Название</TableCell>
             <TableCell>Язык</TableCell>
+            <TableCell>Общая</TableCell> {/* Новая колонка */}
             <TableCell>Действия</TableCell>
           </TableRow>
         </TableHead>
@@ -49,6 +50,9 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
                   dangerouslySetInnerHTML={{__html: languages.find(l => l.value === cat.programming_language)?.icon_svg || ''}} 
                 />
                 {cat.programming_language}
+              </TableCell>
+              <TableCell>
+                {cat.is_common ? 'Да' : 'Нет'}
               </TableCell>
               <TableCell>
                 {(!cat.is_common && (isAdmin || cat.user_id === userId)) && (

@@ -33,16 +33,14 @@ INSERT INTO exercises (
     $1, $2, $3, $4, $5, NOW(), NOW(), TRUE, $6, $7
 ) RETURNING id, user_id, title, description, category_id, code_to_remember, created_at, updated_at, is_active, programming_language, is_common;
 
--- name: GetExercises :many
-SELECT e.id, e.user_id, e.title, e.description, e.category_id, e.programming_language, e.code_to_remember, e.created_at, e.updated_at, e.is_active, e.is_common
-FROM exercises e
-LEFT JOIN user_exercises ue ON ue.exercise_id = e.id AND ue.user_id = $1
-WHERE e.user_id = $1 AND e.is_active = TRUE
-ORDER BY e.programming_language ASC, e.category_id ASC, e.created_at DESC
-LIMIT $2 OFFSET $3;
+
 
 -- name: CountExercises :one
-SELECT COUNT(*) FROM exercises WHERE user_id = $1 AND is_active = TRUE;
+SELECT COUNT(*) 
+FROM exercises as e 
+ JOIN categories c 
+    ON c.id = e.category_id AND c.is_active = TRUE
+WHERE e.user_id = $1 AND is_active = TRUE;
 
 -- name: GetExercise :one
 SELECT e.id, e.user_id, e.title, e.description, e.category_id, e.programming_language, e.code_to_remember, e.created_at, e.updated_at, e.is_active, e.is_common
@@ -119,7 +117,11 @@ WHERE id = $1
   AND ($3::boolean OR user_id = $2);
 
 -- name: CountExercisesByCategory :one
-SELECT COUNT(*) FROM exercises WHERE category_id = $1 AND is_active = TRUE;
+SELECT COUNT(*) 
+FROM exercises as e 
+ JOIN categories c 
+    ON c.id = e.category_id AND c.is_active = TRUE
+WHERE e.category_id = $1 AND e.is_active = TRUE;
 
 -- name: GetExercisesFiltered :many
 -- $1: user_id, $2: programming_language, $3: category_id, $4: limit, $5: offset
@@ -130,7 +132,7 @@ SELECT
   e.description,
   e.category_id,
   e.programming_language,
-  e.code_to_remember,
+  e.code_to_remember as code_to_remember,
   e.created_at,
   e.updated_at,
   e.is_active,
@@ -147,7 +149,10 @@ SELECT
    TRUE
    ELSE
    FALSE
-   END as is_solved 
+   END as is_solved,
+     
+  c.name as category_name
+
 
 FROM exercises e
 LEFT JOIN user_exercises ue
@@ -155,6 +160,9 @@ LEFT JOIN user_exercises ue
 
 LEFT JOIN exercise_stats es
   ON es.exercise_id = e.id AND ue.user_id = $1
+
+    JOIN categories c 
+    ON c.id = e.category_id AND c.is_active = TRUE
 
 WHERE
   e.user_id in ($1, 0) 
@@ -170,6 +178,8 @@ LIMIT $4 OFFSET $5;
 -- name: CountExercisesFiltered :one
 -- $1: user_id, $2: programming_language, $3: category_id
 SELECT COUNT(*) FROM exercises e
+ JOIN categories c 
+    ON c.id = e.category_id AND c.is_active = TRUE
 WHERE e.user_id in ($1, 0) 
   AND e.is_active = TRUE
   AND ($2::varchar = '' OR e.programming_language = $2)
@@ -233,17 +243,18 @@ SELECT COUNT(*) FROM user_exercises WHERE user_id = $1;
         e.description,
         e.category_id,
         c.programming_language,
-        e.code_to_remember,
+        e.code_to_remember as code_to_remember,
         e.created_at as created_at,
         e.updated_at as updated_at,
         e.is_active,
         e.is_common,
         TRUE AS is_user_exercise,
+        c.name as category_name,
 
         CASE WHEN es.successful_attempts > 0 THEN TRUE ELSE FALSE END as is_solved
     FROM user_exercises ue
     JOIN exercises e ON e.id = ue.exercise_id AND e.is_active = TRUE
-    JOIN categories c ON c.id = e.category_id AND e.is_active = TRUE
+    JOIN categories c ON c.id = e.category_id AND c.is_active = TRUE
     LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND ue.user_id = $1
     WHERE 
        ue.user_id = $1

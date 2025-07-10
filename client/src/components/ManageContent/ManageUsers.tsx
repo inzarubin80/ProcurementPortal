@@ -26,9 +26,9 @@ const ManageUsers: React.FC = () => {
       const res = await authAxios.get('/users');
       setUsers(
         res.data.map((u: any) => ({
-          id: u.ID,
-          name: u.Name,
-          isAdmin: u.IsAdmin,
+          id: u.user_id,
+          name: u.name,
+          isAdmin: u.is_admin,
         }))
       );
     } catch (e) {

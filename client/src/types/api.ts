@@ -39,6 +39,8 @@ export interface Exercise {
   updated_at: string;
   is_active: boolean;
   is_common: boolean;
+  category_name?: string;
+
 }
 
 export interface ExerciseDetailse {

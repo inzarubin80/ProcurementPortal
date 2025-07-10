@@ -563,7 +563,7 @@ const ExerciseCard: React.FC = () => {
                 setOpenSolutionModal(false);
               }}
             >
-                            Начать выполнение
+              Начать выполнение
             </Button>
             <Button
               variant="outlined"

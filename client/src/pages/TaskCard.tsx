@@ -90,12 +90,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <Chip size="small" label={categoryName || '—'} />
         </Box>
       </CardContent>
-      <Box sx={{ p: 3, pt: 0, display: 'flex', justifyContent: 'flex-end' }}>
+      <Box sx={{ p: 3, pt: 0, display: 'block' }}>
         <Button
           variant="contained"
           startIcon={<PlayIcon />}
           onClick={() => onStart(id)}
           sx={{
+            width: '100%',
             background: 'linear-gradient(90deg, #1da1f2 0%, #21cbf3 100%)',
             color: 'white',
             borderRadius: 3,

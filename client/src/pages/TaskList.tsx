@@ -329,7 +329,7 @@ const TaskList: React.FC = () => {
                     <TableBody>
                       {userExercises.map((exerciseDetailse) => {
                         const { exercise, user_info } = exerciseDetailse;
-                        const category = categories.find(c => c.id === exercise.category_id);
+                       // const category = categories.find(c => c.id === exercise.category_id);
                         const language = languages.find(l => l.value === exercise.programming_language);
                         const isCompleted = user_info.is_solved;
                         return (
@@ -359,7 +359,7 @@ const TaskList: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2">
-                                {category?.name || '—'}
+                                {exercise.category_name || '—'}
                               </Typography>
                             </TableCell>
                             <TableCell>
@@ -426,7 +426,6 @@ const TaskList: React.FC = () => {
                   <Grid container spacing={2}>
                     {userExercises.map((exerciseDetailse) => {
                       const { exercise, user_info } = exerciseDetailse;
-                      const category = categories.find(c => c.id === exercise.category_id);
                       const language = languages.find(l => l.value === exercise.programming_language);
                       const isCompleted = user_info.is_solved;
                       return (
@@ -437,7 +436,7 @@ const TaskList: React.FC = () => {
                             description={exercise.description}
                             languageIcon={language?.icon_svg}
                             languageName={language?.name || exercise.programming_language}
-                            categoryName={category?.name}
+                            categoryName={exercise.category_name}
                             isSolved={user_info.is_solved}
                             onStart={handleExerciseClick}
                           />

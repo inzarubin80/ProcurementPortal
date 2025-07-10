@@ -31,7 +31,6 @@ type Querier interface {
 	GetCategory(ctx context.Context, arg *GetCategoryParams) (*Category, error)
 	GetExercise(ctx context.Context, id int64) (*Exercise, error)
 	GetExerciseStat(ctx context.Context, arg *GetExerciseStatParams) (*ExerciseStat, error)
-	GetExercises(ctx context.Context, arg *GetExercisesParams) ([]*Exercise, error)
 	// $1: user_id, $2: programming_language, $3: category_id, $4: limit, $5: offset
 	GetExercisesFiltered(ctx context.Context, arg *GetExercisesFilteredParams) ([]*GetExercisesFilteredRow, error)
 	GetUserAuthProvidersByProviderUid(ctx context.Context, arg *GetUserAuthProvidersByProviderUidParams) (*UserAuthProvider, error)

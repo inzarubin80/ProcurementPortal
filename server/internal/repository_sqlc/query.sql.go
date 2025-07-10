@@ -85,7 +85,11 @@ func (q *Queries) CountCategoriesByLanguage(ctx context.Context, arg *CountCateg
 }
 
 const countExercises = `-- name: CountExercises :one
-SELECT COUNT(*) FROM exercises WHERE user_id = $1 AND is_active = TRUE
+SELECT COUNT(*) 
+FROM exercises as e 
+ JOIN categories c 
+    ON c.id = e.category_id AND c.is_active = TRUE
+WHERE e.user_id = $1 AND is_active = TRUE
 `
 
 func (q *Queries) CountExercises(ctx context.Context, userID int64) (int64, error) {
@@ -96,7 +100,11 @@ func (q *Queries) CountExercises(ctx context.Context, userID int64) (int64, erro
 }
 
 const countExercisesByCategory = `-- name: CountExercisesByCategory :one
-SELECT COUNT(*) FROM exercises WHERE category_id = $1 AND is_active = TRUE
+SELECT COUNT(*) 
+FROM exercises as e 
+ JOIN categories c 
+    ON c.id = e.category_id AND c.is_active = TRUE
+WHERE e.category_id = $1 AND e.is_active = TRUE
 `
 
 func (q *Queries) CountExercisesByCategory(ctx context.Context, categoryID int64) (int64, error) {
@@ -108,6 +116,8 @@ func (q *Queries) CountExercisesByCategory(ctx context.Context, categoryID int64
 
 const countExercisesFiltered = `-- name: CountExercisesFiltered :one
 SELECT COUNT(*) FROM exercises e
+ JOIN categories c 
+    ON c.id = e.category_id AND c.is_active = TRUE
 WHERE e.user_id in ($1, 0) 
   AND e.is_active = TRUE
   AND ($2::varchar = '' OR e.programming_language = $2)
@@ -532,53 +542,6 @@ func (q *Queries) GetExerciseStat(ctx context.Context, arg *GetExerciseStatParam
 	return &i, err
 }
 
-const getExercises = `-- name: GetExercises :many
-SELECT e.id, e.user_id, e.title, e.description, e.category_id, e.programming_language, e.code_to_remember, e.created_at, e.updated_at, e.is_active, e.is_common
-FROM exercises e
-LEFT JOIN user_exercises ue ON ue.exercise_id = e.id AND ue.user_id = $1
-WHERE e.user_id = $1 AND e.is_active = TRUE
-ORDER BY e.programming_language ASC, e.category_id ASC, e.created_at DESC
-LIMIT $2 OFFSET $3
-`
-
-type GetExercisesParams struct {
-	UserID int64
-	Limit  int32
-	Offset int32
-}
-
-func (q *Queries) GetExercises(ctx context.Context, arg *GetExercisesParams) ([]*Exercise, error) {
-	rows, err := q.db.Query(ctx, getExercises, arg.UserID, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []*Exercise
-	for rows.Next() {
-		var i Exercise
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Title,
-			&i.Description,
-			&i.CategoryID,
-			&i.ProgrammingLanguage,
-			&i.CodeToRemember,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.IsActive,
-			&i.IsCommon,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, &i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getExercisesFiltered = `-- name: GetExercisesFiltered :many
 SELECT
   e.id,
@@ -587,7 +550,7 @@ SELECT
   e.description,
   e.category_id,
   e.programming_language,
-  e.code_to_remember,
+  e.code_to_remember as code_to_remember,
   e.created_at,
   e.updated_at,
   e.is_active,
@@ -604,7 +567,10 @@ SELECT
    TRUE
    ELSE
    FALSE
-   END as is_solved 
+   END as is_solved,
+     
+  c.name as category_name
+
 
 FROM exercises e
 LEFT JOIN user_exercises ue
@@ -612,6 +578,9 @@ LEFT JOIN user_exercises ue
 
 LEFT JOIN exercise_stats es
   ON es.exercise_id = e.id AND ue.user_id = $1
+
+    JOIN categories c 
+    ON c.id = e.category_id AND c.is_active = TRUE
 
 WHERE
   e.user_id in ($1, 0) 
@@ -647,6 +616,7 @@ type GetExercisesFilteredRow struct {
 	IsCommon            *bool
 	IsUserExercise      bool
 	IsSolved            bool
+	CategoryName        string
 }
 
 // $1: user_id, $2: programming_language, $3: category_id, $4: limit, $5: offset
@@ -679,6 +649,7 @@ func (q *Queries) GetExercisesFiltered(ctx context.Context, arg *GetExercisesFil
 			&i.IsCommon,
 			&i.IsUserExercise,
 			&i.IsSolved,
+			&i.CategoryName,
 		); err != nil {
 			return nil, err
 		}
@@ -768,17 +739,18 @@ const getUserExercisesFiltered = `-- name: GetUserExercisesFiltered :many
         e.description,
         e.category_id,
         c.programming_language,
-        e.code_to_remember,
+        e.code_to_remember as code_to_remember,
         e.created_at as created_at,
         e.updated_at as updated_at,
         e.is_active,
         e.is_common,
         TRUE AS is_user_exercise,
+        c.name as category_name,
 
         CASE WHEN es.successful_attempts > 0 THEN TRUE ELSE FALSE END as is_solved
     FROM user_exercises ue
     JOIN exercises e ON e.id = ue.exercise_id AND e.is_active = TRUE
-    JOIN categories c ON c.id = e.category_id AND e.is_active = TRUE
+    JOIN categories c ON c.id = e.category_id AND c.is_active = TRUE
     LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND ue.user_id = $1
     WHERE 
        ue.user_id = $1
@@ -815,6 +787,7 @@ type GetUserExercisesFilteredRow struct {
 	IsActive            *bool
 	IsCommon            *bool
 	IsUserExercise      bool
+	CategoryName        string
 	IsSolved            bool
 }
 
@@ -852,6 +825,7 @@ func (q *Queries) GetUserExercisesFiltered(ctx context.Context, arg *GetUserExer
 			&i.IsActive,
 			&i.IsCommon,
 			&i.IsUserExercise,
+			&i.CategoryName,
 			&i.IsSolved,
 		); err != nil {
 			return nil, err

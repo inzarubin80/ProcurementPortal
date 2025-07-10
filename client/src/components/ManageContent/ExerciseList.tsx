@@ -46,7 +46,7 @@ const ExerciseList: React.FC<ExerciseListProps> = ({
             <ExerciseCard
               exerciseDetailse={ex}
               languages={languages}
-              categories={categories}
+             // categories={categories}
               onEdit={handleEdit}
               onDelete={() => onDelete(ex.exercise.id)}
             />
