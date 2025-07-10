@@ -70,7 +70,7 @@ func NewConfig(opts Options) config {
 			ClientID:     os.Getenv("CLIENT_ID_GOOGLE"),
 			ClientSecret: os.Getenv("CLIENT_SECRET_GOOGLE"),
 			RedirectURL:  os.Getenv("APP_ROOT") + "/auth/callback?provider=google",
-			Scopes:       []string{"openid", "email", "profile"},
+			Scopes:       []string{"openid"},
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://accounts.google.com/o/oauth2/auth",
 				TokenURL: "https://oauth2.googleapis.com/token",
