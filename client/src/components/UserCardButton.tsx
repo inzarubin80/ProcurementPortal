@@ -1,57 +1,50 @@
 import React from 'react';
-import { Box, Avatar } from '@mui/material';
+import { Box, Avatar, Tooltip } from '@mui/material';
 import { useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
-
-function stringToColor(string: string) {
-    let hash = 0;
-    let i;
-    for (i = 0; i < string.length; i += 1) {
-      hash = string.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    let color = '#';
-    for (i = 0; i < 3; i += 1) {
-      const value = (hash >> (i * 8)) & 0xff;
-      color += `00${value.toString(16)}`.slice(-2);
-    }
-    return color;
-}
-
-function stringAvatar(name?: string | null) {
-  if (!name?.trim()) {
-    return {
-      sx: {
-        bgcolor: '#cccccc',
-      },
-      children: '?',
-    };
-  }
-  const nameParts = name.trim().split(' ').filter(Boolean);
-  let children = '';
-  if (nameParts.length === 1) {
-    children = nameParts[0][0];
-  } else if (nameParts.length >= 2) {
-    children = nameParts[0][0] + nameParts[1][0];
-  }
-  return {
-    sx: {
-      bgcolor: stringToColor(name),
-    },
-    children: children.toUpperCase(),
-  };
-}
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const UserCardButton = () => {
-    const navigate = useNavigate();
-    const user = useSelector((state: RootState) => state.user.user);
-    console.log('UserCardButton - user:', user);
-    console.log('UserCardButton - user?.name:', user?.name);
-    return (
-        <Box>
-             <Avatar {...stringAvatar(user?.name)} onClick={() => navigate('/profile')}/>
-        </Box>
-    );
+  const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.user.user);
+
+  // Получаем инициалы
+  const initials = user?.name
+    ? user.name.trim().split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '';
+
+  return (
+    <Box>
+      <Tooltip title={user?.name || 'Профиль'}>
+        <Avatar
+          sx={{
+            bgcolor: 'primary.main',
+            color: 'white',
+            width: 40,
+            height: 40,
+            cursor: 'pointer',
+            transition: 'box-shadow 0.2s',
+            boxShadow: 1,
+            '&:hover': {
+              boxShadow: 4,
+              bgcolor: 'primary.dark',
+            },
+            fontWeight: 700,
+            fontSize: 20,
+          }}
+          onClick={() => navigate('/profile')}
+          src={user && 'avatar_url' in user ? (user as any).avatar_url : undefined}
+        >
+          {user && 'avatar_url' in user && (user as any).avatar_url
+            ? null
+            : initials
+              ? initials
+              : <AccountCircleIcon fontSize="large" />}
+        </Avatar>
+      </Tooltip>
+    </Box>
+  );
 };
 
 export default UserCardButton; 
