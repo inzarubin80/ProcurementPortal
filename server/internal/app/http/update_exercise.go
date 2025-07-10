@@ -24,7 +24,7 @@ import (
 
 type (
 	UpdateExerciseService interface {
-		UpdateExercise(ctx context.Context, userID model.UserID, exerciseID int64, exercise *model.Exercise) (*model.Exercise, error)
+		UpdateExercise(ctx context.Context, userID model.UserID, isAdmin bool, exerciseID int64, exercise *model.Exercise) (*model.Exercise, error)
 	}
 
 	UpdateExerciseHandler struct {
@@ -43,7 +43,7 @@ func NewUpdateExerciseHandler(service UpdateExerciseService, name string) *Updat
 func (h *UpdateExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(int64)
+	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 		return
@@ -78,13 +78,27 @@ func (h *UpdateExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	updatedExercise, err := h.service.UpdateExercise(ctx, model.UserID(userID), exerciseID, &exercise)
+	isAdmin, _ := ctx.Value(defenitions.IsAdminKey).(bool)
+	if _, err := h.service.UpdateExercise(ctx, model.UserID(userID), isAdmin, exerciseID, &exercise); err != nil {
+		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Получаем полную структуру ExerciseDetailse для ответа
+	exerciseDetailseService, ok := h.service.(interface {
+		GetExercise(ctx context.Context, userID model.UserID, exerciseID int64) (*model.ExerciseDetailse, error)
+	})
+	if !ok {
+		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "service does not support GetExercise")
+		return
+	}
+	detailse, err := exerciseDetailseService.GetExercise(ctx, model.UserID(userID), exerciseID)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	jsonData, err := json.Marshal(updatedExercise)
+	jsonData, err := json.Marshal(detailse)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

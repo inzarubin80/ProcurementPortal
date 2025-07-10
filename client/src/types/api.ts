@@ -19,6 +19,7 @@ export interface Category {
   created_at: string;
   updated_at: string;
   is_active: boolean;
+  is_common: boolean;
 }
 
 export interface UserIfo {
@@ -37,6 +38,7 @@ export interface Exercise {
   created_at: string;
   updated_at: string;
   is_active: boolean;
+  is_common: boolean;
 }
 
 export interface ExerciseDetailse {

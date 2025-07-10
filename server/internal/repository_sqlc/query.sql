@@ -1,20 +1,20 @@
 -- name: CreateUser :one
-INSERT INTO users (name)
-VALUES ($1)
-returning user_id;
+INSERT INTO users (name, is_admin)
+VALUES ($1, $2)
+returning user_id, name, evaluation_strategy, maximum_score, is_admin;
 
 -- name: UpdateUserName :one
 UPDATE users
 SET name = $1
 WHERE user_id = $2
-RETURNING *;
+RETURNING user_id, name, evaluation_strategy, maximum_score, is_admin;
 
 -- name: GetUsersByIDs :many
-SELECT * FROM users
+SELECT user_id, name, evaluation_strategy, maximum_score, is_admin FROM users
 WHERE user_id = ANY($1::bigint[]);
 
 -- name: GetUserByID :one
-SELECT * FROM users
+SELECT user_id, name, evaluation_strategy, maximum_score, is_admin FROM users
 WHERE user_id = $1;
 
 -- name: GetUserAuthProvidersByProviderUid :one
@@ -28,13 +28,13 @@ returning *;
 
 -- name: CreateExercise :one
 INSERT INTO exercises (
-    user_id, title, description, category_id, code_to_remember, created_at, updated_at, is_active, programming_language
+    user_id, title, description, category_id, code_to_remember, created_at, updated_at, is_active, programming_language, is_common
 ) VALUES (
-    $1, $2, $3, $4, $5, NOW(), NOW(), TRUE, $6
-) RETURNING id, user_id, title, description, category_id, code_to_remember, created_at, updated_at, is_active, programming_language;
+    $1, $2, $3, $4, $5, NOW(), NOW(), TRUE, $6, $7
+) RETURNING id, user_id, title, description, category_id, code_to_remember, created_at, updated_at, is_active, programming_language, is_common;
 
 -- name: GetExercises :many
-SELECT e.id, e.user_id, e.title, e.description, e.category_id, e.programming_language, e.code_to_remember, e.created_at, e.updated_at, e.is_active
+SELECT e.id, e.user_id, e.title, e.description, e.category_id, e.programming_language, e.code_to_remember, e.created_at, e.updated_at, e.is_active, e.is_common
 FROM exercises e
 LEFT JOIN user_exercises ue ON ue.exercise_id = e.id AND ue.user_id = $1
 WHERE e.user_id = $1 AND e.is_active = TRUE
@@ -45,7 +45,7 @@ LIMIT $2 OFFSET $3;
 SELECT COUNT(*) FROM exercises WHERE user_id = $1 AND is_active = TRUE;
 
 -- name: GetExercise :one
-SELECT e.id, e.user_id, e.title, e.description, e.category_id, e.programming_language, e.code_to_remember, e.created_at, e.updated_at, e.is_active
+SELECT e.id, e.user_id, e.title, e.description, e.category_id, e.programming_language, e.code_to_remember, e.created_at, e.updated_at, e.is_active, e.is_common
 FROM exercises e
 WHERE e.id = $1 AND e.is_active = TRUE;
 
@@ -56,12 +56,17 @@ UPDATE exercises SET
     category_id = $3,
     code_to_remember = $4,
     updated_at = NOW(),
-    programming_language = $5
-WHERE id = $6 AND user_id = $7 AND is_active = TRUE
-RETURNING id, user_id, title, description, category_id, code_to_remember, created_at, updated_at, is_active, programming_language;
+    programming_language = $5,
+    is_common = $6
+WHERE id = $7
+  AND is_active = TRUE
+  AND ($9::boolean OR user_id = $8)
+RETURNING id, user_id, title, description, category_id, code_to_remember, created_at, updated_at, is_active, programming_language, is_common;
 
 -- name: DeleteExercise :exec
-UPDATE exercises SET is_active = FALSE WHERE id = $1 AND user_id = $2;
+UPDATE exercises SET is_active = FALSE
+WHERE id = $1
+  AND ($3::boolean OR user_id = $2);
 
 -- name: CreateCategory :one
 INSERT INTO categories (
@@ -71,11 +76,10 @@ INSERT INTO categories (
 ) RETURNING *;
 
 -- name: GetCategories :many
-SELECT c.id, c.user_id, c.name, c.description, c.programming_language, c.color, c.icon, c.status, c.created_at, c.updated_at, c.is_active
+SELECT c.id, c.user_id, c.name, c.description, c.programming_language, c.color, c.icon, c.status, c.created_at, c.updated_at, c.is_active, c.is_common
 FROM categories c
 WHERE c.user_id = $1 AND c.is_active = TRUE
-ORDER BY c.created_at DESC
-LIMIT $2 OFFSET $3;
+ORDER BY c.created_at DESC;
 
 -- name: GetCategoriesByLanguage :many
 SELECT * FROM categories
@@ -90,7 +94,7 @@ SELECT COUNT(*) FROM categories WHERE user_id = $1 AND is_active = TRUE;
 SELECT COUNT(*) FROM categories WHERE user_id = $1 AND programming_language = $2 AND is_active = TRUE;
 
 -- name: GetCategory :one
-SELECT c.id, c.user_id, c.name, c.description, c.programming_language, c.color, c.icon, c.status, c.created_at, c.updated_at, c.is_active
+SELECT c.id, c.user_id, c.name, c.description, c.programming_language, c.color, c.icon, c.status, c.created_at, c.updated_at, c.is_active, c.is_common
 FROM categories c
 WHERE c.id = $1 AND c.user_id = $2 AND c.is_active = TRUE;
 
@@ -102,12 +106,17 @@ UPDATE categories SET
     color = $4,
     icon = $5,
     status = $6,
+    is_common = $7,
     updated_at = NOW()
-WHERE id = $7 AND user_id = $8 AND is_active = TRUE
+WHERE id = $8
+  AND is_active = TRUE
+  AND ($10::boolean OR user_id = $9)
 RETURNING *;
 
 -- name: DeleteCategory :exec
-UPDATE categories SET is_active = FALSE WHERE id = $1 AND user_id = $2;
+UPDATE categories SET is_active = FALSE 
+WHERE id = $1
+  AND ($3::boolean OR user_id = $2);
 
 -- name: CountExercisesByCategory :one
 SELECT COUNT(*) FROM exercises WHERE category_id = $1 AND is_active = TRUE;
@@ -125,6 +134,7 @@ SELECT
   e.created_at,
   e.updated_at,
   e.is_active,
+  e.is_common,
   CASE 
     WHEN ue.exercise_id IS NULL THEN 
       FALSE
@@ -148,10 +158,10 @@ LEFT JOIN exercise_stats es
 
 
 WHERE
-  e.user_id = $1
+  (e.user_id = $1 OR e.is_common = TRUE)
   AND e.is_active = TRUE
-  AND ($2 = '' OR e.programming_language = $2)
-  AND ($3 = 0 OR e.category_id = $3)
+  AND ($2::varchar  = '' OR e.programming_language = $2)
+  AND ($3::bigint = 0 OR e.category_id = $3)
 ORDER BY
   e.programming_language ASC,
   e.category_id ASC,
@@ -161,13 +171,13 @@ LIMIT $4 OFFSET $5;
 -- name: CountExercisesFiltered :one
 -- $1: user_id, $2: programming_language, $3: category_id
 SELECT COUNT(*) FROM exercises e
-WHERE e.user_id = $1
+WHERE (e.user_id = $1 OR e.is_common = TRUE)
   AND e.is_active = TRUE
-  AND ($2 IS NULL OR e.programming_language = $2)
-  AND ($3 = 0 OR e.category_id = $3);
+  AND ($2::varchar = '' OR e.programming_language = $2)
+  AND ($3::bigint = 0 OR e.category_id = $3);
 
 -- name: GetExerciseStat :one
-SELECT es.id, es.user_id, es.exercise_id, es.total_attempts, es.successful_attempts, es.total_typing_time, es.total_typed_chars, es.created_at, es.updated_at
+SELECT es.user_id, es.exercise_id, es.total_attempts, es.successful_attempts, es.total_typing_time, es.total_typed_chars, es.created_at, es.updated_at
 FROM exercise_stats es WHERE es.user_id = $1 AND es.exercise_id = $2;
 
 -- name: UpsertExerciseStat :one
@@ -179,7 +189,7 @@ ON CONFLICT (user_id, exercise_id) DO UPDATE SET
     total_typing_time = exercise_stats.total_typing_time + EXCLUDED.total_typing_time,
     total_typed_chars = exercise_stats.total_typed_chars + EXCLUDED.total_typed_chars,
     updated_at = NOW()
-RETURNING id, user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at;
+RETURNING  user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at;
 
 -- name: UpdateExerciseStat :one
 UPDATE exercise_stats SET
@@ -189,7 +199,7 @@ UPDATE exercise_stats SET
     total_typed_chars = $6,
     updated_at = NOW()
 WHERE user_id = $1 AND exercise_id = $2
-RETURNING id, user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at;
+RETURNING  user_id, exercise_id, total_attempts, successful_attempts, total_typing_time, total_typed_chars, created_at, updated_at;
 
 -- name: GetUserStats :one
 SELECT
@@ -211,36 +221,36 @@ SELECT COUNT(*) FROM user_exercises WHERE user_id = $1;
 
 -- name: GetUserExercisesFiltered :many
 -- $1: user_id, $2: programming_language, $3: category_id, $4: limit, $5: offset
-SELECT 
-    ue.user_id,
-    ue.exercise_id,
-    ue.completed_at,
-    ue.score,
-    ue.attempts_count,
-    ue.created_at as ue_created_at,
-    ue.updated_at as ue_updated_at,
-    e.id as exercise_id,
-    e.user_id as exercise_user_id,
-    e.title,
-    e.description,
-    e.category_id,
-    c.programming_language,
-    e.code_to_remember,
-    e.created_at as exercise_created_at,
-    e.updated_at as exercise_updated_at,
-    e.is_active
-FROM user_exercises ue
- 
- JOIN exercises e ON e.id = ue.exercise_id
-      AND e.is_active = TRUE
- 
- JOIN categories c ON c.id = e.category_id
-      AND e.is_active = TRUE
+    SELECT 
+        ue.user_id,
+        ue.exercise_id,
+        ue.completed_at,
+        ue.score,
+        ue.attempts_count,
+   
+        e.id as exercise_id,
+        e.user_id as exercise_user_id,
+        e.title,
+        e.description,
+        e.category_id,
+        c.programming_language,
+        e.code_to_remember,
+        e.created_at as created_at,
+        e.updated_at as updated_at,
+        e.is_active,
+        e.is_common,
+        TRUE AS is_user_exercise,
 
-
-WHERE ue.user_id = $1
-  AND ($2::varchar = '' OR c.programming_language = $2)
-  AND ($3::bigint = 0 OR e.category_id = $3)
+        CASE WHEN es.successful_attempts > 0 THEN TRUE ELSE FALSE END as is_solved
+    FROM user_exercises ue
+    JOIN exercises e ON e.id = ue.exercise_id AND e.is_active = TRUE
+    JOIN categories c ON c.id = e.category_id AND e.is_active = TRUE
+    LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND ue.user_id = $1
+    WHERE 
+       ue.user_id = $1
+      AND ($2::varchar = '' OR c.programming_language = $2)
+      AND ($3::bigint = 0 OR e.category_id = $3)
+  
 ORDER BY c.programming_language ASC, e.category_id ASC, e.created_at DESC
 LIMIT $4 OFFSET $5;
 
@@ -267,4 +277,10 @@ WHERE user_id = $1 AND exercise_id = $2;
 
 -- name: GetUserExerciseIDs :many
 SELECT exercise_id FROM user_exercises WHERE user_id = $1;
+
+-- name: GetAllUsers :many
+SELECT user_id, name, evaluation_strategy, maximum_score, is_admin FROM users;
+
+-- name: SetUserAdmin :one
+UPDATE users SET is_admin = $2 WHERE user_id = $1 RETURNING user_id, name, evaluation_strategy, maximum_score, is_admin;
 

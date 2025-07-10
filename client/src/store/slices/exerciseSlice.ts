@@ -41,9 +41,18 @@ const initialState: ExerciseState = {
 
 export const fetchExercises = createAsyncThunk(
   'exercises/fetchExercises',
-  async ({ page = 1, pageSize = 10 }: { page?: number; pageSize?: number }, { rejectWithValue }) => {
+  async (
+    { page = 1, pageSize = 10, programming_language, category_id }:
+    { page?: number; pageSize?: number; programming_language?: string; category_id?: string },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await authAxios.get(`/exercises?page=${page}&page_size=${pageSize}`);
+      const params = new URLSearchParams();
+      params.append('page', String(page));
+      params.append('page_size', String(pageSize));
+      if (programming_language) params.append('programming_language', programming_language);
+      if (category_id) params.append('category_id', category_id);
+      const response = await authAxios.get(`/exercises?${params.toString()}`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error?.response?.data?.message || 'Failed to fetch exercises');

@@ -28,6 +28,7 @@ interface UserState {
   isLoading: boolean;
   error: string | null;
   userName: string | null;
+  isAdmin: boolean;
 }
 
 // Начальное состояние
@@ -38,6 +39,7 @@ const initialState: UserState = {
   isLoading: false,
   error: null,
   userName: null,
+  isAdmin: false,
 };
 
 // Async thunk для логина
@@ -184,6 +186,7 @@ const userSlice = createSlice({
         state.error = null;
         state.userID = action.payload.ID;
         state.userName = action.payload.Name;
+        state.isAdmin = action.payload.IsAdmin;
       })
       .addCase(getUser.rejected, (state) => {
         state.isLoading = false;

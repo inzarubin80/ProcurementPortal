@@ -40,21 +40,22 @@ type (
 		Authorization(context.Context, string) (*model.Claims, error)
 		RefreshToken(ctx context.Context, refreshToken string) (*model.AuthData, error)
 		SetUserName(ctx context.Context, userID model.UserID, name string) error
+		SetUserAdmin(ctx context.Context, userID model.UserID, isAdmin bool) (*model.User, error)
 
 		// Exercise methods
-		CreateExercise(ctx context.Context, userID model.UserID, exercise *model.Exercise) (*model.Exercise, error)
+		CreateExercise(ctx context.Context, userID model.UserID, isAdmin bool, exercise *model.Exercise) (*model.Exercise, error)
 		GetExercise(ctx context.Context, userID model.UserID, exerciseID int64) (*model.ExerciseDetailse, error)
-		UpdateExercise(ctx context.Context, userID model.UserID, exerciseID int64, exercise *model.Exercise) (*model.Exercise, error)
-		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID int64) error
-		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) (*model.ExerciseListWithUserResponse, error)
+		UpdateExercise(ctx context.Context, userID model.UserID, isAdmin bool, exerciseID int64, exercise *model.Exercise) (*model.Exercise, error)
+		DeleteExercise(ctx context.Context, userID model.UserID, isAdmin bool, exerciseID int64) error
+		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID int64, page, pageSize int) (*model.ExerciseListWithUserResponse, error)
 		UpsertExerciseStat(userID model.UserID, exerciseID int64, attempts int, successAttempts int) (*model.ExerciseStat, error)
 
 		// Category methods
-		CreateCategory(ctx context.Context, userID model.UserID, category *model.Category) (*model.Category, error)
-		GetCategories(ctx context.Context, userID model.UserID, page, pageSize int) (model.CategoryListResponse, error)
+		CreateCategory(ctx context.Context, userID model.UserID, isAdmin bool, category *model.Category) (*model.Category, error)
+		GetCategories(ctx context.Context, userID model.UserID) (model.CategoryListResponse, error)
 		GetCategory(ctx context.Context, userID model.UserID, categoryID int64) (*model.Category, error)
-		UpdateCategory(ctx context.Context, userID model.UserID, categoryID int64, category *model.Category) (*model.Category, error)
-		DeleteCategory(ctx context.Context, userID model.UserID, categoryID int64) error
+		UpdateCategory(ctx context.Context, userID model.UserID, isAdmin bool, categoryID int64, category *model.Category) (*model.Category, error)
+		DeleteCategory(ctx context.Context, userID model.UserID, isAdmin bool, categoryID int64) error
 
 		// Добавлено для соответствия GetExerciseStatService
 		GetExerciseStat(userID model.UserID, exerciseID int64) (*model.ExerciseStat, error)
@@ -64,6 +65,7 @@ type (
 		GetUserExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID int64, page int, pageSize int) (*model.ExerciseListWithUserResponse, error)
 		AddUserExercise(ctx context.Context, userID model.UserID, exerciseID int64) error
 		RemoveUserExercise(ctx context.Context, userID model.UserID, exerciseID int64) error
+		GetAllUsers(ctx context.Context) ([]*model.User, error)
 	}
 
 	TokenService interface {
@@ -84,9 +86,10 @@ type (
 
 func (a *App) ListenAndServe() error {
 	handlers := map[string]http.Handler{
-		a.config.path.getUser:     appHttp.NewGetUserHandler(a.store, a.config.path.getUser, a.pokerService),
-		a.config.path.ping:        appHttp.NewPingHandlerHandler(a.config.path.ping),
-		a.config.path.setUserName: appHttp.NewSetUserNameHandler(a.pokerService, a.config.path.setUserName),
+		a.config.path.getUser:      appHttp.NewGetUserHandler(a.store, a.config.path.getUser, a.pokerService),
+		a.config.path.ping:         appHttp.NewPingHandlerHandler(a.config.path.ping),
+		a.config.path.setUserName:  appHttp.NewSetUserNameHandler(a.pokerService, a.config.path.setUserName),
+		a.config.path.setUserAdmin: appHttp.NewSetUserAdminHandler(a.store, a.config.path.setUserAdmin, a.pokerService),
 
 		// Exercise handlers
 		a.config.path.getExercises:       appHttp.NewGetExercisesHandler(a.pokerService, "getExercises"),
@@ -106,6 +109,7 @@ func (a *App) ListenAndServe() error {
 
 		// New handler for getUserStats
 		a.config.path.getUserStats: appHttp.NewGetUserStatsHandler(a.pokerService),
+		a.config.path.getAllUsers:  appHttp.NewGetAllUsersHandler(a.store, a.config.path.getAllUsers, a.pokerService),
 
 		// User Exercises handler
 		a.config.path.getUserExercises:   appHttp.NewGetUserExercisesHandler(a.pokerService, "get_user_exercises"),

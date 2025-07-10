@@ -12,7 +12,7 @@ import (
 
 type (
 	GetExercisesService interface {
-		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) (*model.ExerciseListWithUserResponse, error)
+		GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID int64, page, pageSize int) (*model.ExerciseListWithUserResponse, error)
 	}
 
 	GetExercisesHandler struct {
@@ -31,7 +31,7 @@ func NewGetExercisesHandler(service GetExercisesService, name string) *GetExerci
 func (h *GetExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(int64)
+	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
 	if !ok {
 		userID = 0 // Для неавторизованных пользователей
 	}
@@ -40,7 +40,7 @@ func (h *GetExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	pageStr := r.URL.Query().Get("page")
 	pageSizeStr := r.URL.Query().Get("page_size")
 	language := r.URL.Query().Get("programming_language")
-	categoryID := r.URL.Query().Get("category_id")
+	strCategoryID := r.URL.Query().Get("category_id")
 
 	page := 1
 	pageSize := 10
@@ -57,18 +57,23 @@ func (h *GetExercisesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	var langPtr, catPtr *string
+	var langPtr *string
 	if language != "" {
 		langPtr = &language
 	}
-	if categoryID != "" {
-		catPtr = &categoryID
+	var categoryID int64
+	var err error
+
+	if strCategoryID != "" {
+		categoryID, err = strconv.ParseInt(strCategoryID, 10, 64)
+		if err != nil {
+			uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
+		}
 	}
 
 	var exercises *model.ExerciseListWithUserResponse
-	var err error
 
-	exercises, err = h.service.GetExercisesFiltered(ctx, model.UserID(userID), langPtr, catPtr, page, pageSize)
+	exercises, err = h.service.GetExercisesFiltered(ctx, model.UserID(userID), langPtr, categoryID, page, pageSize)
 
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())

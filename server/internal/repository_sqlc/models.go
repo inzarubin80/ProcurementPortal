@@ -20,10 +20,24 @@ type Category struct {
 	CreatedAt           pgtype.Timestamptz
 	UpdatedAt           pgtype.Timestamptz
 	IsActive            *bool
+	IsCommon            *bool
+}
+
+type Exercise struct {
+	ID                  int64
+	UserID              int64
+	Title               string
+	Description         *string
+	CategoryID          int64
+	ProgrammingLanguage string
+	CodeToRemember      string
+	CreatedAt           pgtype.Timestamptz
+	UpdatedAt           pgtype.Timestamptz
+	IsActive            *bool
+	IsCommon            *bool
 }
 
 type ExerciseStat struct {
-	ID                 int32
 	UserID             int64
 	ExerciseID         int64
 	TotalAttempts      int32
@@ -39,6 +53,7 @@ type User struct {
 	Name               string
 	EvaluationStrategy *string
 	MaximumScore       *int32
+	IsAdmin            bool
 }
 
 type UserAuthProvider struct {

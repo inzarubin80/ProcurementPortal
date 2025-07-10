@@ -17,6 +17,7 @@ interface CategoryTableProps {
   languages: ProgrammingLanguage[];
   onEdit: (category: Category) => void;
   onDelete: (id: number) => void;
+  isAdmin?: boolean;
 }
 
 const CategoryTable: React.FC<CategoryTableProps> = ({
@@ -24,6 +25,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
   languages,
   onEdit,
   onDelete,
+  isAdmin,
 }) => {
   return (
     <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
@@ -47,12 +49,16 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
                 {cat.programming_language}
               </TableCell>
               <TableCell>
-                <IconButton onClick={() => onEdit(cat)}>
-                  <EditIcon />
-                </IconButton>
-                <IconButton color="error" onClick={() => onDelete(cat.id)}>
-                  <DeleteIcon />
-                </IconButton>
+                {isAdmin && !cat.is_common && (
+                  <>
+                    <IconButton onClick={() => onEdit(cat)}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton color="error" onClick={() => onDelete(cat.id)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </>
+                )}
               </TableCell>
             </TableRow>
           ))}

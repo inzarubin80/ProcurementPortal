@@ -1,6 +1,5 @@
 -- +goose Up
 CREATE TABLE exercise_stats (
-    id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     exercise_id BIGINT NOT NULL,
     total_attempts INT NOT NULL DEFAULT 0,

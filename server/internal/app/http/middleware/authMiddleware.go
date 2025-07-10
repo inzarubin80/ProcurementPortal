@@ -45,7 +45,8 @@ func (m *AuthMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx = context.WithValue(ctx, defenitions.UserID, claims.UserID)
+	ctx = context.WithValue(ctx, defenitions.UserIDKey, claims.UserID)
+	ctx = context.WithValue(ctx, defenitions.IsAdminKey, claims.IsAdmin)
 	newRequest := r.WithContext(ctx)
 	m.h.ServeHTTP(w, newRequest)
 
@@ -54,7 +55,6 @@ func (m *AuthMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (m *AuthMiddleware) extractTokenFromHeader(r *http.Request) (string, error) {
 
 	token := ""
-
 
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {

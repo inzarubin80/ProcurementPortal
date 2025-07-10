@@ -6,7 +6,6 @@ import (
 	"inzarubin80/MemCode/internal/app/uhttp"
 	"inzarubin80/MemCode/internal/model"
 	"net/http"
-	"strconv"
 )
 
 type UpdateExerciseStatService interface {
@@ -22,7 +21,7 @@ func NewUpdateExerciseStatHandler(service UpdateExerciseStatService) *UpdateExer
 }
 
 type updateExerciseStatRequest struct {
-	ExerciseID      string `json:"exercise_id"`
+	ExerciseID      int64  `json:"exercise_id"`
 	Attempts        int    `json:"attempts"`
 	SuccessAttempts int    `json:"success_attempts"`
 }
@@ -41,13 +40,8 @@ func (h *UpdateExerciseStatHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	exID, err := strconv.ParseInt(req.ExerciseID, 10, 64)
-	if err != nil {
-		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid exercise_id")
-		return
-	}
 
-	stat, err := h.service.UpsertExerciseStat(userID, exID, req.Attempts, req.SuccessAttempts)
+	stat, err := h.service.UpsertExerciseStat(userID, req.ExerciseID, req.Attempts, req.SuccessAttempts)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

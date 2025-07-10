@@ -459,6 +459,19 @@ const ExerciseCard: React.FC = () => {
                 />
               </Box>
             )}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Typography variant="h5" sx={{ fontWeight: 'bold', flexGrow: 1 }}>
+                {exercise.exercise.title}
+                {exercise.user_info?.is_solved && (
+                  <>
+                    <CheckCircleIcon color="success" sx={{ ml: 1, verticalAlign: 'middle' }} titleAccess="Задача решена" />
+                    <Typography variant="caption" color="success.main" sx={{ ml: 0.5, verticalAlign: 'middle', fontWeight: 700 }}>
+                      Выполнено
+                    </Typography>
+                  </>
+                )}
+              </Typography>
+            </Box>
             <Typography variant="body1">{exercise.exercise.description}</Typography>
           </Box>
         </Card>

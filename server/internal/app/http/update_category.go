@@ -24,7 +24,7 @@ import (
 
 type (
 	UpdateCategoryService interface {
-		UpdateCategory(ctx context.Context, userID model.UserID, categoryID int64, category *model.Category) (*model.Category, error)
+		UpdateCategory(ctx context.Context, userID model.UserID, isAdmin bool, categoryID int64, category *model.Category) (*model.Category, error)
 	}
 
 	UpdateCategoryHandler struct {
@@ -43,7 +43,7 @@ func NewUpdateCategoryHandler(service UpdateCategoryService, name string) *Updat
 func (h *UpdateCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(int64)
+	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 		return
@@ -78,7 +78,8 @@ func (h *UpdateCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	updatedCategory, err := h.service.UpdateCategory(ctx, model.UserID(userID), categoryID, &category)
+	isAdmin, _ := ctx.Value(defenitions.IsAdminKey).(bool)
+	updatedCategory, err := h.service.UpdateCategory(ctx, userID, isAdmin, categoryID, &category)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

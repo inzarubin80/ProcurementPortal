@@ -77,7 +77,7 @@ const UserTaskList: React.FC = () => {
   // useEffect для загрузки справочников (языки, категории)
   useEffect(() => {
     if (languages.length === 0) dispatch(fetchLanguages());
-    if (categories.length === 0) dispatch(fetchCategories({ page: 1, pageSize: 30 }));
+    if (categories.length === 0) dispatch(fetchCategories());
   }, [dispatch, languages.length, categories.length]);
 
   // useEffect для загрузки задач пользователя только после загрузки справочников

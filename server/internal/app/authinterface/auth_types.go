@@ -9,7 +9,7 @@ import (
 
 type (
 	TokenService interface {
-		GenerateToken(userID model.UserID) (string, error)
+		GenerateToken(userID model.UserID, isAdmin bool) (string, error)
 		ValidateToken(tokenString string) (*model.Claims, error)
 	}
 

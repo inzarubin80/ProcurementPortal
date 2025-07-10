@@ -4,7 +4,8 @@ CREATE TABLE users (
     user_id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     evaluation_strategy TEXT,
-    maximum_score INT 
+    maximum_score INT,
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE
 );
 -- +goose StatementEnd
 

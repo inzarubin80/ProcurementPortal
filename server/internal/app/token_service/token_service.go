@@ -25,10 +25,11 @@ func NewtokenService(secretKey []byte, duration time.Duration, tokenType string)
 
 }
 
-func (a *tokenService) GenerateToken(userID model.UserID) (string, error) {
+func (a *tokenService) GenerateToken(userID model.UserID, isAdmin bool) (string, error) {
 
 	claims := &model.Claims{
 		UserID:    userID,
+		IsAdmin:   isAdmin,
 		TokenType: a.tokenType,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(a.duration).Unix(),

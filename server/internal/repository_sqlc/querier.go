@@ -22,15 +22,16 @@ type Querier interface {
 	CountUserExercisesFiltered(ctx context.Context, arg *CountUserExercisesFilteredParams) (int64, error)
 	CreateCategory(ctx context.Context, arg *CreateCategoryParams) (*Category, error)
 	CreateExercise(ctx context.Context, arg *CreateExerciseParams) (*CreateExerciseRow, error)
-	CreateUser(ctx context.Context, name string) (int64, error)
+	CreateUser(ctx context.Context, arg *CreateUserParams) (*User, error)
 	DeleteCategory(ctx context.Context, arg *DeleteCategoryParams) error
 	DeleteExercise(ctx context.Context, arg *DeleteExerciseParams) error
-	GetCategories(ctx context.Context, arg *GetCategoriesParams) ([]*Category, error)
+	GetAllUsers(ctx context.Context) ([]*User, error)
+	GetCategories(ctx context.Context, userID int64) ([]*Category, error)
 	GetCategoriesByLanguage(ctx context.Context, arg *GetCategoriesByLanguageParams) ([]*Category, error)
 	GetCategory(ctx context.Context, arg *GetCategoryParams) (*Category, error)
-	GetExercise(ctx context.Context, id int64) (*GetExerciseRow, error)
+	GetExercise(ctx context.Context, id int64) (*Exercise, error)
 	GetExerciseStat(ctx context.Context, arg *GetExerciseStatParams) (*ExerciseStat, error)
-	GetExercises(ctx context.Context, arg *GetExercisesParams) ([]*GetExercisesRow, error)
+	GetExercises(ctx context.Context, arg *GetExercisesParams) ([]*Exercise, error)
 	// $1: user_id, $2: programming_language, $3: category_id, $4: limit, $5: offset
 	GetExercisesFiltered(ctx context.Context, arg *GetExercisesFilteredParams) ([]*GetExercisesFilteredRow, error)
 	GetUserAuthProvidersByProviderUid(ctx context.Context, arg *GetUserAuthProvidersByProviderUidParams) (*UserAuthProvider, error)
@@ -41,6 +42,7 @@ type Querier interface {
 	GetUserStats(ctx context.Context, dollar_1 int64) (*GetUserStatsRow, error)
 	GetUsersByIDs(ctx context.Context, dollar_1 []int64) ([]*User, error)
 	RemoveUserExercise(ctx context.Context, arg *RemoveUserExerciseParams) error
+	SetUserAdmin(ctx context.Context, arg *SetUserAdminParams) (*User, error)
 	UpdateCategory(ctx context.Context, arg *UpdateCategoryParams) (*Category, error)
 	UpdateExercise(ctx context.Context, arg *UpdateExerciseParams) (*UpdateExerciseRow, error)
 	UpdateExerciseStat(ctx context.Context, arg *UpdateExerciseStatParams) (*ExerciseStat, error)

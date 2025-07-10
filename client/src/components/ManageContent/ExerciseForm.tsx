@@ -6,6 +6,8 @@ import {
   FormControl,
   InputLabel,
   Stack,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import { ProgrammingLanguage, Category } from '../../types/api';
 
@@ -15,6 +17,7 @@ interface ExerciseFormProps {
   languages: ProgrammingLanguage[];
   categories: Category[];
   triedSave: boolean;
+  isAdmin?: boolean;
 }
 
 const ExerciseForm: React.FC<ExerciseFormProps> = ({
@@ -23,6 +26,7 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
   languages,
   categories,
   triedSave,
+  isAdmin,
 }) => {
   return (
     <Stack spacing={2}>
@@ -77,6 +81,19 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
             ))}
         </Select>
       </FormControl>
+      {isAdmin && (
+        <FormControlLabel
+          control={
+            <Switch
+              checked={!!form.is_common}
+              onChange={e => onFormChange({ target: { name: 'is_common', value: e.target.checked } })}
+              name="is_common"
+              color="primary"
+            />
+          }
+          label="Общая задача"
+        />
+      )}
       <TextField
         name="code_to_remember"
         label="Код для запоминания"

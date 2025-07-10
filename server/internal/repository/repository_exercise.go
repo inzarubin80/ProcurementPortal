@@ -4,7 +4,6 @@ import (
 	"context"
 	"inzarubin80/MemCode/internal/model"
 	sqlc_repository "inzarubin80/MemCode/internal/repository_sqlc"
-	"strconv"
 )
 
 type ExerciseRepository struct {
@@ -19,7 +18,8 @@ func NewExerciseRepository(queries *sqlc_repository.Queries, conn DBTX) *Exercis
 	}
 }
 
-func (r *ExerciseRepository) CreateExercise(ctx context.Context, exercise *model.Exercise) (*model.Exercise, error) {
+func (r *ExerciseRepository) CreateExercise(ctx context.Context, userID model.UserID, isAdmin bool, exercise *model.Exercise) (*model.Exercise, error) {
+	// userID и isAdmin можно использовать для проверки прав, если потребуется
 	params := &sqlc_repository.CreateExerciseParams{
 		UserID:              int64(exercise.UserID),
 		Title:               exercise.Title,
@@ -27,6 +27,7 @@ func (r *ExerciseRepository) CreateExercise(ctx context.Context, exercise *model
 		CategoryID:          exercise.CategoryID,
 		ProgrammingLanguage: string(exercise.ProgrammingLanguage),
 		CodeToRemember:      exercise.CodeToRemember,
+		IsCommon:            &exercise.IsCommon,
 	}
 
 	sqlcExercise, err := r.queries.CreateExercise(ctx, params)
@@ -45,6 +46,7 @@ func (r *ExerciseRepository) CreateExercise(ctx context.Context, exercise *model
 		CreatedAt:           sqlcExercise.CreatedAt.Time,
 		UpdatedAt:           sqlcExercise.UpdatedAt.Time,
 		IsActive:            *sqlcExercise.IsActive,
+		IsCommon:            *sqlcExercise.IsCommon,
 	}, nil
 }
 
@@ -64,10 +66,11 @@ func (r *ExerciseRepository) GetExercise(ctx context.Context, userID model.UserI
 		CreatedAt:           sqlcExercise.CreatedAt.Time,
 		UpdatedAt:           sqlcExercise.UpdatedAt.Time,
 		IsActive:            *sqlcExercise.IsActive,
+		IsCommon:            *sqlcExercise.IsCommon,
 	}, nil
 }
 
-func (r *ExerciseRepository) UpdateExercise(ctx context.Context, exercise *model.Exercise) (*model.Exercise, error) {
+func (r *ExerciseRepository) UpdateExercise(ctx context.Context, userID model.UserID, isAdmin bool, exerciseID int64, exercise *model.Exercise) (*model.Exercise, error) {
 	params := &sqlc_repository.UpdateExerciseParams{
 		Title:               exercise.Title,
 		Description:         &exercise.Description,
@@ -76,6 +79,8 @@ func (r *ExerciseRepository) UpdateExercise(ctx context.Context, exercise *model
 		ID:                  exercise.ID,
 		UserID:              int64(exercise.UserID),
 		ProgrammingLanguage: string(exercise.ProgrammingLanguage),
+		IsCommon:            &exercise.IsCommon,
+		Column9:             isAdmin,
 	}
 
 	sqlcExercise, err := r.queries.UpdateExercise(ctx, params)
@@ -94,13 +99,15 @@ func (r *ExerciseRepository) UpdateExercise(ctx context.Context, exercise *model
 		CreatedAt:           sqlcExercise.CreatedAt.Time,
 		UpdatedAt:           sqlcExercise.UpdatedAt.Time,
 		IsActive:            *sqlcExercise.IsActive,
+		IsCommon:            *sqlcExercise.IsCommon,
 	}, nil
 }
 
-func (r *ExerciseRepository) DeleteExercise(ctx context.Context, userID model.UserID, exerciseID int64) error {
+func (r *ExerciseRepository) DeleteExercise(ctx context.Context, userID model.UserID, isAdmin bool, exerciseID int64) error {
 	params := &sqlc_repository.DeleteExerciseParams{
-		ID:     exerciseID,
-		UserID: int64(userID),
+		ID:      exerciseID,
+		UserID:  int64(userID),
+		Column3: isAdmin,
 	}
 
 	err := r.queries.DeleteExercise(ctx, params)
@@ -111,24 +118,17 @@ func (r *ExerciseRepository) DeleteExercise(ctx context.Context, userID model.Us
 	return nil
 }
 
-func (r *ExerciseRepository) GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID *string, page, pageSize int) ([]*model.ExerciseDetailse, int, error) {
+func (r *ExerciseRepository) GetExercisesFiltered(ctx context.Context, userID model.UserID, language *string, categoryID int64, page, pageSize int) ([]*model.ExerciseDetailse, int, error) {
 	var langValue string
 	if language != nil && *language != "" {
 		langValue = *language
 	}
-	var catUUID int64
-	if categoryID != nil && *categoryID != "" {
-		var err error
-		catUUID, err = strconv.ParseInt(*categoryID, 10, 64)
-		if err != nil {
-			return nil, 0, err
-		}
-	}
+
 	// Получаем общее количество
 	countParams := &sqlc_repository.CountExercisesFilteredParams{
 		UserID:  int64(userID),
 		Column2: langValue,
-		Column3: catUUID,
+		Column3: categoryID,
 	}
 	total, err := r.queries.CountExercisesFiltered(ctx, countParams)
 	if err != nil {
@@ -139,7 +139,7 @@ func (r *ExerciseRepository) GetExercisesFiltered(ctx context.Context, userID mo
 	exParams := &sqlc_repository.GetExercisesFilteredParams{
 		UserID:  int64(userID),
 		Column2: langValue,
-		Column3: catUUID,
+		Column3: categoryID,
 		Limit:   int32(pageSize),
 		Offset:  int32(offset),
 	}
@@ -168,8 +168,9 @@ func (r *ExerciseRepository) GetExercisesFiltered(ctx context.Context, userID mo
 				CodeToRemember:      row.CodeToRemember,
 				CreatedAt:           row.CreatedAt.Time,
 				UpdatedAt:           row.UpdatedAt.Time,
-				IsActive:            isActive},
-
+				IsActive:            isActive,
+				IsCommon:            *row.IsCommon,
+			},
 			UserIfo: model.UserInfo{
 				IsSolved:       row.IsSolved,
 				IsUserExercise: row.IsUserExercise,
@@ -279,20 +280,28 @@ func (r *ExerciseRepository) GetUserExercisesFiltered(ctx context.Context, userI
 		if row.IsActive != nil {
 			isActive = *row.IsActive
 		}
+		isCommon := false
+		if row.IsCommon != nil {
+			isCommon = *row.IsCommon
+		}
 		detailseList[i] = &model.ExerciseDetailse{
 			Exercise: model.Exercise{
 				ID:                  row.ExerciseID,
-				UserID:              model.UserID(row.UserID),
+				UserID:              model.UserID(row.ExerciseUserID),
 				Title:               row.Title,
 				Description:         description,
 				CategoryID:          row.CategoryID,
 				ProgrammingLanguage: model.ProgrammingLanguage(row.ProgrammingLanguage),
 				CodeToRemember:      row.CodeToRemember,
-				CreatedAt:           row.ExerciseCreatedAt.Time,
-				UpdatedAt:           row.ExerciseUpdatedAt.Time,
+				CreatedAt:           row.CreatedAt.Time,
+				UpdatedAt:           row.UpdatedAt.Time,
 				IsActive:            isActive,
+				IsCommon:            isCommon,
 			},
-			UserIfo: model.UserInfo{}, // Нет данных о IsSolved и IsUserExercise
+			UserIfo: model.UserInfo{
+				IsSolved:       row.IsSolved,
+				IsUserExercise: row.IsUserExercise,
+			},
 		}
 	}
 

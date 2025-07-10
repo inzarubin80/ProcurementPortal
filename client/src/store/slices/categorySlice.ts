@@ -35,9 +35,9 @@ const initialState: CategoryState = {
 // Async thunks
 export const fetchCategories = createAsyncThunk(
   'categories/fetchCategories',
-  async ({ page = 1, pageSize = 10 }: { page?: number; pageSize?: number }, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await authAxios.get(`/categories?page=${page}&page_size=${pageSize}`);
+      const response = await authAxios.get('/categories');
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error?.response?.data?.message || 'Failed to fetch categories');

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"inzarubin80/MemCode/internal/model"
+	"time"
 )
 
 func (s *PokerService) Login(ctx context.Context, providerKey string, authorizationCode string) (*model.AuthData, error) {
@@ -33,7 +34,6 @@ func (s *PokerService) Login(ctx context.Context, providerKey string, authorizat
 			return nil, err
 		}
 
-	
 		userAuthProviders, err = s.repository.AddUserAuthProviders(ctx, userProfileFromProvider, user.ID)
 		if err != nil {
 			return nil, err
@@ -43,12 +43,32 @@ func (s *PokerService) Login(ctx context.Context, providerKey string, authorizat
 
 	userID := userAuthProviders.UserID
 
-	refreshToken, err := s.refreshTokenService.GenerateToken(userID)
+	user, err := s.repository.GetUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	accessToken, err := s.accessTokenService.GenerateToken(userID)
+	refreshToken, err := s.refreshTokenService.GenerateToken(userID, user.IsAdmin)
+	if err != nil {
+		return nil, err
+	}
+
+	// Сохраняем refresh-токен в базу
+	refreshTokenModel := &model.RefreshToken{
+		UserID:    userID,
+		Token:     refreshToken,
+		IssuedAt:  time.Now().UTC(),
+		ExpiresAt: time.Now().UTC().Add(30 * 24 * time.Hour), // например, 30 дней
+		Revoked:   false,
+		UserAgent: "", // можно получить из ctx или http.Request
+		IPAddress: "", // можно получить из ctx или http.Request
+	}
+	err = s.CreateRefreshToken(ctx, refreshTokenModel)
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := s.accessTokenService.GenerateToken(userID, user.IsAdmin)
 	if err != nil {
 		return nil, err
 	}

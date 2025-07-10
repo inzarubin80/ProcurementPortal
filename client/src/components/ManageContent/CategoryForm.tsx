@@ -6,6 +6,8 @@ import {
   FormControl,
   InputLabel,
   Stack,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import { ProgrammingLanguage } from '../../types/api';
 
@@ -14,6 +16,7 @@ interface CategoryFormProps {
   onFormChange: (e: any) => void;
   languages: ProgrammingLanguage[];
   triedSave: boolean;
+  isAdmin?: boolean;
 }
 
 const CategoryForm: React.FC<CategoryFormProps> = ({
@@ -21,6 +24,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   onFormChange,
   languages,
   triedSave,
+  isAdmin,
 }) => {
   return (
     <Stack spacing={2}>
@@ -60,6 +64,19 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           ))}
         </Select>
       </FormControl>
+      {isAdmin && (
+        <FormControlLabel
+          control={
+            <Switch
+              checked={!!form.is_common}
+              onChange={e => onFormChange({ target: { name: 'is_common', value: e.target.checked } })}
+              name="is_common"
+              color="primary"
+            />
+          }
+          label="Общая категория"
+        />
+      )}
     </Stack>
   );
 };

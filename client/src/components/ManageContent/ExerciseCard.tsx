@@ -8,16 +8,24 @@ import {
   IconButton,
   Stack,
   Chip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
-import { Edit as EditIcon } from '@mui/icons-material';
+import { Edit as EditIcon, CheckCircle as CheckCircleIcon, MoreVert as MoreVertIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import LockIcon from '@mui/icons-material/Lock';
 import { ExerciseDetailse, ProgrammingLanguage, Category } from '../../types/api';
 import UserExerciseButton from '../UserExerciseButton';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 interface ExerciseCardProps {
   exerciseDetailse: ExerciseDetailse;
   languages: ProgrammingLanguage[];
   categories: Category[];
   onEdit: (exercise: ExerciseDetailse) => void;
+  onDelete: (exercise: ExerciseDetailse) => void; // добавляем проп
 }
 
 const ExerciseCard: React.FC<ExerciseCardProps> = ({
@@ -25,12 +33,28 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
   languages,
   categories,
   onEdit,
+  onDelete,
 }) => {
   const { exercise, user_info } = exerciseDetailse;
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+  const isAdmin = useSelector((state: RootState) => state.user.isAdmin);
   return (
-    <Card variant="outlined" sx={{ borderRadius: 3, boxShadow: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <Card variant="outlined" sx={{ borderRadius: 3, boxShadow: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
+      {exerciseDetailse.exercise.is_common && (
+        <LockIcon sx={{ position: 'absolute', top: 8, right: 8, color: 'primary.main', zIndex: 2 }} titleAccess="Общая задача" />
+      )}
       <CardContent sx={{ pb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
+          <IconButton onClick={handleMenuOpen} sx={{ mr: 1 }}>
+            <MoreVertIcon />
+          </IconButton>
           <span 
             style={{verticalAlign: 'middle', marginRight: 8, marginTop: 2}} 
             dangerouslySetInnerHTML={{__html: languages.find(l => l.value === exercise.programming_language)?.icon_svg || ''}} 
@@ -46,16 +70,38 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                minHeight: '2.4em',
-                maxHeight: '2.4em',
-                lineHeight: 1.2
+                minHeight: '3.2em',
+                maxHeight: '3.2em',
+                lineHeight: 1.2,
+                mb: 1
               }}
             >
               {exercise.title}
+              {user_info.is_solved && (
+                <CheckCircleIcon color="success" sx={{ ml: 1, verticalAlign: 'middle' }} titleAccess="Задача решена" />
+              )}
             </Typography>
-            <IconButton onClick={() => onEdit(exerciseDetailse)} sx={{ ml: 1 }}>
-              <EditIcon />
-            </IconButton>
+            {/* меню оставляем тут, чтобы не перекрывать */}
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleMenuClose}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+              {(!exercise.is_common || isAdmin) && (
+                <MenuItem onClick={() => { handleMenuClose(); onEdit(exerciseDetailse); }}>
+                  <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
+                  <ListItemText primary="Редактировать" />
+                </MenuItem>
+              )}
+              {(!exercise.is_common || isAdmin) && (
+                <MenuItem onClick={() => { handleMenuClose(); onDelete(exerciseDetailse); }}>
+                  <ListItemIcon><DeleteIcon fontSize="small" /></ListItemIcon>
+                  <ListItemText primary="Удалить" />
+                </MenuItem>
+              )}
+            </Menu>
           </Box>
         </Box>
         <Typography 

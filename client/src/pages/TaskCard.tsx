@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, Typography, Chip, Button, Box } from '@mui/material';
-import { PlayArrow as PlayIcon } from '@mui/icons-material';
+import { PlayArrow as PlayIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 
 interface TaskCardProps {
   id: number;
@@ -64,6 +64,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
           }}
         >
           {title}
+          {isSolved && (
+            <CheckCircleIcon color="success" sx={{ ml: 1, verticalAlign: 'middle' }} titleAccess="Задача решена" />
+          )}
         </Typography>
         <Typography
           variant="body2"

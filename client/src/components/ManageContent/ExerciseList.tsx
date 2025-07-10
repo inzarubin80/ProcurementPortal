@@ -6,6 +6,8 @@ import {
 } from '@mui/material';
 import { ExerciseDetailse, ProgrammingLanguage, Category } from '../../types/api';
 import ExerciseCard from './ExerciseCard';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 interface ExerciseListProps {
   exercises: ExerciseDetailse[];
@@ -32,6 +34,9 @@ const ExerciseList: React.FC<ExerciseListProps> = ({
   const startIndex = (currentPage - 1) * exercisesPerPage;
   const endIndex = startIndex + exercisesPerPage;
   const paginatedExercises = exercises.slice(startIndex, endIndex);
+  const isAdmin = useSelector((state: RootState) => state.user.isAdmin);
+
+  const handleEdit = onEdit;
 
   return (
     <>
@@ -42,7 +47,8 @@ const ExerciseList: React.FC<ExerciseListProps> = ({
               exerciseDetailse={ex}
               languages={languages}
               categories={categories}
-              onEdit={onEdit}
+              onEdit={handleEdit}
+              onDelete={() => onDelete(ex.exercise.id)}
             />
           </Grid>
         ))}

@@ -22,7 +22,7 @@ import (
 
 type (
 	DeleteExerciseService interface {
-		DeleteExercise(ctx context.Context, userID model.UserID, exerciseID int64) error
+		DeleteExercise(ctx context.Context, userID model.UserID, isAdmin bool, exerciseID int64) error
 	}
 
 	DeleteExerciseHandler struct {
@@ -41,7 +41,7 @@ func NewDeleteExerciseHandler(service DeleteExerciseService, name string) *Delet
 func (h *DeleteExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(int64)
+	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 		return
@@ -60,7 +60,8 @@ func (h *DeleteExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = h.service.DeleteExercise(ctx, model.UserID(userID), exerciseID)
+	isAdmin, _ := ctx.Value(defenitions.IsAdminKey).(bool)
+	err = h.service.DeleteExercise(ctx, model.UserID(userID), isAdmin, exerciseID)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

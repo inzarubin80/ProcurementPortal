@@ -22,14 +22,13 @@ import (
 
 type (
 	CreateCategoryService interface {
-		CreateCategory(ctx context.Context, userID model.UserID, category *model.Category) (*model.Category, error)
+		CreateCategory(ctx context.Context, userID model.UserID, isAdmin bool, category *model.Category) (*model.Category, error)
 	}
 
 	CreateCategoryHandler struct {
 		name    string
 		service CreateCategoryService
 	}
-
 )
 
 func NewCreateCategoryHandler(service CreateCategoryService, name string) *CreateCategoryHandler {
@@ -78,7 +77,8 @@ func (h *CreateCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	createdCategory, err := h.service.CreateCategory(ctx, userID, &category)
+	isAdmin, _ := ctx.Value(defenitions.IsAdminKey).(bool)
+	createdCategory, err := h.service.CreateCategory(ctx, userID, isAdmin, &category)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

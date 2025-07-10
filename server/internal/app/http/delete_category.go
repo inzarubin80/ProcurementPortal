@@ -22,7 +22,7 @@ import (
 
 type (
 	DeleteCategoryService interface {
-		DeleteCategory(ctx context.Context, userID model.UserID, categoryID int64) error
+		DeleteCategory(ctx context.Context, userID model.UserID, isAdmin bool, categoryID int64) error
 	}
 
 	DeleteCategoryHandler struct {
@@ -41,7 +41,7 @@ func NewDeleteCategoryHandler(service DeleteCategoryService, name string) *Delet
 func (h *DeleteCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value(defenitions.UserID).(int64)
+	userID, ok := ctx.Value(defenitions.UserID).(model.UserID)
 	if !ok {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 		return
@@ -60,7 +60,8 @@ func (h *DeleteCategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = h.service.DeleteCategory(ctx, model.UserID(userID), categoryID)
+	isAdmin, _ := ctx.Value(defenitions.IsAdminKey).(bool)
+	err = h.service.DeleteCategory(ctx, userID, isAdmin, categoryID)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

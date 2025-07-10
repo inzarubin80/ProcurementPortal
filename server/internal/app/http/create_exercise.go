@@ -22,7 +22,7 @@ import (
 
 type (
 	CreateExerciseService interface {
-		CreateExercise(ctx context.Context, userID model.UserID, exercise *model.Exercise) (*model.Exercise, error)
+		CreateExercise(ctx context.Context, userID model.UserID, isAdmin bool, exercise *model.Exercise) (*model.Exercise, error)
 	}
 
 	CreateExerciseHandler struct {
@@ -72,13 +72,20 @@ func (h *CreateExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	createdExercise, err := h.service.CreateExercise(ctx, userID, &exercise)
+	isAdmin, _ := ctx.Value(defenitions.IsAdminKey).(bool)
+	createdExercise, err := h.service.CreateExercise(ctx, userID, isAdmin, &exercise)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	jsonData, err := json.Marshal(createdExercise)
+	// Wrap in ExerciseDetailse with default UserInfo
+	detailse := model.ExerciseDetailse{
+		UserIfo:  model.UserInfo{IsSolved: false, IsUserExercise: false},
+		Exercise: *createdExercise,
+	}
+
+	jsonData, err := json.Marshal(detailse)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

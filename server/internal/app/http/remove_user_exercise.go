@@ -47,31 +47,19 @@ func (h *RemoveUserExerciseHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	// Получаем id из path
-	idStr := ""
-	if vals, ok := r.URL.Query()["id"]; ok && len(vals) > 0 {
-		idStr = vals[0]
-	} else {
-		// Попытка получить из URL path, если используется стандартный net/http
-		// /user_exercises/{id}
-		// Например, если путь /user_exercises/123, то r.URL.Path = "/user_exercises/123"
-		// Можно вручную извлечь id
-		pathParts := splitPath(r.URL.Path)
-		if len(pathParts) >= 2 {
-			idStr = pathParts[len(pathParts)-1]
-		}
-	}
-
-	if idStr == "" {
-		uhttp.SendErrorResponse(w, http.StatusBadRequest, "id is required in path")
+	// Получаем id из URL
+	exerciseIDStr := r.URL.Query().Get("exercise_id")
+	if exerciseIDStr == "" {
+		uhttp.SendErrorResponse(w, http.StatusBadRequest, "id is required")
 		return
 	}
 
-	exerciseID, err := strconv.ParseInt(idStr, 10, 64)
+	exerciseID, err := strconv.ParseInt(exerciseIDStr, 10, 64)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid id")
 		return
 	}
+
 
 	err = h.service.RemoveUserExercise(ctx, userID, exerciseID)
 	if err != nil {

@@ -13,15 +13,19 @@ import (
 func (r *Repository) CreateUser(ctx context.Context, userData *model.UserProfileFromProvider) (*model.User, error) {
 
 	reposqlsc := sqlc_repository.New(r.conn)
-	userID, err := reposqlsc.CreateUser(ctx, userData.Name)
-
+	params := &sqlc_repository.CreateUserParams{
+		Name:    userData.Name,
+		IsAdmin: false, // по умолчанию
+	}
+	user, err := reposqlsc.CreateUser(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
 	return &model.User{
-		ID:   model.UserID(userID),
-		Name: userData.Name,
+		ID:      model.UserID(user.UserID),
+		Name:    user.Name,
+		IsAdmin: user.IsAdmin,
 	}, nil
 }
 
@@ -51,8 +55,9 @@ func (r *Repository) GetUser(ctx context.Context, userID model.UserID) (*model.U
 	}
 
 	return &model.User{
-		ID:   model.UserID(user.UserID),
-		Name: user.Name,
+		ID:      model.UserID(user.UserID),
+		Name:    user.Name,
+		IsAdmin: user.IsAdmin,
 	}, nil
 
 }
@@ -77,11 +82,48 @@ func (r *Repository) GetUsersByIDs(ctx context.Context, userIDs []model.UserID) 
 
 	for i, value := range users {
 		usersRes[i] = &model.User{
-			ID:   model.UserID(value.UserID),
-			Name: value.Name,
+			ID:      model.UserID(value.UserID),
+			Name:    value.Name,
+			IsAdmin: value.IsAdmin,
 		}
 	}
 
 	return usersRes, nil
 
+}
+
+func (r *Repository) GetAllUsers(ctx context.Context) ([]*model.User, error) {
+	reposqlsc := sqlc_repository.New(r.conn)
+	users, err := reposqlsc.GetAllUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	usersRes := make([]*model.User, len(users))
+	for i, value := range users {
+		usersRes[i] = &model.User{
+			ID:                 model.UserID(value.UserID),
+			Name:               value.Name,
+			EvaluationStrategy: "", // или value.EvaluationStrategy, если нужно
+			MaximumScore:       0,  // или value.MaximumScore, если нужно
+			IsAdmin:            value.IsAdmin,
+		}
+	}
+	return usersRes, nil
+}
+
+func (r *Repository) SetUserAdmin(ctx context.Context, userID model.UserID, isAdmin bool) (*model.User, error) {
+	reposqlsc := sqlc_repository.New(r.conn)
+	params := &sqlc_repository.SetUserAdminParams{
+		UserID:  int64(userID),
+		IsAdmin: isAdmin,
+	}
+	user, err := reposqlsc.SetUserAdmin(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &model.User{
+		ID:      model.UserID(user.UserID),
+		Name:    user.Name,
+		IsAdmin: user.IsAdmin,
+	}, nil
 }

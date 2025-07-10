@@ -6,12 +6,12 @@ CREATE TABLE exercises (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     category_id BIGINT NOT NULL,
-    difficulty VARCHAR(50) NOT NULL,
     programming_language VARCHAR(50) NOT NULL,
     code_to_remember TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+    is_common BOOLEAN DEFAULT FALSE
 );
 
 -- Создаем кластерный индекс по user_id и id

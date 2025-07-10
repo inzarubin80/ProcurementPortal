@@ -37,7 +37,7 @@ export const useEntityDialog = (): UseEntityDialogReturn => {
     if (type === 'category') {
       setFormState({ ...item, category_id: item.id });
     } else {
-      setFormState(item);
+      setFormState(item.exercise ? item.exercise : item); // support both ExerciseDetailse and Exercise
     }
     setEditItem(item);
     setOpenDialog(true);

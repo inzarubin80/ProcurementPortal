@@ -32,6 +32,7 @@ type (
 
 		// User Exercises route
 		getUserExercises, addUserExercise, removeUserExercise string
+		getAllUsers, setUserAdmin                             string
 	}
 
 	sectrets struct {
@@ -134,6 +135,8 @@ func NewConfig(opts Options) config {
 			getUserExercises:   "GET    /api/user/exercises",
 			addUserExercise:    "POST   /api/user/exercises/add",
 			removeUserExercise: "DELETE /api/user/exercises/remove",
+			getAllUsers:        "GET    /api/users",
+			setUserAdmin:       "POST   /api/users/set-admin",
 		},
 
 		sectrets: sectrets{

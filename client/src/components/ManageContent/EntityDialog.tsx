@@ -23,6 +23,7 @@ interface EntityDialogProps {
   categories: Category[];
   triedSave: boolean;
   onDelete?: () => void;
+  isAdmin?: boolean;
 }
 
 const EntityDialog: React.FC<EntityDialogProps> = ({
@@ -37,6 +38,7 @@ const EntityDialog: React.FC<EntityDialogProps> = ({
   categories,
   triedSave,
   onDelete,
+  isAdmin,
 }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -51,6 +53,7 @@ const EntityDialog: React.FC<EntityDialogProps> = ({
             languages={languages}
             categories={categories}
             triedSave={triedSave}
+            isAdmin={isAdmin}
           />
         ) : (
           <CategoryForm
@@ -58,19 +61,13 @@ const EntityDialog: React.FC<EntityDialogProps> = ({
             onFormChange={onFormChange}
             languages={languages}
             triedSave={triedSave}
+            isAdmin={isAdmin}
           />
-        )}
-        {dialogType === 'edit' && entityType === 'exercise' && onDelete && (
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button color="error" variant="outlined" onClick={onDelete}>
-              Удалить упражнение
-            </Button>
-          </Box>
         )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Отмена</Button>
-        <Button onClick={onSave} variant="contained">Сохранить</Button>
+        <Button onClick={onSave} variant="contained" sx={{ color: '#fff' }}>Сохранить</Button>
       </DialogActions>
     </Dialog>
   );

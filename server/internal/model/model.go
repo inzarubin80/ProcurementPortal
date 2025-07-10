@@ -55,6 +55,7 @@ type (
 		Name               string
 		EvaluationStrategy string
 		MaximumScore       int
+		IsAdmin            bool
 	}
 
 	UserAuthProviders struct {
@@ -72,6 +73,7 @@ type (
 
 	Claims struct {
 		UserID    UserID `json:"user_id"`
+		IsAdmin   bool   `json:"is_admin"`
 		TokenType string `json:"token_type"` // Добавляем поле для типа токена
 		jwt.StandardClaims
 	}
@@ -88,6 +90,7 @@ type (
 		UpdatedAt           time.Time           `json:"updated_at"`
 		IsActive            bool                `json:"is_active"`
 		SuccessfulAttempts  *int                `json:"successful_attempts,omitempty"`
+		IsCommon            bool                `json:"is_common"`
 	}
 
 	Category struct {
@@ -102,6 +105,7 @@ type (
 		CreatedAt           time.Time           `json:"created_at"`
 		UpdatedAt           time.Time           `json:"updated_at"`
 		IsActive            bool                `json:"is_active"`
+		IsCommon            bool                `json:"is_common"`
 	}
 
 	CategoryListResponse struct {
@@ -112,7 +116,6 @@ type (
 		HasNext    bool        `json:"has_next"`
 		HasPrev    bool        `json:"has_prev"`
 	}
-
 	// ExerciseStat хранит статистику пользователя по задаче
 	ExerciseStat struct {
 		UserID             UserID `json:"user_id"`
@@ -164,12 +167,23 @@ type (
 	}
 
 	ExerciseListWithUserResponse struct {
-		ExeExerciseDetailse []*ExerciseDetailse `json:"exercise_detailse"`
-		Total               int                 `json:"total"`
-		Page                int                 `json:"page"`
-		PageSize            int                 `json:"page_size"`
-		HasNext             bool                `json:"has_next"`
-		HasPrev             bool                `json:"has_prev"`
+		ExerciseDetailse []*ExerciseDetailse `json:"exercise_detailse"`
+		Total            int                 `json:"total"`
+		Page             int                 `json:"page"`
+		PageSize         int                 `json:"page_size"`
+		HasNext          bool                `json:"has_next"`
+		HasPrev          bool                `json:"has_prev"`
+	}
+
+	RefreshToken struct {
+		ID        int64     `json:"id"`
+		UserID    UserID    `json:"user_id"`
+		Token     string    `json:"token"`
+		IssuedAt  time.Time `json:"issued_at"`
+		ExpiresAt time.Time `json:"expires_at"`
+		Revoked   bool      `json:"revoked"`
+		UserAgent string    `json:"user_agent"`
+		IPAddress string    `json:"ip_address"`
 	}
 )
 

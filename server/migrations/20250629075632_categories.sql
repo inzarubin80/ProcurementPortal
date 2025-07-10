@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS categories (
     status VARCHAR(20) DEFAULT 'active',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+    is_common BOOLEAN DEFAULT FALSE
 );
 
 
