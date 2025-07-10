@@ -3,6 +3,7 @@ import {
   Grid,
   Pagination,
   Box,
+  CircularProgress,
 } from '@mui/material';
 import { ExerciseDetailse, ProgrammingLanguage, Category } from '../../types/api';
 import ExerciseCard from './ExerciseCard';
@@ -18,6 +19,7 @@ interface ExerciseListProps {
   onPageChange: (page: number) => void;
   onEdit: (exercise: ExerciseDetailse) => void;
   onDelete: (id: number) => void;
+  loading: boolean;
 }
 
 const ExerciseList: React.FC<ExerciseListProps> = ({
@@ -29,6 +31,7 @@ const ExerciseList: React.FC<ExerciseListProps> = ({
   onPageChange,
   onEdit,
   onDelete,
+  loading,
 }) => {
   const totalPages = Math.ceil(exercises.length / exercisesPerPage);
   const startIndex = (currentPage - 1) * exercisesPerPage;
@@ -37,6 +40,14 @@ const ExerciseList: React.FC<ExerciseListProps> = ({
   const user = useSelector((state: RootState) => state.user.user);
 
   const handleEdit = onEdit;
+
+  if (exercises.length === 0 && loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <>
