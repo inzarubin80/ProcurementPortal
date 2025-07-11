@@ -4,6 +4,7 @@ import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
 import { addUserExercise, removeUserExercise } from '../store/slices/userExerciseSlice';
+import CustomButton from './CustomButton';
 
 interface UserExerciseButtonProps {
   exerciseId: number;
@@ -35,14 +36,14 @@ const UserExerciseButton: React.FC<UserExerciseButtonProps> = ({
     }
   };
 
-  const buttonText = isUserExercise ? 'Убрать из списка' : 'Добавить в список';
+  const buttonText = isUserExercise ? 'Удалить из моих упражнений' : 'Добавить в мои упражнения';
   const tooltipText = isUserExercise 
-    ? 'Удалить упражнение из моего списка задач' 
-    : 'Добавить упражнение в мой список задач';
+    ? 'Удалить упражнение из моих упражнений' 
+    : 'Добавить упражнение в мои упражнения';
 
   return (
     <Tooltip title={tooltipText} arrow>
-      <Button
+      <CustomButton
         variant={isUserExercise ? 'outlined' : 'contained'}
         color={isUserExercise ? 'secondary' : 'primary'}
         size={size}
@@ -89,7 +90,7 @@ const UserExerciseButton: React.FC<UserExerciseButtonProps> = ({
         }}
       >
         {buttonText}
-      </Button>
+      </CustomButton>
     </Tooltip>
   );
 };

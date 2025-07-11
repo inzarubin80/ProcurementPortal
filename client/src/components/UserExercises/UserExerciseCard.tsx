@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, Typography, Chip, Button, Box } from '@mui/material';
 import { PlayArrow as PlayIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
+import CustomButton from '../CustomButton';
 
 interface UserExerciseCardProps {
   id: number;
@@ -91,7 +92,7 @@ const UserExerciseCard: React.FC<UserExerciseCardProps> = ({
         </Box>
       </CardContent>
       <Box sx={{ p: 3, pt: 0, display: 'block' }}>
-        <Button
+        <CustomButton
           variant="contained"
           startIcon={<PlayIcon />}
           onClick={() => onStart(id)}
@@ -108,7 +109,7 @@ const UserExerciseCard: React.FC<UserExerciseCardProps> = ({
           }}
         >
           Начать
-        </Button>
+        </CustomButton>
       </Box>
     </Card>
   );

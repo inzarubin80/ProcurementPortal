@@ -32,6 +32,7 @@ import { diffWords, diffLines as diffLinesFn } from 'diff';
 import Confetti from 'react-confetti';
 import './ExerciseCard.css';
 import { useTheme } from '@mui/material/styles';
+import CustomButton from '../components/CustomButton';
 
 
 const ExerciseCard: React.FC = () => {
@@ -528,7 +529,7 @@ const ExerciseCard: React.FC = () => {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-            <Button
+            <CustomButton
               variant="contained"
               startIcon={<PlayIcon />}
               size="large"
@@ -564,7 +565,7 @@ const ExerciseCard: React.FC = () => {
               }}
             >
               Начать выполнение
-            </Button>
+            </CustomButton>
             <Button
               variant="outlined"
               startIcon={<PlayIcon />}
@@ -690,7 +691,7 @@ const ExerciseCard: React.FC = () => {
 
           <Box sx={{ display: 'flex', gap: 2, mb: 2, flexDirection: 'column' }}>
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button
+              <CustomButton
                 variant="contained"
                 color="primary"
                 startIcon={<CheckIcon />}
@@ -714,7 +715,7 @@ const ExerciseCard: React.FC = () => {
                 disabled={checking || !userCode.trim()}
               >
                 {checking ? <CircularProgress size={24} color="inherit" /> : 'Проверить'}
-              </Button>
+              </CustomButton>
               <Button
                 variant="outlined"
                 color="secondary"

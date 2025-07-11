@@ -26,6 +26,7 @@ import {
 } from '@mui/material';
 import { TableRows as TableRowsIcon, ViewModule as ViewModuleIcon, FilterList as FilterListIcon, Settings as SettingsIcon, PlayArrow as PlayIcon } from '@mui/icons-material';
 import UserExerciseCard from './UserExerciseCard';
+import CustomButton from '../CustomButton';
 
 interface UserExerciseListProps {
   userExercises: any[];
@@ -265,7 +266,7 @@ const UserExerciseList: React.FC<UserExerciseListProps> = ({
                               />
                             </TableCell>
                             <TableCell>
-                              <Button
+                              <CustomButton
                                 variant="contained"
                                 startIcon={<PlayIcon />}
                                 onClick={e => {
@@ -284,7 +285,7 @@ const UserExerciseList: React.FC<UserExerciseListProps> = ({
                                 }}
                               >
                                 {isCompleted ? 'Повторить' : 'Начать'}
-                              </Button>
+                              </CustomButton>
                             </TableCell>
                           </TableRow>
                         );
