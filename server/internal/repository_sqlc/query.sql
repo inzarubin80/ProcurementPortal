@@ -55,7 +55,8 @@ UPDATE exercises SET
     code_to_remember = $4,
     updated_at = NOW(),
     programming_language = $5,
-    is_common = $6
+    is_common = $6,
+    user_id = $10
 WHERE id = $7
   AND is_active = TRUE
   AND ($9::boolean OR user_id = $8)
@@ -105,7 +106,8 @@ UPDATE categories SET
     icon = $5,
     status = $6,
     is_common = $7,
-    updated_at = NOW()
+    updated_at = NOW(),
+    user_id = $11
 WHERE id = $8
   AND is_active = TRUE
   AND ($10::boolean OR user_id = $9)

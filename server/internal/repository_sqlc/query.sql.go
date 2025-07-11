@@ -953,7 +953,8 @@ UPDATE categories SET
     icon = $5,
     status = $6,
     is_common = $7,
-    updated_at = NOW()
+    updated_at = NOW(),
+    user_id = $11
 WHERE id = $8
   AND is_active = TRUE
   AND ($10::boolean OR user_id = $9)
@@ -971,6 +972,7 @@ type UpdateCategoryParams struct {
 	ID                  int64
 	UserID              int64
 	Column10            bool
+	UserID_2            int64
 }
 
 func (q *Queries) UpdateCategory(ctx context.Context, arg *UpdateCategoryParams) (*Category, error) {
@@ -985,6 +987,7 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg *UpdateCategoryParams)
 		arg.ID,
 		arg.UserID,
 		arg.Column10,
+		arg.UserID_2,
 	)
 	var i Category
 	err := row.Scan(
@@ -1012,7 +1015,8 @@ UPDATE exercises SET
     code_to_remember = $4,
     updated_at = NOW(),
     programming_language = $5,
-    is_common = $6
+    is_common = $6,
+    user_id = $10
 WHERE id = $7
   AND is_active = TRUE
   AND ($9::boolean OR user_id = $8)
@@ -1029,6 +1033,7 @@ type UpdateExerciseParams struct {
 	ID                  int64
 	UserID              int64
 	Column9             bool
+	UserID_2            int64
 }
 
 type UpdateExerciseRow struct {
@@ -1056,6 +1061,7 @@ func (q *Queries) UpdateExercise(ctx context.Context, arg *UpdateExerciseParams)
 		arg.ID,
 		arg.UserID,
 		arg.Column9,
+		arg.UserID_2,
 	)
 	var i UpdateExerciseRow
 	err := row.Scan(
