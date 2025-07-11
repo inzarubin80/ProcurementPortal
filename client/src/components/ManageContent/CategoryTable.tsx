@@ -10,6 +10,7 @@ import {
   IconButton,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import LockIcon from '@mui/icons-material/Lock';
 import { Category, ProgrammingLanguage } from '../../types/api';
 
 interface CategoryTableProps {
@@ -36,14 +37,20 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
           <TableRow>
             <TableCell>Название</TableCell>
             <TableCell>Язык</TableCell>
-            <TableCell>Общая</TableCell> {/* Новая колонка */}
             <TableCell>Действия</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {categories.map(cat => (
-            <TableRow key={cat.id}>
-              <TableCell>{cat.name}</TableCell>
+            <TableRow key={cat.id} style={{ position: 'relative' }}>
+              <TableCell>
+                <span style={{display: 'inline-flex', alignItems: 'center'}}>
+                  {cat.icon && (
+                    <img src={cat.icon} alt={cat.name} style={{width: 28, height: 28, marginRight: 8, borderRadius: 6, objectFit: 'cover', boxShadow: '0 1px 4px #eee'}} />
+                  )}
+                  {cat.name}
+                </span>
+              </TableCell>
               <TableCell>
                 <span 
                   style={{verticalAlign: 'middle', marginRight: 8}} 
@@ -51,20 +58,27 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
                 />
                 {cat.programming_language}
               </TableCell>
-              <TableCell>
-                {cat.is_common ? 'Да' : 'Нет'}
-              </TableCell>
-              <TableCell>
-                {(!cat.is_common && (isAdmin || cat.user_id === userId)) && (
-                  <>
-                    <IconButton onClick={() => onEdit(cat)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => onDelete(cat.id)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </>
-                )}
+              <TableCell
+                style={
+                  (cat.is_common && !isAdmin)
+                    ? { display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: 'none' }
+                    : { display: 'flex', justifyContent: 'center', alignItems: 'center' }
+                }
+              >
+                {(cat.is_common && !isAdmin)
+                  ? (
+                    <LockIcon titleAccess="Общая категория" sx={{ color: 'primary.main' }} />
+                  )
+                  : (
+                    <>
+                      <IconButton onClick={() => onEdit(cat)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton color="error" onClick={() => onDelete(cat.id)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </>
+                  )}
               </TableCell>
             </TableRow>
           ))}

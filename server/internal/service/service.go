@@ -161,6 +161,12 @@ func (s *PokerService) CreateCategory(ctx context.Context, userID model.UserID, 
 	if category.IsCommon && !isAdmin {
 		return nil, errors.New("only admin can create common categories")
 	}
+
+	
+	if category.IsCommon {
+		userID = 0
+	}
+
 	return s.repository.CreateCategory(ctx, userID, isAdmin, category)
 }
 
@@ -200,6 +206,12 @@ func (s *PokerService) UpdateCategory(ctx context.Context, userID model.UserID, 
 			return nil, errors.New("only admin can set category as common")
 		}
 	}
+
+	
+	if category.IsCommon {
+		userID = 0
+	}
+
 	return s.repository.UpdateCategory(ctx, userID, isAdmin, categoryID, category)
 }
 

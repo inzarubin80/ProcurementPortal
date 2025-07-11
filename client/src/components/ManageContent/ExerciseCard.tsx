@@ -47,14 +47,17 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
   const user = useSelector((state: RootState) => state.user.user);
   return (
     <Card variant="outlined" sx={{ borderRadius: 3, boxShadow: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
-      {exerciseDetailse.exercise.is_common && (
-        <LockIcon sx={{ position: 'absolute', top: 8, right: 8, color: 'primary.main', zIndex: 2 }} titleAccess="Общая задача" />
-      )}
+      {/* Удалить LockIcon с position: absolute сверху */}
       <CardContent sx={{ pb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
-          <IconButton onClick={handleMenuOpen} sx={{ mr: 1 }}>
-            <MoreVertIcon />
-          </IconButton>
+          {/* Показываем меню только если задача не общая или пользователь админ, иначе замок */}
+          {(!exerciseDetailse.exercise.is_common || user?.is_admin) ? (
+            <IconButton onClick={handleMenuOpen} sx={{ mr: 1 }}>
+              <MoreVertIcon />
+            </IconButton>
+          ) : (
+            <LockIcon sx={{ mr: 1, color: 'primary.main' }} titleAccess="Общая задача" />
+          )}
           <span 
             style={{verticalAlign: 'middle', marginRight: 8, marginTop: 2}} 
             dangerouslySetInnerHTML={{__html: languages.find(l => l.value === exercise.programming_language)?.icon_svg || ''}} 

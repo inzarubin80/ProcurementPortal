@@ -1,7 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import TaskList from './pages/TaskList';
-import UserTaskList from './pages/UserTaskList';
 import ExerciseCard from './pages/ExerciseCard';
 import ManageContent from './pages/ManageContent';
 import Profile from './pages/Profile';
@@ -38,8 +37,6 @@ const App: React.FC = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Landing />} />
           <Route path="/exercises" element={<TaskList />} />
-          <Route path="/tasks" element={<TaskList />} />
-          <Route path="/my-exercises" element={<UserTaskList />} />
           <Route path="/exercise/:id" element={<ExerciseCard />} />
           <Route path="/manage" element={<ManageContent />} />
           <Route path="/profile" element={<Profile />} />

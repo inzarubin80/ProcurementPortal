@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { PlayArrow as PlayIcon, Check as CheckIcon, Refresh as RefreshIcon, BarChart as BarChartIcon, ThumbUp as ThumbUpIcon, Visibility as VisibilityIcon, Edit as EditIcon, TrendingUp as TrendingUpIcon, CheckCircle as CheckCircleIcon, ExpandMore as ExpandMoreIcon, Compare as CompareIcon, VisibilityOff as VisibilityOffIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import MonacoEditor from '@monaco-editor/react';
+import CustomMonacoEditor from '../components/CustomMonacoEditor';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { fetchExerciseById } from '../store/slices/exerciseSlice';
@@ -494,7 +494,7 @@ const ExerciseCard: React.FC = () => {
               onCut={e => e.preventDefault()}
               onPaste={e => e.preventDefault()}
             >
-              <MonacoEditor
+              <CustomMonacoEditor
                 height="180px"
                 defaultLanguage={getMonacoLanguage(exercise.exercise.programming_language)}
                 value={exercise.exercise.code_to_remember}
@@ -679,7 +679,7 @@ const ExerciseCard: React.FC = () => {
           </Box>
 
           <Paper variant="outlined" sx={{ mb: 2, borderRadius: 2, overflow: 'hidden' }}>
-            <MonacoEditor
+            <CustomMonacoEditor
               height="180px"
               defaultLanguage={getMonacoLanguage(exercise.exercise.programming_language)}
               value={userCode}
@@ -952,7 +952,7 @@ const ExerciseCard: React.FC = () => {
               border: '1px solid #e0e0e0'
             }}
           >
-            <MonacoEditor
+            <CustomMonacoEditor
               height="400px"
               defaultLanguage={getMonacoLanguage(exercise?.exercise.programming_language)}
               value={exercise?.exercise.code_to_remember || ''}

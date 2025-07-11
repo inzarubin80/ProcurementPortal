@@ -10,6 +10,7 @@ import {
   FormControlLabel,
 } from '@mui/material';
 import { ProgrammingLanguage, Category } from '../../types/api';
+import CustomMonacoEditor from '../CustomMonacoEditor';
 
 interface ExerciseFormProps {
   form: any;
@@ -94,17 +95,21 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
           label="Общая задача"
         />
       )}
-      <TextField
-        name="code_to_remember"
-        label="Код для запоминания"
-        value={form.code_to_remember || ''}
-        onChange={onFormChange}
-        multiline
-        rows={6}
-        fullWidth
-        error={triedSave && (!form.code_to_remember || String(form.code_to_remember).trim() === '')}
-        helperText={triedSave && (!form.code_to_remember || String(form.code_to_remember).trim() === '') ? 'Обязательное поле' : ''}
-      />
+      <div>
+        <label style={{ fontWeight: 500, marginBottom: 4, display: 'block' }}>Код для запоминания</label>
+        <CustomMonacoEditor
+          height="200px"
+          defaultLanguage={form.programming_language || 'plaintext'}
+          value={form.code_to_remember || ''}
+          onChange={(v: string | undefined) => {
+            onFormChange({ target: { name: 'code_to_remember', value: v || '' } });
+          }}
+          options={{ fontSize: 16, minimap: { enabled: false }, scrollBeyondLastLine: false, wordWrap: 'on' }}
+        />
+        {triedSave && (!form.code_to_remember || String(form.code_to_remember).trim() === '') && (
+          <div style={{ color: '#d32f2f', fontSize: 12, marginTop: 4 }}>Обязательное поле</div>
+        )}
+      </div>
     </Stack>
   );
 };
