@@ -32,11 +32,31 @@ const AuthProviders: React.FC = () => {
     authUrl.searchParams.append('client_id', provider.ClientId);
     authUrl.searchParams.append('redirect_uri', provider.RedirectUri);
     authUrl.searchParams.append('response_type', 'code');
-    authUrl.searchParams.append('scope', 'login:info');
+    
+    // Используем правильные scopes для каждого провайдера
+    const scope = getProviderScope(provider.Provider);
+    authUrl.searchParams.append('scope', scope);
     authUrl.searchParams.append('state', provider.Provider);
     
     // Перенаправляем пользователя на страницу авторизации
     window.location.href = authUrl.toString();
+  };
+
+  const getProviderScope = (providerName: string) => {
+    switch (providerName.toLowerCase()) {
+      case 'yandex':
+        return 'login:email login:info';
+      case 'google':
+        return 'openid email profile';
+      case 'github':
+        return 'user:email';
+      case 'vk':
+        return 'email';
+      case 'telegram':
+        return 'email';
+      default:
+        return 'openid email profile';
+    }
   };
 
   const getProviderDisplayName = (providerName: string) => {

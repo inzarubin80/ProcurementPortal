@@ -176,6 +176,7 @@ const ManageExercises: React.FC = () => {
         onPageChange={setExercisePage}
         onEdit={(exerciseDetailse) => openEditDialog('exercise', exerciseDetailse)}
         onDelete={handleDelete}
+        loading={loading}
       />
       <EntityDialog
         open={openDialog}
