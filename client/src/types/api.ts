@@ -130,4 +130,5 @@ export interface AuthProvider {
   AuthURL: string;
   RedirectUri: string;
   IconSVG: string;
+  Scopes: string[];
 } 

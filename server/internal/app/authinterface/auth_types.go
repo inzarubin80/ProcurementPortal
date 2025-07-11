@@ -33,5 +33,6 @@ type (
 		AuthURL     string
 		RedirectUri string
 		IconSVG     string
+		Scopes      []string
 	}
 )

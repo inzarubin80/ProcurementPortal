@@ -124,8 +124,8 @@ func (a *App) ListenAndServe() error {
 	a.mux.Handle(a.config.path.login, appHttp.NewLoginHandler(a.pokerService, a.config.path.login, a.store))
 	a.mux.Handle(a.config.path.refreshToken, appHttp.NewRefreshTokenHandler(a.pokerService, a.config.path.refreshToken, a.store))
 	a.mux.Handle(a.config.path.getProviders, appHttp.NewProvadersHandler(a.providersOauthConfFrontend, a.config.path.refreshToken))
-	a.mux.Handle(a.config.path.logOut, appHttp.NewLogOutHandlerHandler(a.pokerService,  a.config.path.logOut, a.store))
-	
+	a.mux.Handle(a.config.path.logOut, appHttp.NewLogOutHandlerHandler(a.pokerService, a.config.path.logOut, a.store))
+
 	// Languages handler (без авторизации)
 	a.mux.Handle(a.config.path.getLanguages, appHttp.NewGetLanguagesHandler("get_languages"))
 
@@ -160,6 +160,7 @@ func NewApp(ctx context.Context, config config, dbConn *pgxpool.Pool) (*App, err
 				RedirectUri: value.Oauth2Config.RedirectURL,
 				AuthURL:     value.Oauth2Config.Endpoint.AuthURL,
 				IconSVG:     value.IconSVG,
+				Scopes:      value.Oauth2Config.Scopes,
 			},
 		)
 	}

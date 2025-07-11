@@ -57,7 +57,7 @@ func NewConfig(opts Options) config {
 			ClientID:     os.Getenv("CLIENT_ID_YANDEX"),
 			ClientSecret: os.Getenv("CLIENT_SECRET_YANDEX"),
 			RedirectURL:  os.Getenv("APP_ROOT") + "/auth/callback?provider=yandex",
-			Scopes:       []string{"login:email", "login:info"},
+			Scopes:       []string{"login:info"},
 			Endpoint:     yandex.Endpoint,
 		},
 		UrlUserData: "https://login.yandex.ru/info?format=json",

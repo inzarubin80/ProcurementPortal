@@ -33,8 +33,8 @@ const AuthProviders: React.FC = () => {
     authUrl.searchParams.append('redirect_uri', provider.RedirectUri);
     authUrl.searchParams.append('response_type', 'code');
     
-    // Используем правильные scopes для каждого провайдера
-    const scope = getProviderScope(provider.Provider);
+    // Используем scopes из provider
+    const scope = getProviderScope(provider);
     authUrl.searchParams.append('scope', scope);
     authUrl.searchParams.append('state', provider.Provider);
     
@@ -42,21 +42,8 @@ const AuthProviders: React.FC = () => {
     window.location.href = authUrl.toString();
   };
 
-  const getProviderScope = (providerName: string) => {
-    switch (providerName.toLowerCase()) {
-      case 'yandex':
-        return 'login:email login:info';
-      case 'google':
-        return 'openid email profile';
-      case 'github':
-        return 'user:email';
-      case 'vk':
-        return 'email';
-      case 'telegram':
-        return 'email';
-      default:
-        return 'openid email profile';
-    }
+  const getProviderScope = (provider: AuthProvider) => {
+    return provider.Scopes ? provider.Scopes.join(' ') : '';
   };
 
   const getProviderDisplayName = (providerName: string) => {
