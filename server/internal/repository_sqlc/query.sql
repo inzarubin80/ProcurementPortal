@@ -159,7 +159,7 @@ LEFT JOIN user_exercises ue
   ON ue.exercise_id = e.id AND ue.user_id = $1
 
 LEFT JOIN exercise_stats es
-  ON es.exercise_id = e.id AND ue.user_id = $1
+  ON es.exercise_id = e.id AND es.user_id = $1
 
     JOIN categories c 
     ON c.id = e.category_id AND c.is_active = TRUE
@@ -255,7 +255,7 @@ SELECT COUNT(*) FROM user_exercises WHERE user_id = $1;
     FROM user_exercises ue
     JOIN exercises e ON e.id = ue.exercise_id AND e.is_active = TRUE
     JOIN categories c ON c.id = e.category_id AND c.is_active = TRUE
-    LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND ue.user_id = $1
+    LEFT JOIN exercise_stats es ON es.exercise_id = e.id AND es.user_id = $1
     WHERE 
        ue.user_id = $1
       AND ($2::varchar = '' OR c.programming_language = $2)
