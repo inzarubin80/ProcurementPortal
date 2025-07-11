@@ -81,6 +81,7 @@ func NewConfig(opts Options) config {
 	}
 
 	// Добавим GitHub провайдер для демонстрации
+	/*
 	provaders["github"] = &authinterface.ProviderOauthConf{
 		Oauth2Config: &oauth2.Config{
 			ClientID:     os.Getenv("CLIENT_ID_GITHUB"),
@@ -95,7 +96,7 @@ func NewConfig(opts Options) config {
 		UrlUserData: "https://api.github.com/user",
 		IconSVG:     icons.GetProviderIcon("github"),
 	}
-
+   */
 	config := config{
 		addr: opts.Addr,
 		path: path{
