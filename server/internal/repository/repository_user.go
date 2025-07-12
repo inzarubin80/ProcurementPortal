@@ -62,35 +62,6 @@ func (r *Repository) GetUser(ctx context.Context, userID model.UserID) (*model.U
 
 }
 
-func (r *Repository) GetUsersByIDs(ctx context.Context, userIDs []model.UserID) ([]*model.User, error) {
-
-	reposqlsc := sqlc_repository.New(r.conn)
-	arg := make([]int64, len(userIDs), len(userIDs))
-	for i, value := range userIDs {
-		arg[i] = int64(value)
-	}
-
-	users, err := reposqlsc.GetUsersByIDs(ctx, arg)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("%w: %v", model.ErrorNotFound, err)
-		}
-		return nil, err
-	}
-
-	usersRes := make([]*model.User, len(users))
-
-	for i, value := range users {
-		usersRes[i] = &model.User{
-			ID:      model.UserID(value.UserID),
-			Name:    value.Name,
-			IsAdmin: value.IsAdmin,
-		}
-	}
-
-	return usersRes, nil
-
-}
 
 func (r *Repository) GetAllUsers(ctx context.Context) ([]*model.User, error) {
 	reposqlsc := sqlc_repository.New(r.conn)

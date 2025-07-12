@@ -55,7 +55,10 @@ func (r *ExerciseRepository) CreateExercise(ctx context.Context, userID model.Us
 }
 
 func (r *ExerciseRepository) GetExercise(ctx context.Context, userID model.UserID, exerciseID int64) (*model.Exercise, error) {
-	sqlcExercise, err := r.queries.GetExercise(ctx, exerciseID)
+	sqlcExercise, err := r.queries.GetExercise(ctx, &sqlc_repository.GetExerciseParams{
+		ID: exerciseID,
+		UserID: int64(userID),
+	})
 	if err != nil {
 		return nil, err
 	}

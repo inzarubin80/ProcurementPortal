@@ -9,9 +9,6 @@ SET name = $1
 WHERE user_id = $2
 RETURNING user_id, name, evaluation_strategy, maximum_score, is_admin;
 
--- name: GetUsersByIDs :many
-SELECT user_id, name, evaluation_strategy, maximum_score, is_admin FROM users
-WHERE user_id = ANY($1::bigint[]);
 
 -- name: GetUserByID :one
 SELECT user_id, name, evaluation_strategy, maximum_score, is_admin FROM users
@@ -40,12 +37,14 @@ SELECT COUNT(*)
 FROM exercises as e 
  JOIN categories c 
     ON c.id = e.category_id AND c.is_active = TRUE
-WHERE e.user_id = $1 AND is_active = TRUE;
+WHERE e.user_id in ($1,0) AND is_active = TRUE;
 
 -- name: GetExercise :one
 SELECT e.id, e.user_id, e.title, e.description, e.category_id, e.programming_language, e.code_to_remember, e.created_at, e.updated_at, e.is_active, e.is_common
 FROM exercises e
-WHERE e.id = $1 AND e.is_active = TRUE;
+WHERE e.id = $1 AND e.is_active = TRUE
+AND e.user_id in($2,0) 
+;
 
 -- name: UpdateExercise :one
 UPDATE exercises SET
@@ -56,7 +55,7 @@ UPDATE exercises SET
     updated_at = NOW(),
     programming_language = $5,
     is_common = $6,
-    user_id = $10
+    user_id = $8
 WHERE id = $7
   AND is_active = TRUE
   AND ($9::boolean OR user_id = $8)
@@ -95,7 +94,7 @@ SELECT COUNT(*) FROM categories WHERE user_id in ($1, 0)  AND programming_langua
 -- name: GetCategory :one
 SELECT c.id, c.user_id, c.name, c.description, c.programming_language, c.color, c.icon, c.status, c.created_at, c.updated_at, c.is_active, c.is_common
 FROM categories c
-WHERE c.id = $1 AND c.user_id = $2 AND c.is_active = TRUE;
+WHERE c.id = $1 AND c.user_id in ($2,0) AND c.is_active = TRUE;
 
 -- name: UpdateCategory :one
 UPDATE categories SET
@@ -107,7 +106,7 @@ UPDATE categories SET
     status = $6,
     is_common = $7,
     updated_at = NOW(),
-    user_id = $11
+    user_id = $9
 WHERE id = $8
   AND is_active = TRUE
   AND ($10::boolean OR user_id = $9)

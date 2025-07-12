@@ -21,7 +21,6 @@ type (
 		GetUserAuthProvidersByProviderUid(ctx context.Context, ProviderUid string, Provider string) (*model.UserAuthProviders, error)
 		AddUserAuthProviders(ctx context.Context, userProfileFromProvide *model.UserProfileFromProvider, userID model.UserID) (*model.UserAuthProviders, error)
 		CreateUser(ctx context.Context, userData *model.UserProfileFromProvider) (*model.User, error)
-		GetUsersByIDs(ctx context.Context, userIDs []model.UserID) ([]*model.User, error)
 		SetUserName(ctx context.Context, userID model.UserID, name string) error
 		GetUser(ctx context.Context, userID model.UserID) (*model.User, error)
 		GetAllUsers(ctx context.Context) ([]*model.User, error)

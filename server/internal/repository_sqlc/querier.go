@@ -29,7 +29,7 @@ type Querier interface {
 	GetCategories(ctx context.Context, userID int64) ([]*Category, error)
 	GetCategoriesByLanguage(ctx context.Context, arg *GetCategoriesByLanguageParams) ([]*Category, error)
 	GetCategory(ctx context.Context, arg *GetCategoryParams) (*Category, error)
-	GetExercise(ctx context.Context, id int64) (*Exercise, error)
+	GetExercise(ctx context.Context, arg *GetExerciseParams) (*Exercise, error)
 	GetExerciseStat(ctx context.Context, arg *GetExerciseStatParams) (*ExerciseStat, error)
 	// $1: user_id, $2: programming_language, $3: category_id, $4: limit, $5: offset
 	GetExercisesFiltered(ctx context.Context, arg *GetExercisesFilteredParams) ([]*GetExercisesFilteredRow, error)
@@ -39,7 +39,6 @@ type Querier interface {
 	// $1: user_id, $2: programming_language, $3: category_id, $4: limit, $5: offset
 	GetUserExercisesFiltered(ctx context.Context, arg *GetUserExercisesFilteredParams) ([]*GetUserExercisesFilteredRow, error)
 	GetUserStats(ctx context.Context, dollar_1 int64) (*GetUserStatsRow, error)
-	GetUsersByIDs(ctx context.Context, dollar_1 []int64) ([]*User, error)
 	RemoveUserExercise(ctx context.Context, arg *RemoveUserExerciseParams) error
 	SetUserAdmin(ctx context.Context, arg *SetUserAdminParams) (*User, error)
 	UpdateCategory(ctx context.Context, arg *UpdateCategoryParams) (*Category, error)

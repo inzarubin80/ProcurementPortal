@@ -89,7 +89,7 @@ SELECT COUNT(*)
 FROM exercises as e 
  JOIN categories c 
     ON c.id = e.category_id AND c.is_active = TRUE
-WHERE e.user_id = $1 AND is_active = TRUE
+WHERE e.user_id in ($1,0) AND is_active = TRUE
 `
 
 func (q *Queries) CountExercises(ctx context.Context, userID int64) (int64, error) {
@@ -463,7 +463,7 @@ func (q *Queries) GetCategoriesByLanguage(ctx context.Context, arg *GetCategorie
 const getCategory = `-- name: GetCategory :one
 SELECT c.id, c.user_id, c.name, c.description, c.programming_language, c.color, c.icon, c.status, c.created_at, c.updated_at, c.is_active, c.is_common
 FROM categories c
-WHERE c.id = $1 AND c.user_id = $2 AND c.is_active = TRUE
+WHERE c.id = $1 AND c.user_id in ($2,0) AND c.is_active = TRUE
 `
 
 type GetCategoryParams struct {
@@ -495,10 +495,16 @@ const getExercise = `-- name: GetExercise :one
 SELECT e.id, e.user_id, e.title, e.description, e.category_id, e.programming_language, e.code_to_remember, e.created_at, e.updated_at, e.is_active, e.is_common
 FROM exercises e
 WHERE e.id = $1 AND e.is_active = TRUE
+AND e.user_id in($2,0)
 `
 
-func (q *Queries) GetExercise(ctx context.Context, id int64) (*Exercise, error) {
-	row := q.db.QueryRow(ctx, getExercise, id)
+type GetExerciseParams struct {
+	ID     int64
+	UserID int64
+}
+
+func (q *Queries) GetExercise(ctx context.Context, arg *GetExerciseParams) (*Exercise, error) {
+	row := q.db.QueryRow(ctx, getExercise, arg.ID, arg.UserID)
 	var i Exercise
 	err := row.Scan(
 		&i.ID,
@@ -876,37 +882,6 @@ func (q *Queries) GetUserStats(ctx context.Context, dollar_1 int64) (*GetUserSta
 	return &i, err
 }
 
-const getUsersByIDs = `-- name: GetUsersByIDs :many
-SELECT user_id, name, evaluation_strategy, maximum_score, is_admin FROM users
-WHERE user_id = ANY($1::bigint[])
-`
-
-func (q *Queries) GetUsersByIDs(ctx context.Context, dollar_1 []int64) ([]*User, error) {
-	rows, err := q.db.Query(ctx, getUsersByIDs, dollar_1)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []*User
-	for rows.Next() {
-		var i User
-		if err := rows.Scan(
-			&i.UserID,
-			&i.Name,
-			&i.EvaluationStrategy,
-			&i.MaximumScore,
-			&i.IsAdmin,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, &i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const removeUserExercise = `-- name: RemoveUserExercise :exec
 DELETE FROM user_exercises 
 WHERE user_id = $1 AND exercise_id = $2
@@ -954,7 +929,7 @@ UPDATE categories SET
     status = $6,
     is_common = $7,
     updated_at = NOW(),
-    user_id = $11
+    user_id = $9
 WHERE id = $8
   AND is_active = TRUE
   AND ($10::boolean OR user_id = $9)
@@ -972,7 +947,6 @@ type UpdateCategoryParams struct {
 	ID                  int64
 	UserID              int64
 	Column10            bool
-	UserID_2            int64
 }
 
 func (q *Queries) UpdateCategory(ctx context.Context, arg *UpdateCategoryParams) (*Category, error) {
@@ -987,7 +961,6 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg *UpdateCategoryParams)
 		arg.ID,
 		arg.UserID,
 		arg.Column10,
-		arg.UserID_2,
 	)
 	var i Category
 	err := row.Scan(
@@ -1016,7 +989,7 @@ UPDATE exercises SET
     updated_at = NOW(),
     programming_language = $5,
     is_common = $6,
-    user_id = $10
+    user_id = $8
 WHERE id = $7
   AND is_active = TRUE
   AND ($9::boolean OR user_id = $8)
@@ -1033,7 +1006,6 @@ type UpdateExerciseParams struct {
 	ID                  int64
 	UserID              int64
 	Column9             bool
-	UserID_2            int64
 }
 
 type UpdateExerciseRow struct {
@@ -1061,7 +1033,6 @@ func (q *Queries) UpdateExercise(ctx context.Context, arg *UpdateExerciseParams)
 		arg.ID,
 		arg.UserID,
 		arg.Column9,
-		arg.UserID_2,
 	)
 	var i UpdateExerciseRow
 	err := row.Scan(
