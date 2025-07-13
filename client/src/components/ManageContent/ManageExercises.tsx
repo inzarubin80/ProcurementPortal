@@ -64,11 +64,13 @@ const ManageExercises: React.FC = () => {
 
   const handleLanguageChange = (language: string) => {
     setSelectedLanguage(language);
+    // При изменении языка устанавливаем категорию "Все"
+    setSelectedCategory('all');
     dispatch(fetchExercises({
       page: 1,
       pageSize: 100,
       programming_language: language !== 'all' ? language : undefined,
-      category_id: selectedCategory !== 'all' ? selectedCategory : undefined
+      category_id: undefined // Убираем фильтр по категории при смене языка
     }));
   };
   const handleCategoryChange = (category: string) => {
@@ -143,7 +145,6 @@ const ManageExercises: React.FC = () => {
     }
   };
 
-  const filteredCategories = selectedLanguage === 'all' ? categories : categories.filter(c => c.programming_language && c.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
   const filteredExercises = exercises.filter(e => {
     const langMatch = selectedLanguage === 'all' || (e.exercise.programming_language && e.exercise.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
     const catMatch = selectedCategory === 'all' || (e.exercise.category_id && String(e.exercise.category_id) === String(selectedCategory));

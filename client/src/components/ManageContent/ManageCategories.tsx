@@ -4,10 +4,10 @@ import { RootState, AppDispatch } from '../../store';
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from '../../store/slices/categorySlice';
 import { fetchLanguages } from '../../store/slices/languageSlice';
 import CategoryTable from './CategoryTable';
+import FilterBar from './FilterBar';
 import EntityDialog from './EntityDialog';
 import { useEntityDialog, useSnackbar, useFormValidation } from '../../hooks';
-import { Container, Snackbar, Alert, FormControl, InputLabel, Select, MenuItem, Box, Button, Paper } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Container, Snackbar, Alert } from '@mui/material';
 
 const ManageCategories: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -102,7 +102,10 @@ const ManageCategories: React.FC = () => {
     setSelectedLanguage(language);
   };
 
-  const paginatedCategories = categories.slice((categoryPage - 1) * categoriesPerPage, categoryPage * categoriesPerPage);
+  const handleCategoryChange = (category: string) => {
+    // В ManageCategories фильтр по категории не используется
+  };
+
   const filteredCategories = selectedLanguage === 'all'
     ? categories
     : categories.filter(c => c.programming_language && c.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
@@ -113,30 +116,16 @@ const ManageCategories: React.FC = () => {
 
   return (
     <>
-      <Paper sx={{ mb: 4, bgcolor: 'white', borderRadius: 4, boxShadow: 2, p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Язык</InputLabel>
-            <Select value={selectedLanguage} label="Язык" onChange={(e) => handleLanguageChange(e.target.value)}>
-              <MenuItem value="all">Все языки</MenuItem>
-              {languages.map(l => (
-                <MenuItem key={l.value} value={l.value}>
-                  <span style={{verticalAlign: 'middle', marginRight: 8}} dangerouslySetInnerHTML={{__html: l.icon_svg}} />
-                  {l.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleAddClick}
-            sx={{ color: 'white', minWidth: 220, height: 48 }}
-          >
-            Добавить категорию
-          </Button>
-        </Box>
-      </Paper>
+      <FilterBar
+        selectedLanguage={selectedLanguage}
+        onLanguageChange={handleLanguageChange}
+        selectedCategory="all"
+        onCategoryChange={handleCategoryChange}
+        categories={categories}
+        onAddClick={handleAddClick}
+        languages={languages}
+        tab={1}
+      />
       <CategoryTable
         categories={filteredCategories}
         languages={languages}

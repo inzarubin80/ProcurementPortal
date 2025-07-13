@@ -35,6 +35,11 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onCategoryChange,
   categories,
 }) => {
+  // Фильтруем категории по выбранному языку
+  const filteredCategories = selectedLanguage === 'all' 
+    ? [] 
+    : categories.filter(c => c.programming_language && c.programming_language.toLowerCase() === selectedLanguage.toLowerCase());
+
   return (
     <Paper sx={{ mb: 4, bgcolor: 'white', borderRadius: 4, boxShadow: 2, p: 3 }}>
       <Grid container spacing={3} alignItems="center">
@@ -56,9 +61,14 @@ const FilterBar: React.FC<FilterBarProps> = ({
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>
               <InputLabel>Категория</InputLabel>
-              <Select value={selectedCategory} label="Категория" onChange={(e) => onCategoryChange(e.target.value)}>
+              <Select 
+                value={selectedCategory} 
+                label="Категория" 
+                onChange={(e) => onCategoryChange(e.target.value)}
+                disabled={selectedLanguage === 'all'}
+              >
                 <MenuItem value="all">Все категории</MenuItem>
-                {categories.map(c => (
+                {filteredCategories.map(c => (
                   <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
                 ))}
               </Select>
