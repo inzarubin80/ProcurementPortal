@@ -305,6 +305,10 @@ func (s *PokerService) GetUserAuthProvidersByUserID(ctx context.Context, userID 
 	return s.repository.GetUserAuthProvidersByUserID(ctx, userID)
 }
 
+func (s *PokerService) AddUserAuthProviders(ctx context.Context, userProfile *model.UserProfileFromProvider, userID model.UserID) (*model.UserAuthProviders, error) {
+	return s.repository.AddUserAuthProviders(ctx, userProfile, userID)
+}
+
 // Методы для refresh-токенов
 func (s *PokerService) CreateRefreshToken(ctx context.Context, token *model.RefreshToken) error {
 	return s.repository.CreateRefreshToken(ctx, token)

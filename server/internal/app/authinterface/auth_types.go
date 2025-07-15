@@ -20,10 +20,11 @@ type (
 	ProvidersUserData map[string]ProviderUserData
 
 	ProviderOauthConf struct {
-		Oauth2Config *oauth2.Config
-		UrlUserData  string
-		IconSVG      string
-		DisplayName  string
+		Oauth2Config     *oauth2.Config
+		UrlUserData      string
+		IconSVG          string
+		DisplayName      string
+		ProviderUserData ProviderUserData // Добавлено поле для получения user data
 	}
 
 	MapProviderOauthConf map[string]*ProviderOauthConf

@@ -4,6 +4,7 @@ import (
 	"os"
 
 	authinterface "inzarubin80/MemCode/internal/app/authinterface"
+	providerUserData "inzarubin80/MemCode/internal/app/clients/provider_user_data"
 	"inzarubin80/MemCode/internal/app/icons"
 
 	"golang.org/x/oauth2"
@@ -63,6 +64,13 @@ func NewConfig(opts Options) config {
 		UrlUserData: "https://login.yandex.ru/info?format=json",
 		IconSVG:     icons.GetProviderIcon("yandex"),
 		DisplayName: "Яндекс",
+		ProviderUserData: providerUserData.NewProviderUserData("https://login.yandex.ru/info?format=json", &oauth2.Config{
+			ClientID:     os.Getenv("CLIENT_ID_YANDEX"),
+			ClientSecret: os.Getenv("CLIENT_SECRET_YANDEX"),
+			RedirectURL:  os.Getenv("APP_ROOT") + "/auth/callback?provider=yandex",
+			Scopes:       []string{"login:info"},
+			Endpoint:     yandex.Endpoint,
+		}, "yandex"),
 	}
 
 	// Добавим Google провайдер для демонстрации
@@ -80,6 +88,16 @@ func NewConfig(opts Options) config {
 		UrlUserData: "https://www.googleapis.com/oauth2/v2/userinfo",
 		IconSVG:     icons.GetProviderIcon("google"),
 		DisplayName: "Google",
+		ProviderUserData: providerUserData.NewProviderUserData("https://www.googleapis.com/oauth2/v2/userinfo", &oauth2.Config{
+			ClientID:     os.Getenv("CLIENT_ID_GOOGLE"),
+			ClientSecret: os.Getenv("CLIENT_SECRET_GOOGLE"),
+			RedirectURL:  os.Getenv("APP_ROOT") + "/auth/callback?provider=google",
+			Scopes:       []string{"openid", "email", "profile"},
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://accounts.google.com/o/oauth2/auth",
+				TokenURL: "https://oauth2.googleapis.com/token",
+			},
+		}, "google"),
 	}
 
 	// Добавим GitHub провайдер для демонстрации

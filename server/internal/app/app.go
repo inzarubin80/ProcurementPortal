@@ -74,6 +74,7 @@ type (
 		// User auth providers
 		GetUserAuthProvidersByUserID(ctx context.Context, userID model.UserID) ([]*model.UserAuthProviders, error)
 		UnlinkProviderFromUser(ctx context.Context, userID model.UserID, provider string) error
+		AddUserAuthProviders(ctx context.Context, userProfile *model.UserProfileFromProvider, userID model.UserID) (*model.UserAuthProviders, error)
 	}
 
 	TokenService interface {
@@ -135,7 +136,7 @@ func (a *App) ListenAndServe() error {
 	a.mux.Handle(a.config.path.logOut, appHttp.NewLogOutHandlerHandler(a.pokerService, a.config.path.logOut, a.store))
 	a.mux.Handle(a.config.path.guestLogin, appHttp.NewGuestLoginHandler(a.pokerService, a.config.path.guestLogin, a.store))
 	a.mux.Handle("GET /api/user/providers", middleware.NewAuthMiddleware(appHttp.NewGetUserAuthProvidersHandler(a.pokerService, a.config.provadersConf), a.store, a.pokerService))
-	a.mux.Handle("GET /api/user/providers/link", middleware.NewAuthMiddleware(appHttp.NewLinkProviderHandler(a.store, a.config.provadersConf), a.store, a.pokerService))
+	a.mux.Handle("GET /api/user/providers/link", middleware.NewAuthMiddleware(appHttp.NewLinkProviderHandler(a.store, a.config.provadersConf, a.pokerService), a.store, a.pokerService))
 	a.mux.Handle("POST /api/user/providers/unlink", middleware.NewAuthMiddleware(appHttp.NewUnlinkProviderHandler(a.pokerService), a.store, a.pokerService))
 
 	// Languages handler (без авторизации)
@@ -187,7 +188,6 @@ func NewApp(ctx context.Context, config config, dbConn *pgxpool.Pool) (*App, err
 			"https://api.memo-code.ru",
 			"http://localhost:3000",
 			"http://localhost:8090",
-			
 		},
 		// Добавляем все необходимые методы
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"},
