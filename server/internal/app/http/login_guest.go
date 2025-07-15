@@ -64,7 +64,7 @@ func (h *GuestLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	session, _ := h.store.Get(r, defenitions.SessionAuthenticationName)
 	session.Options = &sessions.Options{
 		Path:     "/",
-		MaxAge:   86400 * 7,
+		MaxAge:   86400 * 100000,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteNoneMode,

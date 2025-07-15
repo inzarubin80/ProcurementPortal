@@ -7,7 +7,7 @@ import { updateUserName } from '../store/slices/userSlice';
 import { fetchProviders, fetchUserLinkedProviders } from '../store/slices/authProviderSlice';
 import { AuthProvider } from '../types/api';
 import axios from 'axios';
-import { authAxios } from '../service/http-common';
+import { authAxios, baseURL } from '../service/http-common';
 
 const Profile: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -85,9 +85,8 @@ const Profile: React.FC = () => {
     (p) => Array.isArray(linkedProviders) && linkedProviders.some ? !linkedProviders.some((lp) => lp.provider === p.Provider) : true
   );
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8090';
   const handleProviderAttach = (provider: AuthProvider) => {
-    window.location.href = `${API_URL}/api/user/providers/link?provider=${provider.Provider}`;
+    window.location.href = `${baseURL}/user/providers/link?provider=${provider.Provider}`;
   };
 
   // Получить первую букву имени для аватара

@@ -156,8 +156,8 @@ func NewApp(ctx context.Context, config config, dbConn *pgxpool.Pool) (*App, err
 	// Swagger UI
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
-	accessTokenService := tokenservice.NewtokenService([]byte(config.sectrets.accessTokenSecret), 30*time.Minute, model.Access_Token_Type)
-	refreshTokenService := tokenservice.NewtokenService([]byte(config.sectrets.refreshTokenSecret), 24*time.Hour, model.Refresh_Token_Type)
+	accessTokenService := tokenservice.NewtokenService([]byte(config.sectrets.accessTokenSecret), 1000*time.Minute, model.Access_Token_Type)
+	refreshTokenService := tokenservice.NewtokenService([]byte(config.sectrets.refreshTokenSecret), 10000*time.Hour, model.Refresh_Token_Type)
 
 	providerOauthConfFrontend := []authinterface.ProviderOauthConfFrontend{}
 	providers := make(authinterface.ProvidersUserData)

@@ -54,6 +54,8 @@ func (h *LinkProviderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	// Генерируем state с userID и типом действия link
 	state := fmt.Sprintf("link_%d_%d", userID, model.UserID(userID)) // Можно добавить csrf/random
+	
+
 	authURL := conf.Oauth2Config.AuthCodeURL(state /*opts*/)
 
 	http.Redirect(w, r, authURL, http.StatusFound)
