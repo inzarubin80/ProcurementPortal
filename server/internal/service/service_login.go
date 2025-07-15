@@ -71,11 +71,54 @@ func (s *PokerService) Login(ctx context.Context, providerKey string, authorizat
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &model.AuthData{
-		User:       *user,
+		User:         *user,
 		RefreshToken: refreshToken,
 		AccessToken:  accessToken,
 	}, nil
 
+}
+
+func (s *PokerService) CreateGuestUser(ctx context.Context, name string) (*model.User, error) {
+	// Создаём гостя через CreateUser, но без провайдера
+	userProfile := &model.UserProfileFromProvider{
+		ProviderID:   "guest_" + name,
+		Email:        "",
+		Name:         name,
+		FirstName:    "",
+		LastName:     "",
+		AvatarURL:    "",
+		ProviderName: "guest",
+	}
+	return s.repository.CreateUser(ctx, userProfile)
+}
+
+func (s *PokerService) GenerateTokens(ctx context.Context, user *model.User) (*model.AuthData, error) {
+	refreshToken, err := s.refreshTokenService.GenerateToken(user.ID, user.IsAdmin)
+	if err != nil {
+		return nil, err
+	}
+	refreshTokenModel := &model.RefreshToken{
+		UserID:    user.ID,
+		Token:     refreshToken,
+		IssuedAt:  time.Now().UTC(),
+		ExpiresAt: time.Now().UTC().Add(30 * 24 * time.Hour),
+		Revoked:   false,
+		UserAgent: "",
+		IPAddress: "",
+	}
+	err = s.CreateRefreshToken(ctx, refreshTokenModel)
+	if err != nil {
+		return nil, err
+	}
+	accessToken, err := s.accessTokenService.GenerateToken(user.ID, user.IsAdmin)
+	if err != nil {
+		return nil, err
+	}
+	return &model.AuthData{
+		User:         *user,
+		RefreshToken: refreshToken,
+		AccessToken:  accessToken,
+	}, nil
 }

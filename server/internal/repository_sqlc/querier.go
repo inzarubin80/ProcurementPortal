@@ -25,6 +25,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg *CreateUserParams) (*User, error)
 	DeleteCategory(ctx context.Context, arg *DeleteCategoryParams) error
 	DeleteExercise(ctx context.Context, arg *DeleteExerciseParams) error
+	DeleteUserAuthProviderByUserIDAndProvider(ctx context.Context, arg *DeleteUserAuthProviderByUserIDAndProviderParams) error
 	GetAllUsers(ctx context.Context) ([]*User, error)
 	GetCategories(ctx context.Context, userID int64) ([]*Category, error)
 	GetCategoriesByLanguage(ctx context.Context, arg *GetCategoriesByLanguageParams) ([]*Category, error)
@@ -34,6 +35,7 @@ type Querier interface {
 	// $1: user_id, $2: programming_language, $3: category_id, $4: limit, $5: offset
 	GetExercisesFiltered(ctx context.Context, arg *GetExercisesFilteredParams) ([]*GetExercisesFilteredRow, error)
 	GetUserAuthProvidersByProviderUid(ctx context.Context, arg *GetUserAuthProvidersByProviderUidParams) (*UserAuthProvider, error)
+	GetUserAuthProvidersByUserID(ctx context.Context, userID int64) ([]*UserAuthProvider, error)
 	GetUserByID(ctx context.Context, userID int64) (*User, error)
 	GetUserExerciseIDs(ctx context.Context, userID int64) ([]int64, error)
 	// $1: user_id, $2: programming_language, $3: category_id, $4: limit, $5: offset

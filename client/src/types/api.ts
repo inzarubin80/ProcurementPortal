@@ -124,6 +124,15 @@ export interface User {
   avatar_url?: string;
 }
 
+export interface UserAuthProvider {
+  provider: string;
+  provider_uid: string;
+  name: string;
+  user_id: number;
+  display_name?: string;
+  icon_svg?: string;
+}
+
 export interface AuthProvider {
   Provider: string;
   ClientId: string;
@@ -131,4 +140,5 @@ export interface AuthProvider {
   RedirectUri: string;
   IconSVG: string;
   Scopes: string[];
+  display_name?: string;
 } 

@@ -62,3 +62,25 @@ func (r *Repository) AddUserAuthProviders(ctx context.Context, userProfileFromPr
 	}, nil
 
 }
+
+func (r *Repository) GetUserAuthProvidersByUserID(ctx context.Context, userID model.UserID) ([]*model.UserAuthProviders, error) {
+	reposqlsc := sqlc_repository.New(r.conn)
+	rows, err := reposqlsc.GetUserAuthProvidersByUserID(ctx, int64(userID))
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*model.UserAuthProviders, 0, len(rows))
+	for _, row := range rows {
+		name := ""
+		if row.Name != nil {
+			name = *row.Name
+		}
+		res = append(res, &model.UserAuthProviders{
+			UserID:      model.UserID(row.UserID),
+			ProviderUid: row.ProviderUid,
+			Provider:    row.Provider,
+			Name:        name,
+		})
+	}
+	return res, nil
+}

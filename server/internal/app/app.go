@@ -66,6 +66,14 @@ type (
 		AddUserExercise(ctx context.Context, userID model.UserID, exerciseID int64) error
 		RemoveUserExercise(ctx context.Context, userID model.UserID, exerciseID int64) error
 		GetAllUsers(ctx context.Context) ([]*model.User, error)
+
+		// Guest login methods
+		CreateGuestUser(ctx context.Context, name string) (*model.User, error)
+		GenerateTokens(ctx context.Context, user *model.User) (*model.AuthData, error)
+
+		// User auth providers
+		GetUserAuthProvidersByUserID(ctx context.Context, userID model.UserID) ([]*model.UserAuthProviders, error)
+		UnlinkProviderFromUser(ctx context.Context, userID model.UserID, provider string) error
 	}
 
 	TokenService interface {
@@ -125,6 +133,10 @@ func (a *App) ListenAndServe() error {
 	a.mux.Handle(a.config.path.refreshToken, appHttp.NewRefreshTokenHandler(a.pokerService, a.config.path.refreshToken, a.store))
 	a.mux.Handle(a.config.path.getProviders, appHttp.NewProvadersHandler(a.providersOauthConfFrontend, a.config.path.refreshToken))
 	a.mux.Handle(a.config.path.logOut, appHttp.NewLogOutHandlerHandler(a.pokerService, a.config.path.logOut, a.store))
+	a.mux.Handle(a.config.path.guestLogin, appHttp.NewGuestLoginHandler(a.pokerService, a.config.path.guestLogin, a.store))
+	a.mux.Handle("GET /api/user/providers", middleware.NewAuthMiddleware(appHttp.NewGetUserAuthProvidersHandler(a.pokerService, a.config.provadersConf), a.store, a.pokerService))
+	a.mux.Handle("GET /api/user/providers/link", middleware.NewAuthMiddleware(appHttp.NewLinkProviderHandler(a.store, a.config.provadersConf), a.store, a.pokerService))
+	a.mux.Handle("POST /api/user/providers/unlink", middleware.NewAuthMiddleware(appHttp.NewUnlinkProviderHandler(a.pokerService), a.store, a.pokerService))
 
 	// Languages handler (без авторизации)
 	a.mux.Handle(a.config.path.getLanguages, appHttp.NewGetLanguagesHandler("get_languages"))
@@ -174,6 +186,8 @@ func NewApp(ctx context.Context, config config, dbConn *pgxpool.Pool) (*App, err
 			"https://memo-code.ru",
 			"https://api.memo-code.ru",
 			"http://localhost:3000",
+			"http://localhost:8090",
+			
 		},
 		// Добавляем все необходимые методы
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"},

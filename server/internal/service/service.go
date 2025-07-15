@@ -25,6 +25,7 @@ type (
 		GetUser(ctx context.Context, userID model.UserID) (*model.User, error)
 		GetAllUsers(ctx context.Context) ([]*model.User, error)
 		SetUserAdmin(ctx context.Context, userID model.UserID, isAdmin bool) (*model.User, error)
+		GetUserAuthProvidersByUserID(ctx context.Context, userID model.UserID) ([]*model.UserAuthProviders, error)
 
 		//Exercise
 		CreateExercise(ctx context.Context, userID model.UserID, isAdmin bool, exercise *model.Exercise) (*model.Exercise, error)
@@ -62,6 +63,8 @@ type (
 		DeleteRefreshTokenByToken(ctx context.Context, token string) error
 		DeleteAllUserRefreshTokens(ctx context.Context, userID model.UserID) error
 		CleanupExpiredTokens(ctx context.Context) error
+		LinkProviderToUser(ctx context.Context, userID model.UserID, providerKey string, authorizationCode string) error
+		UnlinkProviderFromUser(ctx context.Context, userID model.UserID, provider string) error
 	}
 
 	TokenService interface {
@@ -161,7 +164,6 @@ func (s *PokerService) CreateCategory(ctx context.Context, userID model.UserID, 
 		return nil, errors.New("only admin can create common categories")
 	}
 
-	
 	if category.IsCommon {
 		userID = 0
 	}
@@ -206,7 +208,6 @@ func (s *PokerService) UpdateCategory(ctx context.Context, userID model.UserID, 
 		}
 	}
 
-	
 	if category.IsCommon {
 		userID = 0
 	}
@@ -300,6 +301,10 @@ func (s *PokerService) SetUserAdmin(ctx context.Context, userID model.UserID, is
 	return s.repository.SetUserAdmin(ctx, userID, isAdmin)
 }
 
+func (s *PokerService) GetUserAuthProvidersByUserID(ctx context.Context, userID model.UserID) ([]*model.UserAuthProviders, error) {
+	return s.repository.GetUserAuthProvidersByUserID(ctx, userID)
+}
+
 // Методы для refresh-токенов
 func (s *PokerService) CreateRefreshToken(ctx context.Context, token *model.RefreshToken) error {
 	return s.repository.CreateRefreshToken(ctx, token)
@@ -323,4 +328,21 @@ func (s *PokerService) DeleteAllUserRefreshTokens(ctx context.Context, userID mo
 
 func (s *PokerService) CleanupExpiredTokens(ctx context.Context) error {
 	return s.repository.CleanupExpiredTokens(ctx)
+}
+
+func (s *PokerService) LinkProviderToUser(ctx context.Context, userID model.UserID, providerKey string, authorizationCode string) error {
+	provider, ok := s.providersUserData[providerKey]
+	if !ok {
+		return errors.New("provider not found")
+	}
+	userProfileFromProvider, err := provider.GetUserData(ctx, authorizationCode)
+	if err != nil {
+		return err
+	}
+	_, err = s.repository.AddUserAuthProviders(ctx, userProfileFromProvider, userID)
+	return err
+}
+
+func (s *PokerService) UnlinkProviderFromUser(ctx context.Context, userID model.UserID, provider string) error {
+	return s.repository.UnlinkProviderFromUser(ctx, userID, provider)
 }

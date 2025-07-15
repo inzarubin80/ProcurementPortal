@@ -1,4 +1,4 @@
-import { authAxios } from './http-common';
+import { authAxios, publicAxios } from './http-common';
 import { ExerciseListWithUserResponse } from '../types/api';
 
 export interface UserExercisesFilters {
@@ -43,5 +43,11 @@ export const userExercisesApi = {
   // Удалить упражнение из списка пользователя
   removeUserExercise: async (exerciseId: number): Promise<void> => {
     await authAxios.delete(`/user/exercises/remove?exercise_id=${exerciseId.toString()}`);
-  }
+  },
+
+  // Анонимный вход (гость)
+  guestLogin: async () => {
+    const response = await publicAxios.post('/user/guest_login');
+    return response.data;
+  },
 }; 

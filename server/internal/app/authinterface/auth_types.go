@@ -23,6 +23,7 @@ type (
 		Oauth2Config *oauth2.Config
 		UrlUserData  string
 		IconSVG      string
+		DisplayName  string
 	}
 
 	MapProviderOauthConf map[string]*ProviderOauthConf

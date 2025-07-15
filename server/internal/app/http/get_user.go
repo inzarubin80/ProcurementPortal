@@ -8,6 +8,8 @@ import (
 	"inzarubin80/MemCode/internal/model"
 	"net/http"
 
+	"inzarubin80/MemCode/internal/app/authinterface"
+
 	"github.com/gorilla/sessions"
 )
 
@@ -34,6 +36,10 @@ type (
 		SetUserAdmin(ctx context.Context, userID model.UserID, isAdmin bool) (*model.User, error)
 	}
 
+	GetUserAuthProvidersService interface {
+		GetUserAuthProvidersByUserID(ctx context.Context, userID model.UserID) ([]*model.UserAuthProviders, error)
+	}
+
 	GetAllUsersHandler struct {
 		name    string
 		store   *sessions.CookieStore
@@ -50,6 +56,11 @@ type (
 		name    string
 		store   *sessions.CookieStore
 		service SetUserAdminService
+	}
+
+	GetUserAuthProvidersHandler struct {
+		service       GetUserAuthProvidersService
+		provadersConf authinterface.MapProviderOauthConf
 	}
 )
 
@@ -136,6 +147,49 @@ func (h *SetUserAdminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	jsonData, err := json.Marshal(user)
+	if err != nil {
+		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	uhttp.SendSuccessfulResponse(w, jsonData)
+}
+
+func NewGetUserAuthProvidersHandler(service GetUserAuthProvidersService, provadersConf authinterface.MapProviderOauthConf) *GetUserAuthProvidersHandler {
+	return &GetUserAuthProvidersHandler{service: service, provadersConf: provadersConf}
+}
+
+func (h *GetUserAuthProvidersHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userID, ok := ctx.Value(defenitions.UserIDKey).(model.UserID)
+	if !ok {
+		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
+		return
+	}
+	providers, err := h.service.GetUserAuthProvidersByUserID(ctx, userID)
+	if err != nil {
+		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	var result []map[string]interface{}
+	for _, p := range providers {
+		displayName := p.Provider
+		iconSVG := ""
+		if conf, ok := h.provadersConf[p.Provider]; ok {
+			displayName = conf.DisplayName
+			iconSVG = conf.IconSVG
+		}
+		result = append(result, map[string]interface{}{
+			"user_id":      p.UserID,
+			"provider_uid": p.ProviderUid,
+			"provider":     p.Provider,
+			"name":         p.Name,
+			"display_name": displayName,
+			"icon_svg":     iconSVG,
+		})
+	}
+
+	jsonData, err := json.Marshal(result)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

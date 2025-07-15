@@ -2,10 +2,14 @@
 
 const TOKEN_KEY = 'accessToken';
 const USER_ID_KEY = 'userID';
+const USER_NAME_KEY = 'userName';
 
-export function setStoredAuth(token: string, userID: number) {
+export function setStoredAuth(token: string, userID: number, userName?: string) {
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(USER_ID_KEY, userID.toString());
+  if (userName !== undefined) {
+    localStorage.setItem(USER_NAME_KEY, userName);
+  }
 }
 
 export function getStoredToken(): string | null {
@@ -17,9 +21,14 @@ export function getStoredUserID(): number | null {
   return id ? Number(id) : null;
 }
 
+export function getStoredUserName(): string | null {
+  return localStorage.getItem(USER_NAME_KEY);
+}
+
 export function clearStoredAuth() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_ID_KEY);
+  localStorage.removeItem(USER_NAME_KEY);
 }
 
 export function isTokenValid(): boolean {
@@ -28,10 +37,11 @@ export function isTokenValid(): boolean {
 }
 
 // Функция для получения сохраненных данных пользователя
-export function getStoredUserData(): { token: string | null; userID: number | null } {
+export function getStoredUserData(): { token: string | null; userID: number | null; userName: string | null } {
   return {
     token: getStoredToken(),
     userID: getStoredUserID(),
+    userName: getStoredUserName(),
   };
 }
 

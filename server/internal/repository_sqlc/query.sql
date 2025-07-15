@@ -295,3 +295,11 @@ SELECT user_id, name, evaluation_strategy, maximum_score, is_admin FROM users;
 -- name: SetUserAdmin :one
 UPDATE users SET is_admin = $2 WHERE user_id = $1 RETURNING user_id, name, evaluation_strategy, maximum_score, is_admin;
 
+-- name: GetUserAuthProvidersByUserID :many
+SELECT user_id, provider_uid, provider, name FROM user_auth_providers
+WHERE user_id = $1;
+
+-- name: DeleteUserAuthProviderByUserIDAndProvider :exec
+DELETE FROM user_auth_providers
+WHERE user_id = $1 AND provider = $2;
+

@@ -2,10 +2,10 @@ package http
 
 import (
 	"context"
+	"encoding/json"
 	"inzarubin80/MemCode/internal/app/defenitions"
 	"inzarubin80/MemCode/internal/app/uhttp"
 	"inzarubin80/MemCode/internal/model"
-	"io"
 	"net/http"
 )
 
@@ -46,17 +46,27 @@ func (h *SetUserNameHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, "not user ID")
 	}
 
-	body, err := io.ReadAll(r.Body)
+	var req struct {
+		Name string `json:"name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		uhttp.SendErrorResponse(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	var err error
+	err = h.service.SetUserName(ctx, model.UserID(userID), req.Name)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	err = h.service.SetUserName(ctx, model.UserID(userID), string(body))
+	resp := map[string]string{"name": req.Name}
+	jsonData, err := json.Marshal(resp)
 	if err != nil {
 		uhttp.SendErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-
-	uhttp.SendSuccessfulResponse(w, []byte("{}"))
+	uhttp.SendSuccessfulResponse(w, jsonData)
 
 }

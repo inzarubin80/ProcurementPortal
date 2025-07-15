@@ -16,7 +16,7 @@ type (
 	}
 	path struct {
 		index, login, session, refreshToken, logOut, getProviders,
-		ping, setUserName, getUser string
+		ping, setUserName, getUser, guestLogin string
 
 		// Exercise routes
 		getExercises, createExercise, getExercise, updateExercise, deleteExercise string
@@ -62,6 +62,7 @@ func NewConfig(opts Options) config {
 		},
 		UrlUserData: "https://login.yandex.ru/info?format=json",
 		IconSVG:     icons.GetProviderIcon("yandex"),
+		DisplayName: "Яндекс",
 	}
 
 	// Добавим Google провайдер для демонстрации
@@ -78,25 +79,26 @@ func NewConfig(opts Options) config {
 		},
 		UrlUserData: "https://www.googleapis.com/oauth2/v2/userinfo",
 		IconSVG:     icons.GetProviderIcon("google"),
+		DisplayName: "Google",
 	}
 
 	// Добавим GitHub провайдер для демонстрации
 	/*
-	provaders["github"] = &authinterface.ProviderOauthConf{
-		Oauth2Config: &oauth2.Config{
-			ClientID:     os.Getenv("CLIENT_ID_GITHUB"),
-			ClientSecret: os.Getenv("CLIENT_SECRET_GITHUB"),
-			RedirectURL:  os.Getenv("APP_ROOT") + "/auth/callback?provider=github",
-			Scopes:       []string{"user:email"},
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  "https://github.com/login/oauth/authorize",
-				TokenURL: "https://github.com/login/oauth/access_token",
+		provaders["github"] = &authinterface.ProviderOauthConf{
+			Oauth2Config: &oauth2.Config{
+				ClientID:     os.Getenv("CLIENT_ID_GITHUB"),
+				ClientSecret: os.Getenv("CLIENT_SECRET_GITHUB"),
+				RedirectURL:  os.Getenv("APP_ROOT") + "/auth/callback?provider=github",
+				Scopes:       []string{"user:email"},
+				Endpoint: oauth2.Endpoint{
+					AuthURL:  "https://github.com/login/oauth/authorize",
+					TokenURL: "https://github.com/login/oauth/access_token",
+				},
 			},
-		},
-		UrlUserData: "https://api.github.com/user",
-		IconSVG:     icons.GetProviderIcon("github"),
-	}
-   */
+			UrlUserData: "https://api.github.com/user",
+			IconSVG:     icons.GetProviderIcon("github"),
+		}
+	*/
 	config := config{
 		addr: opts.Addr,
 		path: path{
@@ -109,6 +111,7 @@ func NewConfig(opts Options) config {
 			refreshToken: "POST	/api/user/refresh",
 			session:      "GET		/api/user/session",
 			logOut:       "GET		/api/user/logout",
+			guestLogin:   "POST   /api/user/guest_login",
 
 			// Exercise routes
 			getExercises:   "GET    /api/exercises",

@@ -1,10 +1,34 @@
-import React from 'react';
-import { Box, Container, Typography, useTheme, useMediaQuery } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Container, Typography, useTheme, useMediaQuery, Button, CircularProgress, Alert } from '@mui/material';
 import AuthProviders from '../../components/AuthProviders';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../store';
+import { guestLoginUser } from '../../store/slices/userSlice';
+import { userExercisesApi } from '../../service/userExercisesApi';
 
 const Login: React.FC = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const dispatch = useDispatch<AppDispatch>();
+
+    const handleGuestLogin = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const resultAction = await dispatch(guestLoginUser());
+            if (guestLoginUser.fulfilled.match(resultAction)) {
+                window.location.href = '/'; // редирект на главную после входа
+            } else {
+                setError(resultAction.payload as string || 'Ошибка анонимного входа');
+            }
+        } catch (e: any) {
+            setError(e?.response?.data?.message || 'Ошибка анонимного входа');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <Container maxWidth="sm" sx={{ px: isMobile ? 2 : 3 }}>
@@ -61,7 +85,8 @@ const Login: React.FC = () => {
                     <AuthProviders />
                 </Box>
 
-              
+                {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+
                 {/* Дополнительный мотивационный текст */}
                 <Typography
                     variant="caption"

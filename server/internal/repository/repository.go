@@ -176,3 +176,17 @@ func (r *Repository) CleanupExpiredTokens(ctx context.Context) error {
 	_, err := r.conn.Exec(ctx, `DELETE FROM refresh_tokens WHERE expires_at < NOW() OR revoked = TRUE`)
 	return err
 }
+
+func (r *Repository) LinkProviderToUser(ctx context.Context, userID model.UserID, providerKey string, authorizationCode string) error {
+	// Здесь должна быть логика получения userProfileFromProvider через providerKey и authorizationCode
+	// Для совместимости с сервисом, но обычно вызывается только из service
+	return nil // Заглушка, не используется напрямую
+}
+
+func (r *Repository) UnlinkProviderFromUser(ctx context.Context, userID model.UserID, provider string) error {
+	reposqlsc := sqlc_repository.New(r.conn)
+	return reposqlsc.DeleteUserAuthProviderByUserIDAndProvider(ctx, &sqlc_repository.DeleteUserAuthProviderByUserIDAndProviderParams{
+		UserID:   int64(userID),
+		Provider: provider,
+	})
+}

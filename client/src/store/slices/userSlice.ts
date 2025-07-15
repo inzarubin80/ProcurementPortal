@@ -152,6 +152,21 @@ export const restoreUserState = createAsyncThunk(
   }
 );
 
+// Async thunk для анонимного входа (guest login)
+export const guestLoginUser = createAsyncThunk(
+  'user/guestLogin',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await publicAxios.post('/user/guest_login', {}, {
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Guest login failed');
+    }
+  }
+);
+
 // Создание slice
 const userSlice = createSlice({
   name: 'user',
@@ -195,6 +210,23 @@ const userSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+      // Guest login
+      .addCase(guestLoginUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(guestLoginUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.accessToken = action.payload.access_token;
+        state.isAuthenticated = true;
+        state.error = null;
+        setStoredAuth(action.payload.access_token, action.payload.user.user_id);
+      })
+      .addCase(guestLoginUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
       
       // refreshAccessTokennpm
       .addCase(refreshAccessToken.pending, (state) => {
@@ -227,7 +259,7 @@ const userSlice = createSlice({
         state.error = null;
         // Сохраняем данные пользователя в localStorage
         if (action.payload && action.payload.user.user_id) {
-          setStoredAuth(getStoredToken() || '', action.payload.user.user_id);
+          setStoredAuth(getStoredToken() || '', action.payload.user.user_id, action.payload.user.name);
         }
       })
       .addCase(initializeUserState.rejected, (state, action) => {
@@ -237,6 +269,16 @@ const userSlice = createSlice({
         state.accessToken = null;
         state.error = action.payload as string;
         clearStoredAuth();
+      })
+
+      // Update user name
+      .addCase(updateUserName.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (state.user) {
+          state.user.name = action.payload.name || state.user.name;
+          setStoredAuth(state.accessToken || '', state.user.user_id, state.user.name);
+        }
+        state.error = null;
       })
 
       // Get user

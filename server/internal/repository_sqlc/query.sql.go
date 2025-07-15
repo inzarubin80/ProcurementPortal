@@ -338,6 +338,21 @@ func (q *Queries) DeleteExercise(ctx context.Context, arg *DeleteExerciseParams)
 	return err
 }
 
+const deleteUserAuthProviderByUserIDAndProvider = `-- name: DeleteUserAuthProviderByUserIDAndProvider :exec
+DELETE FROM user_auth_providers
+WHERE user_id = $1 AND provider = $2
+`
+
+type DeleteUserAuthProviderByUserIDAndProviderParams struct {
+	UserID   int64
+	Provider string
+}
+
+func (q *Queries) DeleteUserAuthProviderByUserIDAndProvider(ctx context.Context, arg *DeleteUserAuthProviderByUserIDAndProviderParams) error {
+	_, err := q.db.Exec(ctx, deleteUserAuthProviderByUserIDAndProvider, arg.UserID, arg.Provider)
+	return err
+}
+
 const getAllUsers = `-- name: GetAllUsers :many
 SELECT user_id, name, evaluation_strategy, maximum_score, is_admin FROM users
 `
@@ -687,6 +702,36 @@ func (q *Queries) GetUserAuthProvidersByProviderUid(ctx context.Context, arg *Ge
 		&i.Name,
 	)
 	return &i, err
+}
+
+const getUserAuthProvidersByUserID = `-- name: GetUserAuthProvidersByUserID :many
+SELECT user_id, provider_uid, provider, name FROM user_auth_providers
+WHERE user_id = $1
+`
+
+func (q *Queries) GetUserAuthProvidersByUserID(ctx context.Context, userID int64) ([]*UserAuthProvider, error) {
+	rows, err := q.db.Query(ctx, getUserAuthProvidersByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*UserAuthProvider
+	for rows.Next() {
+		var i UserAuthProvider
+		if err := rows.Scan(
+			&i.UserID,
+			&i.ProviderUid,
+			&i.Provider,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getUserByID = `-- name: GetUserByID :one
