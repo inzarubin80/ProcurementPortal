@@ -49,7 +49,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     <Card variant="outlined" sx={{ borderRadius: 3, boxShadow: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
       {/* Удалить LockIcon с position: absolute сверху */}
       <CardContent sx={{ pb: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
+        <Box className="first-line" sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
           {/* Показываем меню только если задача не общая или пользователь админ, иначе замок */}
           {(!exerciseDetailse.exercise.is_common || user?.is_admin) ? (
             <IconButton onClick={handleMenuOpen} sx={{ mr: 1 }}>
