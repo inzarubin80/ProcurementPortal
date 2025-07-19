@@ -71,7 +71,15 @@ const ExerciseCard: React.FC = () => {
   const [errorCount, setErrorCount] = useState(0);
   const [openDiffModal, setOpenDiffModal] = useState(false);
   const [openSolutionModal, setOpenSolutionModal] = useState(false);
+  const [showExpandCode, setShowExpandCode] = useState(false); // показывать ли кнопку "Показать полностью"
+  const [openFullCodeModal, setOpenFullCodeModal] = useState(false); // открыто ли модальное окно с кодом
   const theme = useTheme();
+
+  // --- вычисляем высоту редактора по количеству строк ---
+  const codeToRemember = exercise?.exercise?.code_to_remember || '';
+  const codeLines = codeToRemember.split('\n').length;
+  const lineHeight = 22; // px, примерная высота строки в Monaco
+  const codeEditorHeight = codeLines * lineHeight + 16; // без лимита
 
   // Индекс текущей задачи и id следующей - мемоизируем для оптимизации
   const currentIndex = React.useMemo(() => exercises.findIndex(e => e.exercise.id === numericId), [exercises, numericId]);
@@ -322,6 +330,14 @@ const ExerciseCard: React.FC = () => {
     // eslint-disable-next-line
   }, [exercise]);
 
+  // --- функция для проверки необходимости кнопки ---
+  const codeBoxRef = React.useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isStarted && codeBoxRef.current) {
+      const el = codeBoxRef.current;
+      setShowExpandCode(el.scrollHeight > el.clientHeight + 2); // небольшой запас
+    }
+  }, [exercise, isStarted]);
 
 
   // Клавиатурные сокращения
@@ -486,23 +502,65 @@ const ExerciseCard: React.FC = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontStyle: 'italic' }}>
             Внимательно изучите код, затем нажмите "Начать выполнение" для его воспроизведения
           </Typography>
+          {/* --- авторасширяемый блок с кодом --- */}
           <Box sx={{ position: 'relative', mb: 2 }}>
-            <Paper
-              variant="outlined"
-              sx={{ borderRadius: 2, overflow: 'hidden', background: '#fffde7', boxShadow: 0, userSelect: 'none' }}
+            <div
+              style={{
+                borderRadius: 8,
+                background: '#fffde7',
+                border: '1px solid #e0e0e0',
+                boxShadow: 'none',
+                userSelect: 'none',
+              }}
               onContextMenu={e => e.preventDefault()}
               onCopy={e => e.preventDefault()}
               onCut={e => e.preventDefault()}
               onPaste={e => e.preventDefault()}
             >
               <CustomMonacoEditor
-                height="180px"
+                height={codeEditorHeight + 'px'}
                 defaultLanguage={getMonacoLanguage(exercise.exercise.programming_language)}
                 value={exercise.exercise.code_to_remember}
-                options={{ readOnly: true, fontSize: 16, minimap: { enabled: false }, scrollBeyondLastLine: false }}
+                options={{ readOnly: true, fontSize: 16, minimap: { enabled: false }, scrollBeyondLastLine: false, wordWrap: 'on' }}
               />
-            </Paper>
+            </div>
           </Box>
+          {/* --- модальное окно для полного кода --- */}
+          <Dialog
+            open={openFullCodeModal}
+            onClose={() => setOpenFullCodeModal(false)}
+            maxWidth="lg"
+            fullWidth
+            PaperProps={{ sx: { borderRadius: 3, maxHeight: '90vh' } }}
+          >
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f5f5f5', borderBottom: '2px solid #e0e0e0' }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                📋 Код для повторения (полностью)
+              </Typography>
+              <IconButton onClick={() => setOpenFullCodeModal(false)} sx={{ color: '#666' }}>
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent sx={{ p: 3 }}>
+              <Paper
+                variant="outlined"
+                sx={{ borderRadius: 2, overflow: 'hidden', background: '#fafafa', border: '1px solid #e0e0e0' }}
+              >
+                <CustomMonacoEditor
+                  height="500px"
+                  defaultLanguage={getMonacoLanguage(exercise?.exercise.programming_language)}
+                  value={exercise?.exercise.code_to_remember || ''}
+                  options={{ readOnly: true, fontSize: 16, minimap: { enabled: false }, scrollBeyondLastLine: false, lineNumbers: 'on', theme: 'vs-light', wordWrap: 'on' }}
+                />
+              </Paper>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
+              <Button onClick={() => setOpenFullCodeModal(false)} variant="contained" sx={{ borderRadius: 2, fontWeight: 'bold' }}>
+                Закрыть
+              </Button>
+            </DialogActions>
+          </Dialog>
+          {/* --- конец модального окна --- */}
           <Box
             sx={{
               display: 'flex',
